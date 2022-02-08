@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="format-detection" content="telephone=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black"><link rel="icon" href="https://gitee.com/BothSavage/PicGo/raw/master/image/favicon-16x16.png?v=2.6.2" type="image/png" sizes="16x16"><link rel="icon" href="https://gitee.com/BothSavage/PicGo/raw/master/image/favicon-32x32.png?v=2.6.2" type="image/png" sizes="32x32"><meta name="description" content="sklearn.svm.SVC()        1234class sklearn.svm.SVC(*, C&#x3D;1.0, kernel&#x3D;&amp;#x27;rbf&amp;#x27;, degree&#x3D;3, gamma&#x3D;&amp;#x27;scale&amp;#x27;, coef0&#x3D;0.0, shrinking&#x3D;True, probability&#x3D;False, tol&#x3D;0.001, cache_size&#x3D;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sklearn学习-SVM">
+<meta property="og:url" content="http://example.com/2021/12/07/sklearn%E5%AD%A6%E4%B9%A0-SVM/index.html">
+<meta property="og:site_name" content="打火机烧水">
+<meta property="og:description" content="sklearn.svm.SVC()        1234class sklearn.svm.SVC(*, C&#x3D;1.0, kernel&#x3D;&amp;#x27;rbf&amp;#x27;, degree&#x3D;3, gamma&#x3D;&amp;#x27;scale&amp;#x27;, coef0&#x3D;0.0, shrinking&#x3D;True, probability&#x3D;False, tol&#x3D;0.001, cache_size&#x3D;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20210513201737113.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nw==,size_16,color_FFFFFF,t_70">
+<meta property="og:image" content="https://img-blog.csdnimg.cn/20210513201743339.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nw==,size_16,color_FFFFFF,t_70">
+<meta property="article:published_time" content="2021-12-07T11:29:53.000Z">
+<meta property="article:modified_time" content="2021-12-08T08:54:50.738Z">
+<meta property="article:author" content="打火机烧水">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="sklearn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img-blog.csdnimg.cn/20210513201737113.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nw==,size_16,color_FFFFFF,t_70"><title>sklearn学习-SVM | 打火机烧水</title><link ref="canonical" href="http://example.com/2021/12/07/sklearn%E5%AD%A6%E4%B9%A0-SVM/"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.12.1/css/all.min.css" type="text/css"><link rel="stylesheet" href="/css/index.css?v=2.6.2"><script>var Stun = window.Stun || {};
+var CONFIG = {
+  root: '/',
+  algolia: undefined,
+  assistSearch: undefined,
+  fontIcon: {"prompt":{"success":"fas fa-check-circle","info":"fas fa-arrow-circle-right","warning":"fas fa-exclamation-circle","error":"fas fa-times-circle"},"copyBtn":"fas fa-copy"},
+  sidebar: {"offsetTop":"20px","tocMaxDepth":6},
+  header: {"enable":true,"showOnPost":true,"scrollDownIcon":false},
+  postWidget: {"endText":true},
+  nightMode: {"enable":true},
+  back2top: {"enable":true},
+  codeblock: {"style":"default","highlight":"light","wordWrap":false},
+  reward: false,
+  fancybox: false,
+  zoomImage: {"gapAside":"20px"},
+  galleryWaterfall: undefined,
+  lazyload: false,
+  pjax: undefined,
+  externalLink: {"icon":{"enable":true,"name":"fas fa-external-link-alt"}},
+  shortcuts: undefined,
+  prompt: {"copyButton":"复制","copySuccess":"复制成功","copyError":"复制失败"},
+  sourcePath: {"js":"js","css":"css","images":"images"},
+};
+
+window.CONFIG = CONFIG;</script><meta name="generator" content="Hexo 5.4.0"></head><body><div class="container" id="container"><header class="header" id="header"><div class="header-inner"><nav class="header-nav header-nav--fixed"><div class="header-nav-inner"><div class="header-nav-menubtn"><i class="fas fa-bars"></i></div><div class="header-nav-menu"><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/"><span class="header-nav-menu-item__icon"><i class="fas fa-home"></i></span><span class="header-nav-menu-item__text">首页</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/archives/"><span class="header-nav-menu-item__icon"><i class="fas fa-folder-open"></i></span><span class="header-nav-menu-item__text">归档</span></a></div><div class="header-nav-menu-item"><a class="header-nav-menu-item__link" href="/tags/"><span class="header-nav-menu-item__icon"><i class="fas fa-tags"></i></span><span class="header-nav-menu-item__text">标签</span></a></div></div><div class="header-nav-mode"><div class="mode"><div class="mode-track"><span class="mode-track-moon"></span><span class="mode-track-sun"></span></div><div class="mode-thumb"></div></div></div></div></nav><div class="header-banner"><div class="header-banner-info"><div class="header-banner-info__title">打火机烧水</div><div class="header-banner-info__subtitle"></div></div></div></div></header><main class="main" id="main"><div class="main-inner"><div class="content-wrap" id="content-wrap"><div class="content" id="content"><!-- Just used to judge whether it is an article page--><div id="is-post"></div><div class="post"><header class="post-header"><h1 class="post-title">sklearn学习-SVM</h1><div class="post-meta"><span class="post-meta-item post-meta-item--createtime"><span class="post-meta-item__icon"><i class="far fa-calendar-plus"></i></span><span class="post-meta-item__info">发表于</span><span class="post-meta-item__value">2021-12-07</span></span><span class="post-meta-item post-meta-item--updatetime"><span class="post-meta-item__icon"><i class="far fa-calendar-check"></i></span><span class="post-meta-item__info">更新于</span><span class="post-meta-item__value">2021-12-08</span></span></div></header><div class="post-body">
+        <h1 id="sklearnsvmsvc"   >
+          <a href="#sklearnsvmsvc" class="heading-link"><i class="fas fa-link"></i></a><a class="markdownIt-Anchor" href="#sklearnsvmsvc"></a> sklearn.svm.SVC()</h1>
+      
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">sklearn</span>.<span class="title">svm</span>.<span class="title">SVC</span>(<span class="params">*, C=<span class="number">1.0</span>, kernel=<span class="string">&#x27;rbf&#x27;</span>, degree=<span class="number">3</span>, gamma=<span class="string">&#x27;scale&#x27;</span>,</span></span></span><br><span class="line"><span class="params"><span class="class"> coef0=<span class="number">0.0</span>, shrinking=<span class="literal">True</span>, probability=<span class="literal">False</span>, tol=<span class="number">0.001</span>, cache_size=<span class="number">200</span>,</span></span></span><br><span class="line"><span class="params"><span class="class">  class_weight=<span class="literal">None</span>, verbose=<span class="literal">False</span>, max_iter=- <span class="number">1</span>,</span></span></span><br><span class="line"><span class="params"><span class="class">   decision_function_shape=<span class="string">&#x27;ovr&#x27;</span>, break_ties=<span class="literal">False</span>, random_state=<span class="literal">None</span></span>)[<span class="title">source</span>]</span></span><br></pre></td></tr></table></div></figure>
+<span id="more"></span>
+<p><strong>参数解析：</strong></p>
+<p><font color="#AA0000">英文解释：</font></p>
+<div class="table-container"><table>
+<thead>
+<tr>
+<th>C</th>
+<th>float, default=1.0</th>
+<th>Regularization parameter. The strength of the regularization is inversely proportional to C. Must be strictly positive. The penalty is a squared l2 penalty.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kernel</td>
+<td>{‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’}, default=’rbf’</td>
+<td>Specifies the kernel type to be used in the algorithm. It must be one of ‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’ or a callable. If none is given, ‘rbf’ will be used. If a callable is given it is used to pre-compute the kernel matrix from data matrices; that matrix should be an array of shape (n_samples, n_samples).</td>
+</tr>
+<tr>
+<td>degree</td>
+<td>int, default=3</td>
+<td>Degree of the polynomial kernel function (‘poly’). Ignored by all other kernels.</td>
+</tr>
+<tr>
+<td>gamma</td>
+<td>{‘scale’, ‘auto’} or float, default=’scale’</td>
+<td>Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigmoid’.       - - -if gamma=‘scale’ (default) is passed then it uses 1 / (n_features * X.var()) as value of gamma,- - -if ‘auto’, uses 1 / n_features.Changed in version 0.22: The default value of gamma changed from ‘auto’ to ‘scale’.</td>
+</tr>
+<tr>
+<td>coef0</td>
+<td>float, default=0.0</td>
+<td>Independent term in kernel function. It is only significant in ‘poly’ and ‘sigmoid’.</td>
+</tr>
+<tr>
+<td>shrinking</td>
+<td>bool, default=True</td>
+<td>Whether to use the shrinking heuristic. See the User Guide.</td>
+</tr>
+<tr>
+<td>probability</td>
+<td>bool, default=False</td>
+<td>Whether to enable probability estimates. This must be enabled prior to calling fit, will slow down that method as it internally uses 5-fold cross-validation, and predict_proba may be inconsistent with predict. Read more in the User Guide.</td>
+</tr>
+<tr>
+<td>tol</td>
+<td>float, default=1e-3</td>
+<td>Tolerance for stopping criterion.</td>
+</tr>
+<tr>
+<td>cache_size</td>
+<td>float, default=200</td>
+<td>Specify the size of the kernel cache (in MB).</td>
+</tr>
+<tr>
+<td>class_weight</td>
+<td>dict or ‘balanced’, default=None</td>
+<td>Set the parameter C of class i to class_weight[i]*C for SVC. If not given, all classes are supposed to have weight one. The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))</td>
+</tr>
+<tr>
+<td>verbose</td>
+<td>bool, default=False</td>
+<td>Enable verbose output. Note that this setting takes advantage of a per-process runtime setting in libsvm that, if enabled, may not work properly in a multithreaded context.</td>
+</tr>
+<tr>
+<td>max_iter</td>
+<td>int, default=-1</td>
+<td>Hard limit on iterations within solver, or -1 for no limit.</td>
+</tr>
+<tr>
+<td>decision_function_shape</td>
+<td>{‘ovo’, ‘ovr’}, default=’ovr’</td>
+<td>Whether to return a one-vs-rest (‘ovr’) decision function of shape (n_samples, n_classes) as all other classifiers, or the original one-vs-one (‘ovo’) decision function of libsvm which has shape (n_samples, n_classes * (n_classes - 1) / 2). However, one-vs-one (‘ovo’) is always used as multi-class strategy. The parameter is ignored for binary classification.Changed in version 0.19: decision_function_shape is ‘ovr’ by default.New in version 0.17: decision_function_shape=’ovr’ is recommended.Changed in version 0.17: Deprecated decision_function_shape=’ovo’ and None.</td>
+</tr>
+<tr>
+<td>break_ties</td>
+<td>bool, default=False</td>
+<td>If true, decision_function_shape=‘ovr’, and number of classes &gt; 2, predict will break ties according to the confidence values of decision_function; otherwise the first class among the tied classes is returned. Please note that breaking ties comes at a relatively high computational cost compared to a simple predict.</td>
+</tr>
+<tr>
+<td>random_state</td>
+<td>int, RandomState instance or None, default=None</td>
+<td>Controls the pseudo random number generation for shuffling the data for probability estimates. Ignored when probability is False. Pass an int for reproducible output across multiple function calls. See Glossary.</td>
+</tr>
+</tbody>
+</table></div>
+<p><font color="#AA0000">中文翻译：</font></p>
+<ul>
+<li>
+<p>C：惩罚参数，惩罚松弛变量，默认值是1.0。C值大，对训练集分类更加正确。对训练集测试时准确率很高，但泛化能力弱。C值小，对误分类的惩罚减小，允许容错，将他们当成噪声点，泛化能力较强。</p>
+</li>
+<li>
+<p>kernel ：核函数，默认是rbf，可以是‘linear’, ‘poly’, ‘rbf’, ‘sigmoid’, ‘precomputed’</p>
+<p>详见西瓜书p128<br />
+0 – 线性：u’v<br />
+1 – 多项式：(gamma*u’v + coef0)^degree<br />
+2 – RBF函数：exp(-gamma|u-v|^2)<br />
+3 –sigmoid：tanh(gammau’*v + coef0)</p>
+</li>
+<li>
+<p>degree ：多项式poly函数的维度，默认是3，选择其他核函数时会被忽略。</p>
+</li>
+<li>
+<p>gamma ： ‘rbf’,‘poly’ 和‘sigmoid’的核函数参数。默认是’auto’，则会选择1/n_features</p>
+</li>
+<li>
+<p>coef0 ：核函数的常数项。对于‘poly’和 ‘sigmoid’有用。</p>
+</li>
+<li>
+<p>probability ：是否采用概率估计。默认为False</p>
+</li>
+<li>
+<p>shrinking ：是否采用shrinking heuristic方法，默认为true</p>
+</li>
+<li>
+<p>tol ：停止训练的误差值大小，默认为1e-3</p>
+</li>
+<li>
+<p>cache_size ：核函数cache缓存大小，默认为200</p>
+</li>
+<li>
+<p>class_weight ：类别的权重，字典形式传递。设置第几类的参数C为weight*C(C-SVC中的C)</p>
+</li>
+<li>
+<p>verbose ：允许冗余输出</p>
+</li>
+<li>
+<p>max_iter ：最大迭代次数。-1为无限制。</p>
+</li>
+<li>
+<p>decision_function_shape ：‘ovo’, ‘ovr’ or None, default=None3</p>
+</li>
+<li>
+<p>random_state ：数据洗牌时的种子值，int值</p>
+</li>
+</ul>
+<p>主要调节的参数有：C、kernel、degree、gamma、coef0。</p>
+<h1 id=""><a class="markdownIt-Anchor" href="#"></a> </h1>
+
+        <h1 id="svm-margins-example"   >
+          <a href="#svm-margins-example" class="heading-link"><i class="fas fa-link"></i></a><a class="markdownIt-Anchor" href="#svm-margins-example"></a> SVM Margins Example</h1>
+      
+<p><strong>Example:</strong><br />
+<img   src="https://img-blog.csdnimg.cn/20210513201737113.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nw==,size_16,color_FFFFFF,t_70" style="width: image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,tepx;height: t_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nwpx;"  alt="在这里插入图片描述" /><br />
+<img   src="https://img-blog.csdnimg.cn/20210513201743339.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nw==,size_16,color_FFFFFF,t_70" style="width: image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,tepx;height: t_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nwpx;"  alt="在这里插入图片描述" /><br />
+上面的图说明了参数C对分离线的影响。C的值越大就会告诉我们的模型，我们对数据的分布没有那么大的信心，<font color="#AA0000">只考虑接近分离线的点</font>。</p>
+<p>C的值越小则表示包含了更多/所有的观测值，允许使用该区域的所有数据计算边距。</p>
+<p><strong>源码：</strong></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt</span><br><span class="line"><span class="keyword">from</span> matplotlib <span class="keyword">import</span> cm</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> svm</span><br><span class="line"></span><br><span class="line"><span class="comment"># 创造40个离散点</span></span><br><span class="line">np.random.seed(<span class="number">0</span>)</span><br><span class="line">X = np.r_[np.random.randn(<span class="number">20</span>, <span class="number">2</span>) - [<span class="number">2</span>, <span class="number">2</span>], np.random.randn(<span class="number">20</span>, <span class="number">2</span>) + [<span class="number">2</span>, <span class="number">2</span>]]</span><br><span class="line">Y = [<span class="number">0</span>] * <span class="number">20</span> + [<span class="number">1</span>] * <span class="number">20</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 特征数量</span></span><br><span class="line">fignum = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 拟合模型</span></span><br><span class="line"><span class="keyword">for</span> name, penalty <span class="keyword">in</span> ((<span class="string">&#x27;unreg&#x27;</span>, <span class="number">1</span>), (<span class="string">&#x27;reg&#x27;</span>, <span class="number">0.05</span>)):</span><br><span class="line"></span><br><span class="line">    clf = svm.SVC(kernel=<span class="string">&#x27;linear&#x27;</span>, C=penalty)</span><br><span class="line">    clf.fit(X, Y)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 得到分割超平面</span></span><br><span class="line">    w = clf.coef_[<span class="number">0</span>]</span><br><span class="line">    a = -w[<span class="number">0</span>] / w[<span class="number">1</span>]</span><br><span class="line">    xx = np.linspace(-<span class="number">5</span>, <span class="number">5</span>)</span><br><span class="line">    yy = a * xx - (clf.intercept_[<span class="number">0</span>]) / w[<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment">#绘制平行线到通过支持向量（方向上距超平面的边距）垂直于超平面）。这是垂直方向上的sqrt（1+a^2）</span></span><br><span class="line"><span class="comment">#二维。</span></span><br><span class="line"> 	<span class="comment">#边界线</span></span><br><span class="line">    margin = <span class="number">1</span> / np.sqrt(np.<span class="built_in">sum</span>(clf.coef_ ** <span class="number">2</span>))</span><br><span class="line">    yy_down = yy - np.sqrt(<span class="number">1</span> + a ** <span class="number">2</span>) * margin</span><br><span class="line">    yy_up = yy + np.sqrt(<span class="number">1</span> + a ** <span class="number">2</span>) * margin</span><br><span class="line">    </span><br><span class="line">	<span class="comment">#绘制线、点和到平面最近的向量</span></span><br><span class="line">        plt.figure(fignum, figsize=(<span class="number">4</span>, <span class="number">3</span>))</span><br><span class="line">    plt.clf()</span><br><span class="line">    plt.plot(xx, yy, <span class="string">&#x27;k-&#x27;</span>)</span><br><span class="line">    plt.plot(xx, yy_down, <span class="string">&#x27;k--&#x27;</span>)</span><br><span class="line">    plt.plot(xx, yy_up, <span class="string">&#x27;k--&#x27;</span>)</span><br><span class="line">	</span><br><span class="line">	<span class="comment">#绘制离散点和边界点</span></span><br><span class="line">    plt.scatter(clf.support_vectors_[:, <span class="number">0</span>], clf.support_vectors_[:, <span class="number">1</span>], s=<span class="number">80</span>,</span><br><span class="line">                facecolors=<span class="string">&#x27;none&#x27;</span>, zorder=<span class="number">10</span>, edgecolors=<span class="string">&#x27;k&#x27;</span>,</span><br><span class="line">                cmap=cm.get_cmap(<span class="string">&#x27;RdBu&#x27;</span>))</span><br><span class="line">    plt.scatter(X[:, <span class="number">0</span>], X[:, <span class="number">1</span>], c=Y, zorder=<span class="number">10</span>, cmap=cm.get_cmap(<span class="string">&#x27;RdBu&#x27;</span>),</span><br><span class="line">                edgecolors=<span class="string">&#x27;k&#x27;</span>)</span><br><span class="line"></span><br><span class="line">    plt.axis(<span class="string">&#x27;tight&#x27;</span>)</span><br><span class="line">    x_min = -<span class="number">4.8</span></span><br><span class="line">    x_max = <span class="number">4.2</span></span><br><span class="line">    y_min = -<span class="number">6</span></span><br><span class="line">    y_max = <span class="number">6</span></span><br><span class="line"></span><br><span class="line">    YY, XX = np.meshgrid(yy, xx)</span><br><span class="line">    xy = np.vstack([XX.ravel(), YY.ravel()]).T</span><br><span class="line">    Z = clf.decision_function(xy).reshape(XX.shape)</span><br><span class="line"></span><br><span class="line">	<span class="comment">#把结果做成等高线图</span></span><br><span class="line">    plt.contourf(XX, YY, Z, cmap=cm.get_cmap(<span class="string">&#x27;RdBu&#x27;</span>),</span><br><span class="line">                 alpha=<span class="number">0.5</span>, linestyles=[<span class="string">&#x27;-&#x27;</span>])</span><br><span class="line"></span><br><span class="line">    plt.xlim(x_min, x_max)</span><br><span class="line">    plt.ylim(y_min, y_max)</span><br><span class="line"></span><br><span class="line">    plt.xticks(())</span><br><span class="line">    plt.yticks(())</span><br><span class="line">    fignum = fignum + <span class="number">1</span></span><br><span class="line"></span><br><span class="line">plt.show()</span><br></pre></td></tr></table></div></figure>
+<p><strong>具体的数学原理博主就不再敲了，随便找一本机器学习的书都有。</strong><br />
+观察上图，聪明的你会发现有一些点就在边界线上。这些点是拟合的<font color="#AA0000"><strong>关键支持点</strong></font>，被称为<font color="#AA0000"><strong>支持向量</strong></font>，<font color="#AA0000"><strong>支持向量机算法</strong></font>也因此得名。</p>
+<ul>
+<li>np.r_是按列连接两个矩阵，就是把两矩阵上下相加，要求列数相等。</li>
+<li>np.c_是按行连接两个矩阵，就是把两矩阵左右相加，要求行数相等。</li>
+<li>clf = classifier的缩写（分类器）具体可参照这篇文章：<span class="exturl"><a class="exturl__link"   target="_blank" rel="noopener" href="https://blog.csdn.net/qq_43043256/article/details/104259061?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522162090869716780274142160%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&amp;request_id=162090869716780274142160&amp;biz_id=0&amp;utm_medium=distribute.pc_search_result.none-task-blog-2~all~baidu_landing_v2~default-1-104259061.first_rank_v2_pc_rank_v29&amp;utm_term=clf.coef_%5B0%5D&amp;spm=1018.2226.3001.4187" >sklearn包中的svm详解（coef_和intercept_）</a><span class="exturl__icon"><i class="fas fa-external-link-alt"></i></span></span></li>
+<li>np.ravel()和np.flatten()	<br />
+两者的功能是一致的，将多维数组降为一维，但是两者的区别是返回拷贝还是返回视图，np.flatten(0返回一份拷贝，对拷贝所做修改不会影响原始矩阵，而np.ravel()返回的是视图，修改时会影响原始矩阵</li>
+</ul>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line">a = np.array([[<span class="number">1</span> , <span class="number">2</span>] , [<span class="number">3</span> , <span class="number">4</span>]])</span><br><span class="line">b = a.flatten()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;b:&#x27;</span> , b)</span><br><span class="line">c = a.ravel()</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;c:&#x27;</span> , c)</span><br><span class="line">d = a.ravel(<span class="string">&#x27;F&#x27;</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;d:&#x27;</span> , d)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 二者的区别</span></span><br><span class="line">b[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;a:&#x27;</span> , a)</span><br><span class="line">c[<span class="number">0</span>] = <span class="number">10</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&#x27;a:&#x27;</span> , a)</span><br><span class="line">————————————————————————————————————————————————————————————————</span><br><span class="line">输出：</span><br><span class="line">b: [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span>]</span><br><span class="line">c: [<span class="number">1</span> <span class="number">2</span> <span class="number">3</span> <span class="number">4</span>]</span><br><span class="line">d: [<span class="number">1</span> <span class="number">3</span> <span class="number">2</span> <span class="number">4</span>]</span><br><span class="line">a: [[<span class="number">1</span> <span class="number">2</span>]</span><br><span class="line">[<span class="number">3</span> <span class="number">4</span>]]</span><br><span class="line">a: [[<span class="number">10</span> <span class="number">2</span>]</span><br><span class="line">[ <span class="number">3</span> <span class="number">4</span>]]</span><br></pre></td></tr></table></div></figure>
+<ul>
+<li>
+<pre><code>  plt.contourf(XX, YY, Z, cmap=cm.get_cmap('RdBu'),
+          alpha=0.5, linestyles=['-'])
+这段代码作用是画出等高线图增强视觉
+否则将像如下：
+                           ![在这里插入图片描述](https://img-blog.csdnimg.cn/2021051321075895.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlaXhpbl81MzI3MjI0Nw==,size_16,color_FFFFFF,t_70)
+</code></pre>
+</li>
+</ul>
+<p><strong>核心代码：</strong></p>
+<figure class="highlight python"><div class="table-container"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">  clf = svm.SVC(kernel=<span class="string">&#x27;linear&#x27;</span>, C=penalty)</span><br><span class="line">    clf.fit(X, Y)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 得到分割超平面</span></span><br><span class="line">    w = clf.coef_[<span class="number">0</span>]</span><br><span class="line">    a = -w[<span class="number">0</span>] / w[<span class="number">1</span>]</span><br><span class="line">    xx = np.linspace(-<span class="number">5</span>, <span class="number">5</span>)</span><br><span class="line">    yy = a * xx - (clf.intercept_[<span class="number">0</span>]) / w[<span class="number">1</span>]</span><br><span class="line"><span class="comment">#绘制平行线到通过支持向量（方向上距超平面的边距）垂直于超平面）。</span></span><br><span class="line"><span class="comment">#这是垂直方向上的sqrt（1+a^2）</span></span><br><span class="line"><span class="comment">#二维。</span></span><br><span class="line"> 	<span class="comment">#边界线</span></span><br><span class="line">    margin = <span class="number">1</span> / np.sqrt(np.<span class="built_in">sum</span>(clf.coef_ ** <span class="number">2</span>))</span><br><span class="line">    yy_down = yy - np.sqrt(<span class="number">1</span> + a ** <span class="number">2</span>) * margin</span><br><span class="line">    yy_up = yy + np.sqrt(<span class="number">1</span> + a ** <span class="number">2</span>) * margin</span><br></pre></td></tr></table></div></figure>
+<p>就是通过这段代码我们才得以将超平面求出。</p>
+</div><footer class="post-footer"><div class="post-ending ending"><div class="ending__text">------ 本文结束，感谢您的阅读 ------</div></div><div class="post-tags"><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://example.com/tags/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0/">机器学习</a></span><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://example.com/tags/Python/">Python</a></span><span class="post-tags-item"><span class="post-tags-item__icon"><i class="fas fa-tag"></i></span><a class="post-tags-item__link" href="http://example.com/tags/sklearn/">sklearn</a></span></div><nav class="post-paginator paginator"><div class="paginator-prev"><a class="paginator-prev__link" href="/2021/12/07/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E8%BF%9B%E9%98%B6%E2%80%94Xgboost/"><span class="paginator-prev__icon"><i class="fas fa-angle-left"></i></span><span class="paginator-prev__text">机器学习进阶—Xgboost</span></a></div><div class="paginator-next"><a class="paginator-next__link" href="/2021/12/07/2021-11-10-Python%E5%AE%9E%E7%8E%B0%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D/"><span class="paginator-prev__text">Python实现梯度下降</span><span class="paginator-next__icon"><i class="fas fa-angle-right"></i></span></a></div></nav></footer></div></div></div><div class="sidebar-wrap" id="sidebar-wrap"><aside class="sidebar" id="sidebar"><div class="sidebar-nav"><span class="sidebar-nav-toc current">文章目录</span><span class="sidebar-nav-ov">站点概览</span></div><section class="sidebar-toc"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#sklearnsvmsvc"><span class="toc-number">1.</span> <span class="toc-text">
+           sklearn.svm.SVC()</span></a></li><li class="toc-item toc-level-1"><a class="toc-link"><span class="toc-number">2.</span> <span class="toc-text"> </span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#svm-margins-example"><span class="toc-number">3.</span> <span class="toc-text">
+           SVM Margins Example</span></a></li></ol></section><!-- ov = overview--><section class="sidebar-ov hide"><div class="sidebar-ov-author"><div class="sidebar-ov-author__avatar"><img class="sidebar-ov-author__avatar_img" src="https://img-blog.csdnimg.cn/7fab339b5f7945378ab40f2fb946aa47.png" alt="avatar"></div><p class="sidebar-ov-author__text">打火机烧水</p></div><div class="sidebar-ov-state"><a class="sidebar-ov-state-item sidebar-ov-state-item--posts" href="/archives/"><div class="sidebar-ov-state-item__count">15</div><div class="sidebar-ov-state-item__name">归档</div></a><a class="sidebar-ov-state-item sidebar-ov-state-item--tags" href="/tags/"><div class="sidebar-ov-state-item__count">9</div><div class="sidebar-ov-state-item__name">标签</div></a></div></section><div class="sidebar-reading"><div class="sidebar-reading-info"><span class="sidebar-reading-info__text">你已阅读了 </span><span class="sidebar-reading-info__num">0</span><span class="sidebar-reading-info__perc">%</span></div><div class="sidebar-reading-line"></div></div></aside></div><div class="clearfix"></div></div></main><footer class="footer" id="footer"><div class="footer-inner"><div><span>Copyright © 2022</span><span class="footer__icon"><i class="fas fa-heart"></i></span><span>love you everyday</span></div></div></footer><div class="loading-bar" id="loading-bar"><div class="loading-bar__progress"></div></div><div class="back2top" id="back2top"><span class="back2top__icon"><i class="fas fa-rocket"></i></span></div></div><script src="https://cdn.jsdelivr.net/npm/jquery@v3.4.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.min.js"></script><script src="https://cdn.jsdelivr.net/npm/velocity-animate@1.5.2/velocity.ui.min.js"></script><script src="https://cdn.jsdelivr.net/npm/canvas-nest.js@1.0.1/dist/canvas-nest.min.js" color="0,0,0" opacity="0.6" count="99" zIndex="-1"></script><script src="/js/utils.js?v=2.6.2"></script><script src="/js/stun-boot.js?v=2.6.2"></script><script src="/js/scroll.js?v=2.6.2"></script><script src="/js/header.js?v=2.6.2"></script><script src="/js/sidebar.js?v=2.6.2"></script></body></html>
