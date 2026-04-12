@@ -1,0 +1,1116 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="C++ 对象模型里有一块内容，几乎每次学到继承、多态、虚函数时都会反复碰到，那就是：  虚函数到底怎么实现 vtable、vptr 分别是什么 为什么含虚函数的类 sizeof 会变大 单继承、多继承、虚继承下对象内存到底怎么排  这些知识点如果一个个零碎地记，很容易越记越乱。更好的方式是把它们放到同一张图里去理解：虚函数解决的是多态问题，而 vtable&#x2F;vptr、对象布局、继承层次，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从虚函数到继承布局，系统理解 C++ 对象模型">
+<meta property="og:url" content="https://breaker505.github.io/2026/04/13/cpp-object-model-virtual-functions/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="C++ 对象模型里有一块内容，几乎每次学到继承、多态、虚函数时都会反复碰到，那就是：  虚函数到底怎么实现 vtable、vptr 分别是什么 为什么含虚函数的类 sizeof 会变大 单继承、多继承、虚继承下对象内存到底怎么排  这些知识点如果一个个零碎地记，很容易越记越乱。更好的方式是把它们放到同一张图里去理解：虚函数解决的是多态问题，而 vtable&#x2F;vptr、对象布局、继承层次，">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-12T16:43:00.000Z">
+<meta property="article:modified_time" content="2026-04-12T16:45:18.791Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="对象模型">
+<meta property="article:tag" content="虚函数">
+<meta property="article:tag" content="继承">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>从虚函数到继承布局，系统理解 C++ 对象模型 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从虚函数到继承布局，系统理解 C++ 对象模型"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-13 00:43" pubdate>
+          2026年4月13日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          53 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从虚函数到继承布局，系统理解 C++ 对象模型</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>C++ 对象模型里有一块内容，几乎每次学到继承、多态、虚函数时都会反复碰到，那就是：</p>
+<ul>
+<li>虚函数到底怎么实现</li>
+<li>vtable、vptr 分别是什么</li>
+<li>为什么含虚函数的类 <code>sizeof</code> 会变大</li>
+<li>单继承、多继承、虚继承下对象内存到底怎么排</li>
+</ul>
+<p>这些知识点如果一个个零碎地记，很容易越记越乱。更好的方式是把它们放到同一张图里去理解：<strong>虚函数解决的是多态问题，而 vtable&#x2F;vptr、对象布局、继承层次，都是编译器为实现这件事付出的具体代价。</strong></p>
+<p>这篇文章就把这部分内容系统整理一遍。</p>
+<h2 id="一、虚函数的底层实现思路"><a href="#一、虚函数的底层实现思路" class="headerlink" title="一、虚函数的底层实现思路"></a>一、虚函数的底层实现思路</h2><p>C++ 为了支持运行时多态，主流编译器通常会采用一套非常经典的方案：</p>
+<ul>
+<li>为类生成一张虚函数表（vtable）</li>
+<li>为对象保存一个隐藏指针（vptr）</li>
+<li>调用虚函数时通过 vptr 找到 vtable，再找到最终函数地址</li>
+</ul>
+<blockquote>
+<p>注意：C++ 标准并没有强制要求虚函数必须通过 vtable&#x2F;vptr 实现。下面讲的是 GCC、Clang、MSVC 等主流编译器的常见实现方式。</p>
+</blockquote>
+<h3 id="1-vtable-是什么"><a href="#1-vtable-是什么" class="headerlink" title="1. vtable 是什么"></a>1. vtable 是什么</h3><p>vtable 可以理解成一张“虚函数地址表”，里面存放这个类对应的虚函数入口地址。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Base</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">g</span><span class="hljs-params">()</span></span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>可以近似理解为编译器会生成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">Base::vtable<br>+------------------+<br>| &amp;Base::f         |<br>+------------------+<br>| &amp;Base::g         |<br>+------------------+<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-vptr-是什么"><a href="#2-vptr-是什么" class="headerlink" title="2. vptr 是什么"></a>2. vptr 是什么</h3><p>每个多态对象内部通常都会有一个隐藏成员，叫 <strong>vptr</strong>，它指向所属类型的 vtable。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Base b;<br></code></pre></td></tr></table></figure>
+
+<p>对象内存通常可以近似理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">+------------------+<br>| vptr             | --&gt; Base::vtable<br>+------------------+<br>| 普通成员变量...   |<br>+------------------+<br></code></pre></td></tr></table></figure>
+
+<p>所以可以先记一句最重要的话：</p>
+<blockquote>
+<p><strong>vtable 属于类，vptr 属于对象。</strong></p>
+</blockquote>
+<hr>
+<h2 id="二、vptr-在对象中的位置"><a href="#二、vptr-在对象中的位置" class="headerlink" title="二、vptr 在对象中的位置"></a>二、vptr 在对象中的位置</h2><p>vptr 的位置标准没有强制规定，但主流实现里通常把它放在<strong>对象起始地址处</strong>，也就是对象内存最前面。</p>
+<h3 id="为什么通常放在最前面"><a href="#为什么通常放在最前面" class="headerlink" title="为什么通常放在最前面"></a>为什么通常放在最前面</h3><p>这样做的好处很直接：</p>
+<ul>
+<li>编译器更容易生成统一访问逻辑</li>
+<li>运行时取 vptr 的偏移固定</li>
+<li>多态调用路径更简单</li>
+</ul>
+<h3 id="大小是多少"><a href="#大小是多少" class="headerlink" title="大小是多少"></a>大小是多少</h3><p>vptr 本质上只是一个普通指针：</p>
+<ul>
+<li>32 位系统下一般是 4 字节</li>
+<li>64 位系统下一般是 8 字节</li>
+</ul>
+<p>所以只要类支持多态，对象里通常就要多出一个指针大小的隐藏开销。</p>
+<hr>
+<h2 id="三、虚函数表存在哪里"><a href="#三、虚函数表存在哪里" class="headerlink" title="三、虚函数表存在哪里"></a>三、虚函数表存在哪里</h2><p>vtable 一般存放在<strong>只读数据段</strong>，比如 <code>.rodata</code> 这类区域。</p>
+<p>原因是：</p>
+<ul>
+<li>vtable 是类级别的数据，不属于某个具体对象</li>
+<li>它通常在程序运行期间不会变化</li>
+<li>放在只读区更安全</li>
+</ul>
+<p>这也意味着：</p>
+<blockquote>
+<p>vtable 不算进对象本身的 <code>sizeof</code>，但 vptr 会算进去。</p>
+</blockquote>
+<hr>
+<h2 id="四、虚函数表什么时候生成"><a href="#四、虚函数表什么时候生成" class="headerlink" title="四、虚函数表什么时候生成"></a>四、虚函数表什么时候生成</h2><p>可以按三个阶段理解。</p>
+<h3 id="1-编译期"><a href="#1-编译期" class="headerlink" title="1. 编译期"></a>1. 编译期</h3><p>编译器扫描类定义，只要发现类里有虚函数，就会为这个类准备对应的 vtable 信息。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Base</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-keyword">virtual</span> ~<span class="hljs-built_in">Base</span>();<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Derived</span> : <span class="hljs-keyword">public</span> Base &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span> <span class="hljs-keyword">override</span></span>;<br>    ~<span class="hljs-built_in">Derived</span>() <span class="hljs-keyword">override</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>可以近似理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Base::vtable    -&gt; [&amp;Base::f, &amp;Base::~Base]<br>Derived::vtable -&gt; [&amp;Derived::f, &amp;Derived::~Derived]<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-链接期"><a href="#2-链接期" class="headerlink" title="2. 链接期"></a>2. 链接期</h3><p>链接器会把这些符号和真实函数地址拼接起来，最终放进可执行文件或动态库。</p>
+<h3 id="3-运行期"><a href="#3-运行期" class="headerlink" title="3. 运行期"></a>3. 运行期</h3><p>对象构造时，编译器生成的代码会把对象里的 vptr 设置成当前动态类型对应的 vtable 地址。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Base b;     <span class="hljs-comment">// b.vptr = &amp;Base::vtable</span><br>Derived d;  <span class="hljs-comment">// 最终 d.vptr = &amp;Derived::vtable</span><br></code></pre></td></tr></table></figure>
+
+<p>这里还有一个很容易忽略的点：</p>
+<p>在派生类构造过程中，<strong>基类子对象先构造</strong>，此时它对应部分的 vptr 先指向基类 vtable；等派生类构造完成后，再更新成派生类版本。这也是为什么“构造函数&#x2F;析构函数里调用虚函数”经常会出现和预期不同的行为。</p>
+<hr>
+<h2 id="五、虚函数调用时发生了什么"><a href="#五、虚函数调用时发生了什么" class="headerlink" title="五、虚函数调用时发生了什么"></a>五、虚函数调用时发生了什么</h2><p>普通成员函数调用，编译期通常就能确定目标地址。虚函数调用不一样，它要依赖<strong>动态分派</strong>。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp">Base* p = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Derived</span>();<br>p-&gt;<span class="hljs-built_in">f</span>();<br></code></pre></td></tr></table></figure>
+
+<p>编译器通常会生成近似逻辑：</p>
+<ol>
+<li>取出 <code>p</code> 对象中的 vptr</li>
+<li>找到 vtable 中 <code>f</code> 对应的槽位</li>
+<li>跳转到该地址执行</li>
+</ol>
+<p>可以近似理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">call [p-&gt;vptr + offset_of_f]<br></code></pre></td></tr></table></figure>
+
+<p>最终调用到的是 <code>Derived::f()</code>。</p>
+<p>这就是运行时多态真正落地的地方。</p>
+<hr>
+<h2 id="六、一个类有多个虚函数，会有几个-vptr"><a href="#六、一个类有多个虚函数，会有几个-vptr" class="headerlink" title="六、一个类有多个虚函数，会有几个 vptr"></a>六、一个类有多个虚函数，会有几个 vptr</h2><p>通常只有<strong>一个 vptr</strong>。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">g</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">h</span><span class="hljs-params">()</span></span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>虽然 <code>A</code> 有多个虚函数，但对象里一般仍然只需要一个 vptr：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">+------------------+<br>| vptr             | --&gt; A::vtable<br>+------------------+<br>| 成员变量...       |<br>+------------------+<br></code></pre></td></tr></table></figure>
+
+<p>这个 vptr 指向整张 vtable，表里再存多个虚函数地址。</p>
+<p>所以：</p>
+<blockquote>
+<p><strong>虚函数多，不代表 vptr 也多。</strong></p>
+</blockquote>
+<hr>
+<h2 id="七、子类重写虚函数时发生了什么"><a href="#七、子类重写虚函数时发生了什么" class="headerlink" title="七、子类重写虚函数时发生了什么"></a>七、子类重写虚函数时发生了什么</h2><p>如果子类重写了父类的虚函数，那么子类 vtable 中对应槽位会被替换。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Base</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">g</span><span class="hljs-params">()</span></span>;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Derived</span> : <span class="hljs-keyword">public</span> Base &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span> <span class="hljs-keyword">override</span></span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>则可以近似理解为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">Base::vtable<br>+------------------+<br>| &amp;Base::f         |<br>+------------------+<br>| &amp;Base::g         |<br>+------------------+<br><br>Derived::vtable<br>+------------------+<br>| &amp;Derived::f      |  &lt;- f 被重写<br>+------------------+<br>| &amp;Base::g         |  &lt;- g 未重写，沿用父类<br>+------------------+<br></code></pre></td></tr></table></figure>
+
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><ul>
+<li>Base 对象不受影响</li>
+<li>Derived 对象的 vptr 指向 Derived::vtable</li>
+<li>动态分派时会调到重写后的版本</li>
+</ul>
+<hr>
+<h2 id="八、含虚函数的类为什么-sizeof-会变大"><a href="#八、含虚函数的类为什么-sizeof-会变大" class="headerlink" title="八、含虚函数的类为什么 sizeof 会变大"></a>八、含虚函数的类为什么 <code>sizeof</code> 会变大</h2><p>只要类支持多态，对象里通常就需要放一个 vptr。因此对象大小一般包含：</p>
+<ul>
+<li>所有非静态成员变量</li>
+<li>对齐填充（padding）</li>
+<li>vptr</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-type">int</span> x;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>在 64 位系统下，常见布局近似为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs text">+------------------+<br>| vptr (8B)        |<br>+------------------+<br>| x (4B)           |<br>+------------------+<br>| padding (4B)     |<br>+------------------+<br>sizeof(A) = 16<br></code></pre></td></tr></table></figure>
+
+<p>所以记住：</p>
+<blockquote>
+<p><strong>vptr 算进 <code>sizeof</code>，vtable 不算。</strong></p>
+</blockquote>
+<hr>
+<h2 id="九、父类没有虚函数，子类加了虚函数会怎样"><a href="#九、父类没有虚函数，子类加了虚函数会怎样" class="headerlink" title="九、父类没有虚函数，子类加了虚函数会怎样"></a>九、父类没有虚函数，子类加了虚函数会怎样</h2><p>父类完全不受影响，只有子类开始支持多态。</p>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Base</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-type">int</span> x;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Derived</span> : <span class="hljs-keyword">public</span> Base &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">f</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-type">int</span> y;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="Base-对象"><a href="#Base-对象" class="headerlink" title="Base 对象"></a>Base 对象</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs text">+------------------+<br>| x (4B)           |<br>+------------------+<br>| padding (4B)     |<br>+------------------+<br>sizeof(Base) = 8<br></code></pre></td></tr></table></figure>
+
+<h3 id="Derived-对象"><a href="#Derived-对象" class="headerlink" title="Derived 对象"></a>Derived 对象</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">+------------------+<br>| vptr (8B)        |<br>+------------------+<br>| x (4B)           |<br>+------------------+<br>| y (4B)           |<br>+------------------+<br>| padding...       |<br>+------------------+<br></code></pre></td></tr></table></figure>
+
+<p>也就是说：</p>
+<ul>
+<li>Base 没有 vptr</li>
+<li>Derived 新增 vptr</li>
+<li>Base 大小不变，Derived 大小增大</li>
+</ul>
+<hr>
+<h2 id="十、单继承下的对象布局"><a href="#十、单继承下的对象布局" class="headerlink" title="十、单继承下的对象布局"></a>十、单继承下的对象布局</h2><p>来看这组类：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">fA</span><span class="hljs-params">()</span> </span>&#123;&#125;<br>    <span class="hljs-type">int</span> a;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">B</span> : <span class="hljs-keyword">public</span> A &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">fB</span><span class="hljs-params">()</span> </span>&#123;&#125;<br>    <span class="hljs-type">int</span> b;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">C</span> : <span class="hljs-keyword">public</span> B &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">fC</span><span class="hljs-params">()</span> </span>&#123;&#125;<br>    <span class="hljs-type">int</span> c;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-单继承下通常只有一个-vptr"><a href="#1-单继承下通常只有一个-vptr" class="headerlink" title="1. 单继承下通常只有一个 vptr"></a>1. 单继承下通常只有一个 vptr</h3><p>对象整体可以近似理解为“基类子对象 + 派生类新增成员”。</p>
+<h4 id="A-对象"><a href="#A-对象" class="headerlink" title="A 对象"></a>A 对象</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs text">+----------------------+<br>| vptr -&gt; A::vtable    |<br>+----------------------+<br>| a                    |<br>+----------------------+<br></code></pre></td></tr></table></figure>
+
+<h4 id="B-对象"><a href="#B-对象" class="headerlink" title="B 对象"></a>B 对象</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs text">+----------------------+<br>| vptr -&gt; B::vtable    |<br>+----------------------+<br>| a                    |<br>+----------------------+<br>| b                    |<br>+----------------------+<br></code></pre></td></tr></table></figure>
+
+<h4 id="C-对象"><a href="#C-对象" class="headerlink" title="C 对象"></a>C 对象</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">+----------------------+<br>| vptr -&gt; C::vtable    |<br>+----------------------+<br>| a                    |<br>+----------------------+<br>| b                    |<br>+----------------------+<br>| c                    |<br>+----------------------+<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-B、C-没新增成员或虚函数时会怎样"><a href="#2-B、C-没新增成员或虚函数时会怎样" class="headerlink" title="2. B、C 没新增成员或虚函数时会怎样"></a>2. B、C 没新增成员或虚函数时会怎样</h3><p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">fA</span><span class="hljs-params">()</span> </span>&#123;&#125;<br>    <span class="hljs-type">int</span> a;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">B</span> : <span class="hljs-keyword">public</span> A &#123;&#125;;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">C</span> : <span class="hljs-keyword">public</span> B &#123;&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>这时通常有：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">sizeof(A) == sizeof(B) == sizeof(C)<br></code></pre></td></tr></table></figure>
+
+<p>因为对象里仍然只是：</p>
+<ul>
+<li>一个 vptr</li>
+<li>一个成员 <code>a</code></li>
+<li>加上必要对齐</li>
+</ul>
+<p>不过要注意：</p>
+<blockquote>
+<p>“大小相同”不等于“类型完全没有差别”。</p>
+</blockquote>
+<p>B 和 C 仍然可能有各自的动态类型信息和各自的 vtable，只是对象大小没有继续增加。</p>
+<hr>
+<h2 id="十一、多继承下的对象布局"><a href="#十一、多继承下的对象布局" class="headerlink" title="十一、多继承下的对象布局"></a>十一、多继承下的对象布局</h2><p>多继承时，最重要的结论是：</p>
+<blockquote>
+<p><strong>每个需要多态支持的基类子对象，通常都有自己独立的 vptr。</strong></p>
+</blockquote>
+<p>例如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">fA</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-type">int</span> a;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">B</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-keyword">virtual</span> <span class="hljs-type">void</span> <span class="hljs-title">fB</span><span class="hljs-params">()</span></span>;<br>    <span class="hljs-type">int</span> b;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">C</span> : <span class="hljs-keyword">public</span> A, <span class="hljs-keyword">public</span> B &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-type">int</span> c;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>C 对象通常近似这样：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs text">+----------------------+<br>| A::vptr              |<br>+----------------------+<br>| a                    |<br>+----------------------+<br>| padding              |<br>+----------------------+<br>| B::vptr              |<br>+----------------------+<br>| b                    |<br>+----------------------+<br>| padding              |<br>+----------------------+<br>| c                    |<br>+----------------------+<br>| padding              |<br>+----------------------+<br></code></pre></td></tr></table></figure>
+
+<h3 id="为什么对象会变大"><a href="#为什么对象会变大" class="headerlink" title="为什么对象会变大"></a>为什么对象会变大</h3><p>因为多继承会带来：</p>
+<ul>
+<li>多个基类子对象</li>
+<li>多个 vptr</li>
+<li>更多对齐填充</li>
+</ul>
+<p>所以多继承对象通常比单继承对象更大、更复杂。</p>
+<hr>
+<h2 id="十二、虚继承是什么，解决什么问题"><a href="#十二、虚继承是什么，解决什么问题" class="headerlink" title="十二、虚继承是什么，解决什么问题"></a>十二、虚继承是什么，解决什么问题</h2><p>虚继承主要用来解决<strong>菱形继承</strong>中的公共基类重复问题。</p>
+<p>经典例子：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">A</span> &#123; <span class="hljs-keyword">public</span>: <span class="hljs-type">int</span> a; &#125;;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">B</span> : <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">public</span> A &#123;&#125;;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">C</span> : <span class="hljs-keyword">virtual</span> <span class="hljs-keyword">public</span> A &#123;&#125;;<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">D</span> : <span class="hljs-keyword">public</span> B, <span class="hljs-keyword">public</span> C &#123;&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>如果没有虚继承：</p>
+<ul>
+<li><code>D</code> 中会有两份 <code>A</code></li>
+<li>访问 <code>a</code> 时会出现二义性</li>
+</ul>
+<p>使用虚继承后：</p>
+<ul>
+<li>B 和 C 不再各自持有独立 A</li>
+<li>最终 D 中只保留一份共享的 A 子对象</li>
+</ul>
+<h3 id="虚继承解决的问题"><a href="#虚继承解决的问题" class="headerlink" title="虚继承解决的问题"></a>虚继承解决的问题</h3><ul>
+<li>避免菱形继承中基类重复</li>
+<li>避免成员访问二义性</li>
+<li>保证公共虚基类只有一份实体</li>
+</ul>
+<hr>
+<h2 id="十三、虚继承会带来什么开销"><a href="#十三、虚继承会带来什么开销" class="headerlink" title="十三、虚继承会带来什么开销"></a>十三、虚继承会带来什么开销</h2><p>虚继承不是没有代价的，它通常会带来：</p>
+<ul>
+<li>更复杂的对象布局</li>
+<li>额外的偏移量信息</li>
+<li>访问虚基类时可能需要额外间接寻址</li>
+<li>构造和析构顺序更复杂</li>
+</ul>
+<p>所以它本质上是：</p>
+<blockquote>
+<p>为了解决继承结构问题，接受一定实现复杂度和运行开销。</p>
+</blockquote>
+<hr>
+<h2 id="十四、虚函数调用为什么比普通函数慢"><a href="#十四、虚函数调用为什么比普通函数慢" class="headerlink" title="十四、虚函数调用为什么比普通函数慢"></a>十四、虚函数调用为什么比普通函数慢</h2><p>虚函数调用通常比普通函数慢，主要不是因为“函数体本身执行更慢”，而是因为它需要多一步<strong>动态分派</strong>。</p>
+<p>普通函数调用：</p>
+<ul>
+<li>编译期就能确定目标地址</li>
+<li>更容易内联</li>
+</ul>
+<p>虚函数调用：</p>
+<ul>
+<li>运行时先取 vptr</li>
+<li>再查 vtable</li>
+<li>再跳到真实函数地址</li>
+</ul>
+<p>这带来的影响通常有：</p>
+<ul>
+<li>一次额外间接寻址</li>
+<li>更难被内联优化</li>
+<li>某些场景下不利于分支预测</li>
+</ul>
+<p>不过也要客观看：</p>
+<blockquote>
+<p>在大多数普通业务代码里，这点开销未必是真正瓶颈。只有在高频、小函数、极致性能敏感路径里，虚调用成本才更值得关注。</p>
+</blockquote>
+<hr>
+<h2 id="十五、如何减少虚函数调用开销"><a href="#十五、如何减少虚函数调用开销" class="headerlink" title="十五、如何减少虚函数调用开销"></a>十五、如何减少虚函数调用开销</h2><p>常见思路有：</p>
+<ul>
+<li>能静态绑定时就不要强行做动态多态</li>
+<li>对热点路径减少极短小虚函数的高频调用</li>
+<li>使用 <code>final</code> 帮助编译器做去虚拟化优化</li>
+<li>在性能极敏感场景下考虑模板、CRTP 等静态多态方案</li>
+</ul>
+<p>不过前提永远是：</p>
+<blockquote>
+<p>先确认瓶颈真的在这里，再谈优化。</p>
+</blockquote>
+<hr>
+<h2 id="十六、虚函数一定通过-vtable-实现吗"><a href="#十六、虚函数一定通过-vtable-实现吗" class="headerlink" title="十六、虚函数一定通过 vtable 实现吗"></a>十六、虚函数一定通过 vtable 实现吗</h2><p>不一定。</p>
+<p>C++ 标准只规定虚函数要支持动态绑定语义，但没有规定编译器<strong>必须</strong>使用 vtable&#x2F;vptr。</p>
+<p>现实里主流编译器几乎都采用这套方案，因为它工程上成熟、效率高、实现稳定。</p>
+<p>所以学习对象模型时，默认按 vtable&#x2F;vptr 理解是完全合理的。</p>
+<hr>
+<h2 id="十七、最后做一个总总结"><a href="#十七、最后做一个总总结" class="headerlink" title="十七、最后做一个总总结"></a>十七、最后做一个总总结</h2><p>如果把这篇文章压缩成几句话，最关键的结论就是：</p>
+<h3 id="关于虚函数"><a href="#关于虚函数" class="headerlink" title="关于虚函数"></a>关于虚函数</h3><ul>
+<li>虚函数用于支持运行时多态</li>
+<li>主流实现依赖 vtable + vptr</li>
+</ul>
+<h3 id="关于-vptr"><a href="#关于-vptr" class="headerlink" title="关于 vptr"></a>关于 vptr</h3><ul>
+<li>vptr 通常位于对象起始位置</li>
+<li>它属于对象</li>
+<li>单继承通常一个对象一个 vptr</li>
+<li>多继承通常一个多态基类子对象对应一个 vptr</li>
+</ul>
+<h3 id="关于-vtable"><a href="#关于-vtable" class="headerlink" title="关于 vtable"></a>关于 vtable</h3><ul>
+<li>vtable 属于类级别数据</li>
+<li>通常放在只读数据段</li>
+<li>不计入 <code>sizeof</code></li>
+</ul>
+<h3 id="关于继承"><a href="#关于继承" class="headerlink" title="关于继承"></a>关于继承</h3><ul>
+<li>单继承布局相对简单</li>
+<li>多继承会让对象更大、更复杂</li>
+<li>虚继承主要用来解决菱形继承中的重复基类问题</li>
+</ul>
+<p>对象模型这部分的关键，不是死背每一种布局图，而是抓住一条主线：</p>
+<blockquote>
+<p><strong>编译器为了支持多态，需要把“类型信息”和“调用入口”嵌进对象模型里；而 vtable、vptr、继承布局变化，本质上都是这件事的实现结果。</strong></p>
+</blockquote>
+<p>理解了这条主线，再回头看虚函数、继承、多继承、虚继承，就不会再是一些零碎结论了。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/C/" class="category-chain-item">C++</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%AF%B9%E8%B1%A1%E6%A8%A1%E5%9E%8B/" class="print-no-link">#对象模型</a>
+      
+        <a href="/tags/%E8%99%9A%E5%87%BD%E6%95%B0/" class="print-no-link">#虚函数</a>
+      
+        <a href="/tags/%E7%BB%A7%E6%89%BF/" class="print-no-link">#继承</a>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从虚函数到继承布局，系统理解 C++ 对象模型</div>
+      <div>https://breaker505.github.io/2026/04/13/cpp-object-model-virtual-functions/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/13/new-delete-and-malloc/" title="从 malloc/free 到 new/delete，彻底理解 C/C++ 动态内存管理">
+                        <span class="hidden-mobile">从 malloc/free 到 new/delete，彻底理解 C/C++ 动态内存管理</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
