@@ -27,7 +27,7 @@
 <meta property="og:description" content="很多人刚开始学 Agent，都会有一种很强的割裂感。 明明每个词都好像见过，System Prompt、CoT、ReAct、Function Calling、Tool Use、RAG、MCP、Skills……单独看都能说出一点意思，但一旦把它们放到真实项目里，就很容易乱掉。 有时候会分不清：  哪些是提示词层面的设计 哪些是执行流程层面的机制 哪些又是系统工程层面的能力封装  结果就是术语越学越多">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-13T12:49:00.000Z">
-<meta property="article:modified_time" content="2026-04-13T12:51:43.934Z">
+<meta property="article:modified_time" content="2026-04-13T15:43:02.894Z">
 <meta property="article:author" content="鱼跃厂长">
 <meta property="article:tag" content="Agent">
 <meta property="article:tag" content="RAG">
@@ -993,6 +993,21 @@
 
   
 
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
 
 
 
