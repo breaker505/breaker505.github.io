@@ -1,0 +1,1296 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么很多人背过 I &#x2F; P &#x2F; B 帧，还是不理解视频编码只要开始学 H.264 &#x2F; H.265，几乎一定会碰到这些词：  I 帧 P 帧 B 帧 GOP 参考帧 预测结构  很多人对它们并不陌生，甚至在面试前也背过很多次。 但真正一问：  为什么要分 I &#x2F; P &#x2F; B 帧 B 帧到底“厉害”在哪 GOP 为什么不是越长越好 为什么 B">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构">
+<meta property="og:url" content="https://breaker505.github.io/2026/04/18/i-p-b-frames-gop-and-video-prediction/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么很多人背过 I &#x2F; P &#x2F; B 帧，还是不理解视频编码只要开始学 H.264 &#x2F; H.265，几乎一定会碰到这些词：  I 帧 P 帧 B 帧 GOP 参考帧 预测结构  很多人对它们并不陌生，甚至在面试前也背过很多次。 但真正一问：  为什么要分 I &#x2F; P &#x2F; B 帧 B 帧到底“厉害”在哪 GOP 为什么不是越长越好 为什么 B">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-17T17:20:00.000Z">
+<meta property="article:modified_time" content="2026-04-17T17:22:22.082Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="视频编码">
+<meta property="article:tag" content="H264">
+<meta property="article:tag" content="H265">
+<meta property="article:tag" content="编解码">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="工程实践">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-18 01:20" pubdate>
+          2026年4月18日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.1k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          51 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么很多人背过-I-P-B-帧，还是不理解视频编码"><a href="#前言：为什么很多人背过-I-P-B-帧，还是不理解视频编码" class="headerlink" title="前言：为什么很多人背过 I &#x2F; P &#x2F; B 帧，还是不理解视频编码"></a>前言：为什么很多人背过 I &#x2F; P &#x2F; B 帧，还是不理解视频编码</h1><p>只要开始学 H.264 &#x2F; H.265，几乎一定会碰到这些词：</p>
+<ul>
+<li>I 帧</li>
+<li>P 帧</li>
+<li>B 帧</li>
+<li>GOP</li>
+<li>参考帧</li>
+<li>预测结构</li>
+</ul>
+<p>很多人对它们并不陌生，甚至在面试前也背过很多次。</p>
+<p>但真正一问：</p>
+<ul>
+<li>为什么要分 I &#x2F; P &#x2F; B 帧</li>
+<li>B 帧到底“厉害”在哪</li>
+<li>GOP 为什么不是越长越好</li>
+<li>为什么 B 帧会让系统更复杂</li>
+<li>低延迟场景为什么经常要少用甚至不用 B 帧</li>
+</ul>
+<p>就会开始发虚。</p>
+<p>我觉得根本原因是：</p>
+<p><strong>很多人记住了名词，却没有真正理解“预测结构”这件事。</strong></p>
+<p>而视频编码真正的核心，不只是“把视频压小”，而是：</p>
+<p><strong>尽量不要每一帧都从零开始存。</strong></p>
+<p>这句话一旦理解透，I &#x2F; P &#x2F; B 帧的存在意义、GOP 的作用、编码延迟和系统复杂度，都会顺很多。</p>
+<p>所以这篇文章的目标，不是把你变成标准文档阅读器，而是把这几个最核心的问题讲明白：</p>
+<ul>
+<li>I &#x2F; P &#x2F; B 帧到底分别在做什么</li>
+<li>参考关系为什么能大幅提升压缩效率</li>
+<li>GOP 本质上在组织什么</li>
+<li>为什么压缩率、延迟、复杂度和兼容性会被这些结构直接影响</li>
+</ul>
+<p>而且这次我会明显多放结构图和时序图，把“帧之间的关系”尽量讲得有画面感。</p>
+<hr>
+<h1 id="一、先给一句最重要的话：I-P-B-帧，本质上是在决定“当前帧到底要不要依赖别人”"><a href="#一、先给一句最重要的话：I-P-B-帧，本质上是在决定“当前帧到底要不要依赖别人”" class="headerlink" title="一、先给一句最重要的话：I &#x2F; P &#x2F; B 帧，本质上是在决定“当前帧到底要不要依赖别人”"></a>一、先给一句最重要的话：I &#x2F; P &#x2F; B 帧，本质上是在决定“当前帧到底要不要依赖别人”</h1><p>如果让我先用一句话概括 I &#x2F; P &#x2F; B 帧的区别，我会这样说：</p>
+<p><strong>I &#x2F; P &#x2F; B 帧，本质上是在决定当前帧的编码时，到底要不要参考其他帧，以及参考谁。</strong></p>
+<p>可以先粗略记成：</p>
+<ul>
+<li><strong>I 帧</strong>：尽量独立编码，不依赖别的帧</li>
+<li><strong>P 帧</strong>：参考前面的帧</li>
+<li><strong>B 帧</strong>：可以同时参考前后帧</li>
+</ul>
+<p>注意，这里最关键的词不是“关键帧”“预测帧”“双向预测帧”这些定义本身，而是：</p>
+<p><strong>依赖关系。</strong></p>
+<p>一旦你把“依赖关系”这条主线抓住，后面很多现象都会变得合理：</p>
+<ul>
+<li>为什么 I 帧更大</li>
+<li>为什么 P 帧通常更省</li>
+<li>为什么 B 帧压缩率高但系统更复杂</li>
+<li>为什么解码顺序和显示顺序可能不一样</li>
+</ul>
+<hr>
+<h1 id="二、先看总图：视频编码为什么不能每一帧都从零开始存"><a href="#二、先看总图：视频编码为什么不能每一帧都从零开始存" class="headerlink" title="二、先看总图：视频编码为什么不能每一帧都从零开始存"></a>二、先看总图：视频编码为什么不能每一帧都从零开始存</h1><p>假设有一段视频，是一个人站在镜头前轻微移动。</p>
+<p>如果每一帧都完全独立编码，会发生什么？</p>
+<ul>
+<li>前后帧里大量内容其实几乎一样</li>
+<li>系统会重复存储很多相同信息</li>
+<li>数据量会非常不划算</li>
+</ul>
+<p>所以编码器真正聪明的地方在于：</p>
+<blockquote>
+<p>它不总是“把当前帧完整记下来”，而是尽量只记录“当前帧和参考帧有什么不同”。</p>
+</blockquote>
+<p>先看一张抽象图。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[前一帧] --&gt; B[当前帧]
+    B --&gt; C[后一帧]
+
+    A --&gt; D[大量信息相似]
+    B --&gt; D
+    C --&gt; D
+
+    D --&gt; E[编码器尝试记录差异而不是重复内容]
+</code></pre>
+
+<p>这就是视频预测结构的出发点。</p>
+<p>所以从本质上说，I &#x2F; P &#x2F; B 帧并不是“人为硬分类型”，而是编码器为了更高效利用帧间冗余，采用的不同策略。</p>
+<hr>
+<h1 id="三、I-帧到底是什么，为什么它最“稳”但也最“贵”"><a href="#三、I-帧到底是什么，为什么它最“稳”但也最“贵”" class="headerlink" title="三、I 帧到底是什么，为什么它最“稳”但也最“贵”"></a>三、I 帧到底是什么，为什么它最“稳”但也最“贵”</h1><h2 id="3-1-I-帧的本质"><a href="#3-1-I-帧的本质" class="headerlink" title="3.1 I 帧的本质"></a>3.1 I 帧的本质</h2><p>I 帧可以理解成：</p>
+<p><strong>一帧尽量独立编码的图像。</strong></p>
+<p>它不依赖前后其他帧的运动信息来完成主要重建。</p>
+<p>注意，这里的“不依赖”是指不依赖别的帧，不代表它内部什么预测都不用。</p>
+<p>在实际编码器里，I 帧内部仍然可能使用帧内预测，但它不依赖其他时间上的参考帧。</p>
+<h2 id="3-2-为什么-I-帧重要"><a href="#3-2-为什么-I-帧重要" class="headerlink" title="3.2 为什么 I 帧重要"></a>3.2 为什么 I 帧重要</h2><p>因为它是整条预测链路的“锚点”。</p>
+<p>有了 I 帧，解码器即使没有前面的参考历史，也能从这里重新开始把图像还原出来。</p>
+<p>所以 I 帧通常承担这些角色：</p>
+<ul>
+<li>随机访问起点</li>
+<li>GOP 的起始点</li>
+<li>丢包或错误恢复的重新同步点</li>
+</ul>
+<h2 id="3-3-为什么-I-帧通常更大"><a href="#3-3-为什么-I-帧通常更大" class="headerlink" title="3.3 为什么 I 帧通常更大"></a>3.3 为什么 I 帧通常更大</h2><p>因为它没有利用时间上的参考关系，只能更多依赖当前帧自身信息来表达画面。</p>
+<p>所以在相同画质条件下，I 帧往往比 P &#x2F; B 帧大。</p>
+<h2 id="3-4-一张图看懂-I-帧的角色"><a href="#3-4-一张图看懂-I-帧的角色" class="headerlink" title="3.4 一张图看懂 I 帧的角色"></a>3.4 一张图看懂 I 帧的角色</h2><pre><code class=" mermaid">flowchart TD
+    A[I 帧] --&gt; B[独立起点]
+    A --&gt; C[随机访问更方便]
+    A --&gt; D[错误恢复更容易]
+    A --&gt; E[通常码率开销更高]
+</code></pre>
+
+<p>所以你可以把 I 帧理解成：</p>
+<p><strong>最稳、最独立、但也最贵的一类帧。</strong></p>
+<hr>
+<h1 id="四、P-帧到底是什么，为什么它是视频压缩里的主力"><a href="#四、P-帧到底是什么，为什么它是视频压缩里的主力" class="headerlink" title="四、P 帧到底是什么，为什么它是视频压缩里的主力"></a>四、P 帧到底是什么，为什么它是视频压缩里的主力</h1><h2 id="4-1-P-帧的本质"><a href="#4-1-P-帧的本质" class="headerlink" title="4.1 P 帧的本质"></a>4.1 P 帧的本质</h2><p>P 帧可以理解成：</p>
+<p><strong>当前帧参考前面的某一帧或多帧，只记录差异信息来完成编码。</strong></p>
+<p>这里最常见的直觉是：</p>
+<ul>
+<li>如果画面大部分没变，就没必要全存</li>
+<li>只要告诉解码器“和前面那帧相比哪里变了”，就能省很多数据</li>
+</ul>
+<h2 id="4-2-P-帧为什么更省"><a href="#4-2-P-帧为什么更省" class="headerlink" title="4.2 P 帧为什么更省"></a>4.2 P 帧为什么更省</h2><p>因为它利用了时间冗余。</p>
+<p>连续视频帧之间通常不会完全无关，所以很多内容都可以从前面的参考帧推导出来。</p>
+<p>编码器只需要记录：</p>
+<ul>
+<li>当前块参考了哪一块</li>
+<li>移动了多少</li>
+<li>剩余误差是多少</li>
+</ul>
+<p>这就是为什么 P 帧通常比 I 帧更小。</p>
+<h2 id="4-3-P-帧的代价是什么"><a href="#4-3-P-帧的代价是什么" class="headerlink" title="4.3 P 帧的代价是什么"></a>4.3 P 帧的代价是什么</h2><p>代价就是：</p>
+<p><strong>它不再独立。</strong></p>
+<p>一旦参考帧丢了、坏了，后面的 P 帧恢复也会受影响。</p>
+<h2 id="4-4-一张图看懂-P-帧"><a href="#4-4-一张图看懂-P-帧" class="headerlink" title="4.4 一张图看懂 P 帧"></a>4.4 一张图看懂 P 帧</h2><pre><code class=" mermaid">flowchart LR
+    A[I / P 参考帧] --&gt; B[P 帧]
+    B --&gt; C[记录和前面参考帧的差异]
+    C --&gt; D[码率更低]
+    C --&gt; E[依赖链变长]
+</code></pre>
+
+<p>所以 P 帧可以理解成：</p>
+<p><strong>通过参考过去来换取更高压缩率。</strong></p>
+<hr>
+<h1 id="五、B-帧到底是什么，为什么它压缩率高但系统复杂度也更高"><a href="#五、B-帧到底是什么，为什么它压缩率高但系统复杂度也更高" class="headerlink" title="五、B 帧到底是什么，为什么它压缩率高但系统复杂度也更高"></a>五、B 帧到底是什么，为什么它压缩率高但系统复杂度也更高</h1><h2 id="5-1-B-帧的本质"><a href="#5-1-B-帧的本质" class="headerlink" title="5.1 B 帧的本质"></a>5.1 B 帧的本质</h2><p>B 帧可以理解成：</p>
+<p><strong>当前帧在编码时，可以同时参考前面的帧和后面的帧。</strong></p>
+<p>这就是所谓“双向预测”。</p>
+<p>换句话说，编码器在看当前帧时，不只是能问：</p>
+<ul>
+<li>它和前一帧像不像</li>
+</ul>
+<p>还可以问：</p>
+<ul>
+<li>它和后一帧像不像</li>
+<li>两边一起参考会不会更省</li>
+</ul>
+<h2 id="5-2-为什么-B-帧更省"><a href="#5-2-为什么-B-帧更省" class="headerlink" title="5.2 为什么 B 帧更省"></a>5.2 为什么 B 帧更省</h2><p>因为多了“前后都能参考”的自由度，编码器更容易找到更合适的预测方式。</p>
+<p>于是：</p>
+<ul>
+<li>残差更小</li>
+<li>压缩效率更高</li>
+<li>平均码率可能进一步下降</li>
+</ul>
+<h2 id="5-3-为什么-B-帧更复杂"><a href="#5-3-为什么-B-帧更复杂" class="headerlink" title="5.3 为什么 B 帧更复杂"></a>5.3 为什么 B 帧更复杂</h2><p>因为它会带来非常重要的系统副作用：</p>
+<ul>
+<li>编码器要看到“后面的帧”才能决定怎么编码当前 B 帧</li>
+<li>输入顺序、编码顺序、显示顺序可能不再一致</li>
+<li>解码缓存和时间戳处理会更复杂</li>
+<li>延迟通常会上升</li>
+</ul>
+<h2 id="5-4-一张图看懂-B-帧的参考关系"><a href="#5-4-一张图看懂-B-帧的参考关系" class="headerlink" title="5.4 一张图看懂 B 帧的参考关系"></a>5.4 一张图看懂 B 帧的参考关系</h2><pre><code class=" mermaid">flowchart LR
+    A[前参考帧] --&gt; B[B 帧]
+    C[后参考帧] --&gt; B
+    B --&gt; D[双向预测]
+    D --&gt; E[更高压缩率]
+    D --&gt; F[更高复杂度与更高延迟]
+</code></pre>
+
+<p>所以 B 帧可以理解成：</p>
+<p><strong>最会省码率，但也最会增加系统复杂度的一类帧。</strong></p>
+<hr>
+<h1 id="六、一张对比图，把-I-P-B-帧一次讲清楚"><a href="#六、一张对比图，把-I-P-B-帧一次讲清楚" class="headerlink" title="六、一张对比图，把 I &#x2F; P &#x2F; B 帧一次讲清楚"></a>六、一张对比图，把 I &#x2F; P &#x2F; B 帧一次讲清楚</h1><pre><code class=" mermaid">flowchart TD
+    A[I 帧] --&gt; A1[不依赖其他帧]
+    A --&gt; A2[更独立]
+    A --&gt; A3[更大]
+
+    B[P 帧] --&gt; B1[参考过去帧]
+    B --&gt; B2[更省码率]
+    B --&gt; B3[有依赖]
+
+    C[B 帧] --&gt; C1[参考前后帧]
+    C --&gt; C2[压缩率更高]
+    C --&gt; C3[时序更复杂]
+    C --&gt; C4[延迟更高]
+</code></pre>
+
+<p>如果你现在要先形成一个稳定直觉，就记：</p>
+<ul>
+<li>I：独立、稳、但贵</li>
+<li>P：参考过去，省码率，主力结构</li>
+<li>B：参考前后，更省，但更复杂</li>
+</ul>
+<p>这已经足够让你先站稳。</p>
+<hr>
+<h1 id="七、GOP-到底是什么，它本质上在组织什么"><a href="#七、GOP-到底是什么，它本质上在组织什么" class="headerlink" title="七、GOP 到底是什么，它本质上在组织什么"></a>七、GOP 到底是什么，它本质上在组织什么</h1><p>接下来进入另一个高频词：</p>
+<p><strong>GOP。</strong></p>
+<p>很多人知道它翻译成 Group of Pictures，但真正关键的是：</p>
+<p><strong>它到底在组织什么？</strong></p>
+<h2 id="7-1-GOP-的本质"><a href="#7-1-GOP-的本质" class="headerlink" title="7.1 GOP 的本质"></a>7.1 GOP 的本质</h2><p>GOP 可以理解成：</p>
+<p><strong>一组按照特定预测结构组织起来的连续帧。</strong></p>
+<p>也就是说，GOP 不是简单“几帧放一起”，而是：</p>
+<ul>
+<li>这组帧里谁当起点</li>
+<li>谁参考谁</li>
+<li>参考链有多长</li>
+<li>多久插一个 I 帧</li>
+</ul>
+<h2 id="7-2-一个最简单的-GOP-例子"><a href="#7-2-一个最简单的-GOP-例子" class="headerlink" title="7.2 一个最简单的 GOP 例子"></a>7.2 一个最简单的 GOP 例子</h2><p>比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">I P P P P<br></code></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">I B B P B B P<br></code></pre></td></tr></table></figure>
+
+<p>这些都可以看成不同的 GOP 结构。</p>
+<h2 id="7-3-GOP-真正影响什么"><a href="#7-3-GOP-真正影响什么" class="headerlink" title="7.3 GOP 真正影响什么"></a>7.3 GOP 真正影响什么</h2><p>GOP 会直接影响：</p>
+<ul>
+<li>随机访问能力</li>
+<li>压缩效率</li>
+<li>错误恢复能力</li>
+<li>编码延迟</li>
+<li>解码复杂度</li>
+</ul>
+<p>所以 GOP 的问题，本质上是：</p>
+<p><strong>你想用什么样的预测组织方式，在码率、延迟、复杂度和恢复能力之间做取舍。</strong></p>
+<hr>
+<h1 id="八、一张-GOP-结构图看懂“预测组织”到底是什么意思"><a href="#八、一张-GOP-结构图看懂“预测组织”到底是什么意思" class="headerlink" title="八、一张 GOP 结构图看懂“预测组织”到底是什么意思"></a>八、一张 GOP 结构图看懂“预测组织”到底是什么意思</h1><h2 id="8-1-只有-I-P-的简单-GOP"><a href="#8-1-只有-I-P-的简单-GOP" class="headerlink" title="8.1 只有 I&#x2F;P 的简单 GOP"></a>8.1 只有 I&#x2F;P 的简单 GOP</h2><pre><code class=" mermaid">flowchart LR
+    I[I] --&gt; P1[P]
+    P1 --&gt; P2[P]
+    P2 --&gt; P3[P]
+    P3 --&gt; P4[P]
+</code></pre>
+
+<p>这种结构的特点是：</p>
+<ul>
+<li>简单</li>
+<li>延迟相对低</li>
+<li>压缩率不错</li>
+<li>系统实现比带 B 帧简单</li>
+</ul>
+<h2 id="8-2-带-B-帧的-GOP"><a href="#8-2-带-B-帧的-GOP" class="headerlink" title="8.2 带 B 帧的 GOP"></a>8.2 带 B 帧的 GOP</h2><pre><code class=" mermaid">flowchart LR
+    I[I] --&gt; P1[P]
+    I --&gt; B1[B]
+    P1 --&gt; B1
+    I --&gt; B2[B]
+    P1 --&gt; B2
+    P1 --&gt; P2[P]
+    P1 --&gt; B3[B]
+    P2 --&gt; B3
+    P1 --&gt; B4[B]
+    P2 --&gt; B4
+</code></pre>
+
+<p>这张图虽然抽象，但很重要，因为它体现出：</p>
+<ul>
+<li>B 帧并不是“排在中间就完了”</li>
+<li>它真正关键的是<strong>参考关系更复杂</strong></li>
+</ul>
+<p>所以 GOP 不是一个“长度参数”这么简单，而是一个完整的预测组织方案。</p>
+<hr>
+<h1 id="九、为什么-GOP-不是越长越好，也不是越短越好"><a href="#九、为什么-GOP-不是越长越好，也不是越短越好" class="headerlink" title="九、为什么 GOP 不是越长越好，也不是越短越好"></a>九、为什么 GOP 不是越长越好，也不是越短越好</h1><p>这个问题特别适合面试。</p>
+<h2 id="9-1-GOP-长一点的好处"><a href="#9-1-GOP-长一点的好处" class="headerlink" title="9.1 GOP 长一点的好处"></a>9.1 GOP 长一点的好处</h2><p>如果 GOP 更长，通常意味着：</p>
+<ul>
+<li>I 帧更少</li>
+<li>平均码率更低</li>
+<li>压缩效率可能更高</li>
+</ul>
+<p>因为 I 帧通常最贵，少放几个自然更省。</p>
+<h2 id="9-2-GOP-长一点的代价"><a href="#9-2-GOP-长一点的代价" class="headerlink" title="9.2 GOP 长一点的代价"></a>9.2 GOP 长一点的代价</h2><p>但代价也很明显：</p>
+<ul>
+<li>随机访问更差</li>
+<li>错误恢复更慢</li>
+<li>一旦参考链断掉，影响范围更大</li>
+<li>某些场景下延迟和复杂度会更明显</li>
+</ul>
+<h2 id="9-3-GOP-短一点的好处"><a href="#9-3-GOP-短一点的好处" class="headerlink" title="9.3 GOP 短一点的好处"></a>9.3 GOP 短一点的好处</h2><p>如果 GOP 更短，通常意味着：</p>
+<ul>
+<li>I 帧更密</li>
+<li>起播、拖动、切片、恢复更方便</li>
+<li>错误影响更局部</li>
+</ul>
+<h2 id="9-4-GOP-短一点的代价"><a href="#9-4-GOP-短一点的代价" class="headerlink" title="9.4 GOP 短一点的代价"></a>9.4 GOP 短一点的代价</h2><p>代价就是：</p>
+<ul>
+<li>I 帧多</li>
+<li>平均码率更高</li>
+<li>压缩效率下降</li>
+</ul>
+<p>所以你会发现，GOP 长短不是单纯谁好谁坏，而是业务目标不同。</p>
+<hr>
+<h1 id="十、一张图看懂-GOP-长短背后的-trade-off"><a href="#十、一张图看懂-GOP-长短背后的-trade-off" class="headerlink" title="十、一张图看懂 GOP 长短背后的 trade-off"></a>十、一张图看懂 GOP 长短背后的 trade-off</h1><pre><code class=" mermaid">flowchart TD
+    A[GOP 更长] --&gt; B1[I 帧更少]
+    A --&gt; B2[压缩率更高]
+    A --&gt; B3[随机访问更差]
+    A --&gt; B4[错误恢复更慢]
+
+    C[GOP 更短] --&gt; D1[I 帧更密]
+    C --&gt; D2[更易恢复与定位]
+    C --&gt; D3[码率更高]
+    C --&gt; D4[压缩率下降]
+</code></pre>
+
+<p>你可以把这张图直接记成一句话：</p>
+<p><strong>GOP 越长越省，但越不灵活；GOP 越短越稳，但越贵。</strong></p>
+<hr>
+<h1 id="十一、为什么-B-帧会影响延迟和时序"><a href="#十一、为什么-B-帧会影响延迟和时序" class="headerlink" title="十一、为什么 B 帧会影响延迟和时序"></a>十一、为什么 B 帧会影响延迟和时序</h1><p>这是工程里特别重要的一块。</p>
+<p>很多人知道 B 帧压缩率高，但不知道它为什么会拉高系统复杂度。</p>
+<h2 id="11-1-B-帧的问题不是“解码更慢”这么简单"><a href="#11-1-B-帧的问题不是“解码更慢”这么简单" class="headerlink" title="11.1 B 帧的问题不是“解码更慢”这么简单"></a>11.1 B 帧的问题不是“解码更慢”这么简单</h2><p>更根本的问题是：</p>
+<p><strong>它需要看到后面的参考帧，才能把当前帧编码好。</strong></p>
+<p>这意味着：</p>
+<ul>
+<li>编码器不能总是来一帧就立刻决定全部输出</li>
+<li>系统要缓存更多帧</li>
+<li>输出顺序可能和输入顺序不一致</li>
+</ul>
+<h2 id="11-2-一张时序图看懂-B-帧为什么会引入重排序"><a href="#11-2-一张时序图看懂-B-帧为什么会引入重排序" class="headerlink" title="11.2 一张时序图看懂 B 帧为什么会引入重排序"></a>11.2 一张时序图看懂 B 帧为什么会引入重排序</h2><pre><code class=" mermaid">sequenceDiagram
+    participant In as 输入顺序
+    participant Enc as 编码器
+    participant Out as 显示顺序
+
+    In-&gt;&gt;Enc: I
+    In-&gt;&gt;Enc: B
+    In-&gt;&gt;Enc: B
+    In-&gt;&gt;Enc: P
+
+    Note over Enc: 为了编码 B，需要先知道后面的 P
+
+    Enc-&gt;&gt;Out: I
+    Enc-&gt;&gt;Out: P
+    Enc-&gt;&gt;Out: B
+    Enc-&gt;&gt;Out: B
+</code></pre>
+
+<p>这张图最关键的不是精确标准顺序，而是让你理解：</p>
+<p><strong>输入顺序、编码顺序、显示顺序可能不再一致。</strong></p>
+<p>这就是：</p>
+<ul>
+<li>PTS &#x2F; DTS 更复杂</li>
+<li>buffer 更复杂</li>
+<li>低延迟系统更讨厌 B 帧</li>
+</ul>
+<p>的根本原因。</p>
+<hr>
+<h1 id="十二、低延迟场景为什么经常少用甚至不用-B-帧"><a href="#十二、低延迟场景为什么经常少用甚至不用-B-帧" class="headerlink" title="十二、低延迟场景为什么经常少用甚至不用 B 帧"></a>十二、低延迟场景为什么经常少用甚至不用 B 帧</h1><p>这也是一个非常高频的工程问题。</p>
+<h2 id="12-1-低延迟场景最怕什么"><a href="#12-1-低延迟场景最怕什么" class="headerlink" title="12.1 低延迟场景最怕什么"></a>12.1 低延迟场景最怕什么</h2><p>低延迟场景最怕：</p>
+<ul>
+<li>编码前等待</li>
+<li>队列积压</li>
+<li>解码缓存太深</li>
+<li>显示端拿不到最新帧</li>
+</ul>
+<p>而 B 帧恰恰会增加这些风险。</p>
+<h2 id="12-2-所以常见的选择是什么"><a href="#12-2-所以常见的选择是什么" class="headerlink" title="12.2 所以常见的选择是什么"></a>12.2 所以常见的选择是什么</h2><p>很多低延迟场景里，会更偏向：</p>
+<ul>
+<li>I + P 结构</li>
+<li>少量或不用 B 帧</li>
+<li>更短的 GOP</li>
+<li>更保守的预测结构</li>
+</ul>
+<p>这样做虽然会牺牲一些压缩率，但能换来：</p>
+<ul>
+<li>更低延迟</li>
+<li>更简单时序</li>
+<li>更好控制系统行为</li>
+</ul>
+<p>这也是为什么：</p>
+<ul>
+<li>直播推流</li>
+<li>RTC</li>
+<li>车载实时预览</li>
+<li>低延迟监控预览</li>
+</ul>
+<p>这类场景对预测结构通常会更保守。</p>
+<hr>
+<h1 id="十三、用代码看：FFmpeg-里这些结构通常会体现在哪些参数上"><a href="#十三、用代码看：FFmpeg-里这些结构通常会体现在哪些参数上" class="headerlink" title="十三、用代码看：FFmpeg 里这些结构通常会体现在哪些参数上"></a>十三、用代码看：FFmpeg 里这些结构通常会体现在哪些参数上</h1><p>这部分不追求写得像生产代码，但要给你工程感。</p>
+<h2 id="13-1-设置-GOP-大小和-B-帧数量"><a href="#13-1-设置-GOP-大小和-B-帧数量" class="headerlink" title="13.1 设置 GOP 大小和 B 帧数量"></a>13.1 设置 GOP 大小和 B 帧数量</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs c">AVCodecContext *ctx = avcodec_alloc_context3(codec);<br>ctx-&gt;width = <span class="hljs-number">1920</span>;<br>ctx-&gt;height = <span class="hljs-number">1080</span>;<br>ctx-&gt;time_base = (AVRational)&#123;<span class="hljs-number">1</span>, <span class="hljs-number">25</span>&#125;;<br>ctx-&gt;framerate = (AVRational)&#123;<span class="hljs-number">25</span>, <span class="hljs-number">1</span>&#125;;<br>ctx-&gt;pix_fmt = AV_PIX_FMT_YUV420P;<br><br>ctx-&gt;gop_size = <span class="hljs-number">50</span>;      <span class="hljs-comment">// GOP 大小</span><br>ctx-&gt;max_b_frames = <span class="hljs-number">2</span>;   <span class="hljs-comment">// 最多使用 2 个 B 帧</span><br></code></pre></td></tr></table></figure>
+
+<p>这段代码很适合建立一个直觉：</p>
+<ul>
+<li><code>gop_size</code> 会影响 I 帧间隔</li>
+<li><code>max_b_frames</code> 会影响预测结构复杂度</li>
+</ul>
+<h2 id="13-2-低延迟场景的常见思路"><a href="#13-2-低延迟场景的常见思路" class="headerlink" title="13.2 低延迟场景的常见思路"></a>13.2 低延迟场景的常见思路</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">ctx-&gt;gop_size = <span class="hljs-number">25</span>;<br>ctx-&gt;max_b_frames = <span class="hljs-number">0</span>;<br></code></pre></td></tr></table></figure>
+
+<p>这通常意味着：</p>
+<ul>
+<li>GOP 更短</li>
+<li>没有 B 帧</li>
+<li>更适合低延迟场景</li>
+</ul>
+<p>当然真实项目里还会结合编码器私有参数，但这已经足够体现主思路。</p>
+<hr>
+<h1 id="十四、工程里最常见的几个误区"><a href="#十四、工程里最常见的几个误区" class="headerlink" title="十四、工程里最常见的几个误区"></a>十四、工程里最常见的几个误区</h1><h2 id="14-1-误区一：I-帧就是“完整图片”，P-B-帧就是“不完整图片”"><a href="#14-1-误区一：I-帧就是“完整图片”，P-B-帧就是“不完整图片”" class="headerlink" title="14.1 误区一：I 帧就是“完整图片”，P &#x2F; B 帧就是“不完整图片”"></a>14.1 误区一：I 帧就是“完整图片”，P &#x2F; B 帧就是“不完整图片”</h2><p>这种说法太粗糙了。</p>
+<p>更准确的理解应该是：</p>
+<ul>
+<li>I 帧主要不依赖其他帧</li>
+<li>P &#x2F; B 帧主要依赖参考帧结构</li>
+</ul>
+<p>重点在“依赖关系”，不是“完整 &#x2F; 不完整”这种口语化理解。</p>
+<h2 id="14-2-误区二：B-帧一定更好"><a href="#14-2-误区二：B-帧一定更好" class="headerlink" title="14.2 误区二：B 帧一定更好"></a>14.2 误区二：B 帧一定更好</h2><p>不是。</p>
+<p>B 帧通常更省码率，但会引入：</p>
+<ul>
+<li>更高延迟</li>
+<li>更复杂时序</li>
+<li>更复杂缓存</li>
+</ul>
+<p>在低延迟场景下，它反而可能不合适。</p>
+<h2 id="14-3-误区三：GOP-越长越高级"><a href="#14-3-误区三：GOP-越长越高级" class="headerlink" title="14.3 误区三：GOP 越长越高级"></a>14.3 误区三：GOP 越长越高级</h2><p>也不是。</p>
+<p>GOP 长短本质上是业务取舍：</p>
+<ul>
+<li>长 GOP 更省码率</li>
+<li>短 GOP 更灵活、更稳</li>
+</ul>
+<h2 id="14-4-误区四：面试里背定义就够了"><a href="#14-4-误区四：面试里背定义就够了" class="headerlink" title="14.4 误区四：面试里背定义就够了"></a>14.4 误区四：面试里背定义就够了</h2><p>不够。</p>
+<p>面试官更关心你知不知道：</p>
+<ul>
+<li>为什么这么设计</li>
+<li>会影响什么</li>
+<li>适合什么场景</li>
+</ul>
+<hr>
+<h1 id="十五、面试里怎么讲，才不像只会背术语"><a href="#十五、面试里怎么讲，才不像只会背术语" class="headerlink" title="十五、面试里怎么讲，才不像只会背术语"></a>十五、面试里怎么讲，才不像只会背术语</h1><p>如果面试官问：</p>
+<blockquote>
+<p>你怎么理解 I 帧、P 帧、B 帧和 GOP？</p>
+</blockquote>
+<p>我建议你按下面这个结构讲。</p>
+<h2 id="15-1-先讲本质"><a href="#15-1-先讲本质" class="headerlink" title="15.1 先讲本质"></a>15.1 先讲本质</h2><p>这几种帧类型本质上是在决定当前帧编码时对其他帧的依赖关系。I 帧尽量独立，P 帧参考过去帧，B 帧可以参考前后帧。</p>
+<h2 id="15-2-再讲为什么这么设计"><a href="#15-2-再讲为什么这么设计" class="headerlink" title="15.2 再讲为什么这么设计"></a>15.2 再讲为什么这么设计</h2><p>这么设计的核心目的是利用视频连续帧之间的时间冗余，避免每一帧都从零开始编码，从而提高压缩效率。</p>
+<h2 id="15-3-再讲工程影响"><a href="#15-3-再讲工程影响" class="headerlink" title="15.3 再讲工程影响"></a>15.3 再讲工程影响</h2><p>I 帧更独立但码率开销更大，P 帧是视频编码里的主力结构，B 帧压缩率更高但会增加时序复杂度和编码延迟。GOP 则是在组织这组预测关系，它会影响压缩率、恢复能力、随机访问和低延迟表现。</p>
+<h2 id="15-4-最后结合场景"><a href="#15-4-最后结合场景" class="headerlink" title="15.4 最后结合场景"></a>15.4 最后结合场景</h2><p>比如低延迟场景通常会减少甚至不用 B 帧，GOP 也往往不会拉得太长；而更偏存储和点播的场景则可以接受更复杂的预测结构来换更高压缩率。</p>
+<p>如果你能这么讲，面试官基本就能听出你是真的理解过，而不是只背了“关键帧、预测帧、双向预测帧”。</p>
+<hr>
+<h1 id="总结：I-P-B-帧和-GOP，本质上是在组织“视频怎么参考自己”"><a href="#总结：I-P-B-帧和-GOP，本质上是在组织“视频怎么参考自己”" class="headerlink" title="总结：I &#x2F; P &#x2F; B 帧和 GOP，本质上是在组织“视频怎么参考自己”"></a>总结：I &#x2F; P &#x2F; B 帧和 GOP，本质上是在组织“视频怎么参考自己”</h1><p>回到这篇文章最开始的问题：</p>
+<p><strong>I 帧、P 帧、B 帧和 GOP 到底该怎么理解？</strong></p>
+<p>我觉得最稳的一条主线就是：</p>
+<ul>
+<li>视频编码不想每一帧都从零开始存</li>
+<li>所以要利用前后帧之间的相似性</li>
+<li>I &#x2F; P &#x2F; B 帧是在定义不同的参考方式</li>
+<li>GOP 是在组织一组连续帧的参考关系</li>
+</ul>
+<p>于是它们就共同决定了这些关键结果：</p>
+<ul>
+<li>压缩率</li>
+<li>码率开销</li>
+<li>随机访问能力</li>
+<li>错误恢复能力</li>
+<li>时序复杂度</li>
+<li>编码延迟</li>
+</ul>
+<p>如果把这条线理解透了，后面你再去看：</p>
+<ul>
+<li>H.264 &#x2F; H.265 编码流程</li>
+<li>码率控制</li>
+<li>PTS &#x2F; DTS</li>
+<li>FFmpeg 编码行为</li>
+<li>低延迟链路设计</li>
+</ul>
+<p>都会容易很多。</p>
+<p>因为到那时你已经不再只是记住几个帧名字，而是真的明白了：</p>
+<p><strong>视频编码真正厉害的地方，是它让视频学会了“参考自己”。</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/" class="print-no-link">#视频编码</a>
+      
+        <a href="/tags/H264/" class="print-no-link">#H264</a>
+      
+        <a href="/tags/H265/" class="print-no-link">#H265</a>
+      
+        <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/" class="print-no-link">#编解码</a>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构</div>
+      <div>https://breaker505.github.io/2026/04/18/i-p-b-frames-gop-and-video-prediction/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/18/why-video-systems-prefer-yuv/" title="为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍">
+                        <span class="hidden-mobile">为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
