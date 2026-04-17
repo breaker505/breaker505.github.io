@@ -1,0 +1,1198 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么我要先搭“骨架”，而不是继续零散写当一个人开始系统学习音视频时，很容易进入一种状态：  今天看一点 H.264 明天看一点 FFmpeg 后天又跳去看 RTSP &#x2F; RTP 再往后开始接触 OpenCV、GStreamer、CUDA、WebRTC、AAC、弱网优化  表面上看，学过的东西越来越多；但实际上，知识很容易变成一地散点。 最后常见的问题是：  每个词都见过，但串不起">
+<meta property="og:type" content="article">
+<meta property="og:title" content="音视频工程长期写作总纲：我的知识体系骨架与专栏线路图">
+<meta property="og:url" content="https://breaker505.github.io/2026/04/17/audio-video-series-roadmap/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么我要先搭“骨架”，而不是继续零散写当一个人开始系统学习音视频时，很容易进入一种状态：  今天看一点 H.264 明天看一点 FFmpeg 后天又跳去看 RTSP &#x2F; RTP 再往后开始接触 OpenCV、GStreamer、CUDA、WebRTC、AAC、弱网优化  表面上看，学过的东西越来越多；但实际上，知识很容易变成一地散点。 最后常见的问题是：  每个词都见过，但串不起">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-17T15:55:00.000Z">
+<meta property="article:modified_time" content="2026-04-17T15:57:52.046Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="车载开发">
+<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="方法论">
+<meta property="article:tag" content="RTSP">
+<meta property="article:tag" content="WebRTC">
+<meta property="article:tag" content="GStreamer">
+<meta property="article:tag" content="学习路线">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>音视频工程长期写作总纲：我的知识体系骨架与专栏线路图 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="音视频工程长期写作总纲：我的知识体系骨架与专栏线路图"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-17 23:55" pubdate>
+          2026年4月17日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          58 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">音视频工程长期写作总纲：我的知识体系骨架与专栏线路图</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么我要先搭“骨架”，而不是继续零散写"><a href="#前言：为什么我要先搭“骨架”，而不是继续零散写" class="headerlink" title="前言：为什么我要先搭“骨架”，而不是继续零散写"></a>前言：为什么我要先搭“骨架”，而不是继续零散写</h1><p>当一个人开始系统学习音视频时，很容易进入一种状态：</p>
+<ul>
+<li>今天看一点 H.264</li>
+<li>明天看一点 FFmpeg</li>
+<li>后天又跳去看 RTSP &#x2F; RTP</li>
+<li>再往后开始接触 OpenCV、GStreamer、CUDA、WebRTC、AAC、弱网优化</li>
+</ul>
+<p>表面上看，学过的东西越来越多；但实际上，知识很容易变成一地散点。</p>
+<p>最后常见的问题是：</p>
+<ul>
+<li>每个词都见过，但串不起来</li>
+<li>每个模块都懂一点，但没有主干</li>
+<li>写博客时题目很多，但容易越写越散</li>
+<li>面试时能说几个名词，但很难讲出完整链路</li>
+<li>做项目时遇到问题，不知道它属于采集层、编码层、协议层、渲染层，还是系统优化层</li>
+</ul>
+<p>所以，在这个阶段，比继续堆选题更重要的一件事是：</p>
+<p><strong>先把整个音视频工程知识体系的核心骨架定下来。</strong></p>
+<p>这篇文章的目的不是讲某一个具体技术点，而是作为我后续长期写作的总纲，明确：</p>
+<ol>
+<li>这个专栏到底要覆盖哪些方向</li>
+<li>哪些内容属于核心骨架，必须优先写透</li>
+<li>每篇文章的跨度应该怎么控制，避免一篇里塞太多东西</li>
+<li>后续所有笔记、博客、图示、代码示例，应该沿着什么主线持续扩展</li>
+</ol>
+<p>我希望这不是一个“随手写博客”的系列，而是一套能不断生长的音视频工程知识地图。</p>
+<hr>
+<h1 id="一、这个专栏到底在写什么"><a href="#一、这个专栏到底在写什么" class="headerlink" title="一、这个专栏到底在写什么"></a>一、这个专栏到底在写什么</h1><p>这个专栏的核心目标，不是简单整理 API，也不是只做面试八股，而是围绕 <strong>音视频工程全链路</strong>，逐步建立一套能够服务于：</p>
+<ul>
+<li>基础学习</li>
+<li>工程理解</li>
+<li>项目实践</li>
+<li>面试表达</li>
+<li>后续深入研究</li>
+</ul>
+<p>的长期知识体系。</p>
+<p>为了避免体系失控，我先给这个专栏设定一个明确边界。</p>
+<h2 id="1-1-专栏主线"><a href="#1-1-专栏主线" class="headerlink" title="1.1 专栏主线"></a>1.1 专栏主线</h2><p>整个专栏围绕下面这条主链路展开：</p>
+<pre><code class=" mermaid">flowchart LR
+    A[采集设备 / 本地文件 / 网络流] --&gt; B[图像与音频基础]
+    B --&gt; C[编码与码流结构]
+    C --&gt; D[封装与解封装]
+    D --&gt; E[传输协议与网络]
+    E --&gt; F[解码 / 渲染 / 播放]
+    F --&gt; G[工程框架与工具]
+    G --&gt; H[系统优化 / 弱网 / 实时性]
+    H --&gt; I[车载 / 推理 / SDK / 项目表达]
+</code></pre>
+
+<p>换句话说，这个专栏不是单讲 FFmpeg，也不是单讲 H.264，而是把下面这些方向放进同一个系统里理解：</p>
+<ul>
+<li>图像基础与像素格式</li>
+<li>视频编码与音频编码</li>
+<li>封装格式与媒体容器</li>
+<li>RTSP &#x2F; RTP &#x2F; RTMP &#x2F; WebRTC</li>
+<li>FFmpeg &#x2F; GStreamer</li>
+<li>摄像头采集链路与车载视频链路</li>
+<li>硬件编解码、OpenGL、CUDA、ONNX Runtime</li>
+<li>jitter buffer、弱网优化、系统性能调优</li>
+<li>面试表达、项目表达、SDK 设计与落地</li>
+</ul>
+<h2 id="1-2-写作原则"><a href="#1-2-写作原则" class="headerlink" title="1.2 写作原则"></a>1.2 写作原则</h2><p>后续所有文章，都尽量遵守下面三个原则。</p>
+<h3 id="原则一：一篇只解决一个核心问题"><a href="#原则一：一篇只解决一个核心问题" class="headerlink" title="原则一：一篇只解决一个核心问题"></a>原则一：一篇只解决一个核心问题</h3><p>一篇文章可以有关联内容，但不应该跨度过大。</p>
+<p>比如：</p>
+<ul>
+<li>“RTSP &#x2F; RTP &#x2F; RTCP 三者关系”可以是一篇</li>
+<li>“WebRTC 全栈原理 + 弱网优化 + jitter buffer + 回声消除”就明显太大了</li>
+</ul>
+<h3 id="原则二：先搭骨架，再填细节"><a href="#原则二：先搭骨架，再填细节" class="headerlink" title="原则二：先搭骨架，再填细节"></a>原则二：先搭骨架，再填细节</h3><p>先把主干主题写出来，让整张知识地图可见；再逐篇深入，补：</p>
+<ul>
+<li>关键代码</li>
+<li>架构图</li>
+<li>时序图</li>
+<li>典型问题</li>
+<li>性能分析</li>
+</ul>
+<h3 id="原则三：每篇都尽量落回工程语境"><a href="#原则三：每篇都尽量落回工程语境" class="headerlink" title="原则三：每篇都尽量落回工程语境"></a>原则三：每篇都尽量落回工程语境</h3><p>不只回答“它是什么”，更要回答：</p>
+<ul>
+<li>它在整条链路里处于哪一层</li>
+<li>它和上下游模块怎么连接</li>
+<li>工程里为什么经常在这里出问题</li>
+<li>面试里该怎么讲</li>
+</ul>
+<hr>
+<h1 id="二、整个体系先分成哪几大模块"><a href="#二、整个体系先分成哪几大模块" class="headerlink" title="二、整个体系先分成哪几大模块"></a>二、整个体系先分成哪几大模块</h1><p>在真正细化文章之前，先把大模块划清楚。</p>
+<p>我最终决定把整个专栏先收成下面 <strong>10 个一级模块</strong>。</p>
+<p>这样既足够大，也不会无限发散。</p>
+<h2 id="模块-A：总览与系统世界观"><a href="#模块-A：总览与系统世界观" class="headerlink" title="模块 A：总览与系统世界观"></a>模块 A：总览与系统世界观</h2><ul>
+<li>音视频系统整体链路</li>
+<li>从采集到显示的完整主线</li>
+<li>各层模块职责与系统边界</li>
+</ul>
+<h2 id="模块-B：图像基础、像素格式与色彩空间"><a href="#模块-B：图像基础、像素格式与色彩空间" class="headerlink" title="模块 B：图像基础、像素格式与色彩空间"></a>模块 B：图像基础、像素格式与色彩空间</h2><ul>
+<li>RGB &#x2F; YUV &#x2F; NV12 &#x2F; YUV420P</li>
+<li>色彩空间、采样格式、内存布局</li>
+<li>OpenCV &#x2F; FFmpeg &#x2F; 摄像头数据格式衔接</li>
+</ul>
+<h2 id="模块-C：视频编码与码流结构"><a href="#模块-C：视频编码与码流结构" class="headerlink" title="模块 C：视频编码与码流结构"></a>模块 C：视频编码与码流结构</h2><ul>
+<li>H.264 &#x2F; H.265</li>
+<li>I&#x2F;P&#x2F;B 帧、GOP、预测结构</li>
+<li>NALU、SPS、PPS、VPS、Annex B、AVCC</li>
+</ul>
+<h2 id="模块-D：音频基础与音频编码"><a href="#模块-D：音频基础与音频编码" class="headerlink" title="模块 D：音频基础与音频编码"></a>模块 D：音频基础与音频编码</h2><ul>
+<li>PCM、采样率、位宽、声道</li>
+<li>AAC、Opus 等音频编码</li>
+<li>音视频同步与音频处理基础</li>
+</ul>
+<h2 id="模块-E：容器、封装与时间戳"><a href="#模块-E：容器、封装与时间戳" class="headerlink" title="模块 E：容器、封装与时间戳"></a>模块 E：容器、封装与时间戳</h2><ul>
+<li>MP4 &#x2F; FLV &#x2F; TS &#x2F; MKV</li>
+<li>mux &#x2F; demux</li>
+<li>PTS &#x2F; DTS &#x2F; time_base</li>
+<li>转封装与转码</li>
+</ul>
+<h2 id="模块-F：流媒体网络与传输协议"><a href="#模块-F：流媒体网络与传输协议" class="headerlink" title="模块 F：流媒体网络与传输协议"></a>模块 F：流媒体网络与传输协议</h2><ul>
+<li>RTP &#x2F; RTCP &#x2F; RTSP</li>
+<li>RTMP</li>
+<li>WebRTC</li>
+<li>jitter buffer、弱网与实时传输问题</li>
+</ul>
+<h2 id="模块-G：FFmpeg-与-GStreamer-工程框架"><a href="#模块-G：FFmpeg-与-GStreamer-工程框架" class="headerlink" title="模块 G：FFmpeg 与 GStreamer 工程框架"></a>模块 G：FFmpeg 与 GStreamer 工程框架</h2><ul>
+<li>FFmpeg 核心对象与主流程</li>
+<li>filter graph</li>
+<li>GStreamer pipeline</li>
+<li>两套框架的工程思维差异</li>
+</ul>
+<h2 id="模块-H：采集设备、摄像头链路与车载系统"><a href="#模块-H：采集设备、摄像头链路与车载系统" class="headerlink" title="模块 H：采集设备、摄像头链路与车载系统"></a>模块 H：采集设备、摄像头链路与车载系统</h2><ul>
+<li>本地摄像头采集链路</li>
+<li>车载摄像头主链路与附属链路</li>
+<li>SDK 开发与平台封装</li>
+</ul>
+<h2 id="模块-I：硬件加速、GPU、渲染与推理部署"><a href="#模块-I：硬件加速、GPU、渲染与推理部署" class="headerlink" title="模块 I：硬件加速、GPU、渲染与推理部署"></a>模块 I：硬件加速、GPU、渲染与推理部署</h2><ul>
+<li>软编码 &#x2F; 硬编码</li>
+<li>显卡支持差异</li>
+<li>CUDA &#x2F; OpenGL &#x2F; ONNX Runtime</li>
+<li>视频流上的推理部署</li>
+</ul>
+<h2 id="模块-J：链路优化、弱网与项目表达"><a href="#模块-J：链路优化、弱网与项目表达" class="headerlink" title="模块 J：链路优化、弱网与项目表达"></a>模块 J：链路优化、弱网与项目表达</h2><ul>
+<li>弱网优化</li>
+<li>jitter buffer</li>
+<li>缓冲区 &#x2F; 队列 &#x2F; 背压</li>
+<li>面试表达</li>
+<li>项目系统设计与复盘</li>
+</ul>
+<p>这 10 个模块，已经足以覆盖我后续希望长期沉淀的主体方向。</p>
+<p>但模块只是地图，真正决定写作节奏的，还是下面的 <strong>核心骨架文章</strong>。</p>
+<hr>
+<h1 id="三、什么叫“核心骨架文章”"><a href="#三、什么叫“核心骨架文章”" class="headerlink" title="三、什么叫“核心骨架文章”"></a>三、什么叫“核心骨架文章”</h1><p>这里我专门定义一下。</p>
+<p>所谓核心骨架文章，指的是：</p>
+<ul>
+<li>它本身是一个关键枢纽主题</li>
+<li>它能连接多个后续主题</li>
+<li>它的跨度不能过大，但要足够基础、足够关键</li>
+<li>它写完之后，后面的细分文章就有了明确落点</li>
+</ul>
+<p>换句话说，骨架文章不是“把所有东西一篇讲完”，而是：</p>
+<p><strong>先把柱子立起来。</strong></p>
+<p>后面更细的内容，比如：</p>
+<ul>
+<li>RTX 30&#x2F;40 系列 NVENC 差异</li>
+<li>WebRTC 带宽估计算法</li>
+<li>AAC ADTS 头解析</li>
+<li>某款摄像头 SDK 封装细节</li>
+</ul>
+<p>都应该挂靠在这些主柱上，而不是一开始就散着写。</p>
+<hr>
+<h1 id="四、第一阶段必须先写稳的核心骨架"><a href="#四、第一阶段必须先写稳的核心骨架" class="headerlink" title="四、第一阶段必须先写稳的核心骨架"></a>四、第一阶段必须先写稳的核心骨架</h1><p>我希望这套专栏后续很大，但第一阶段不应该先全面铺开，而要先把最重要的主干定稳。</p>
+<p>我把第一阶段的核心骨架，收成 <strong>16 篇主文章</strong>。</p>
+<p>它们的特点是：</p>
+<ul>
+<li>主题明确</li>
+<li>单篇跨度可控</li>
+<li>能形成完整主干</li>
+<li>后续可以自然拆出更多支线</li>
+</ul>
+<p>下面按模块给出正式题目。</p>
+<hr>
+<h2 id="A-组：总览与系统认知骨架"><a href="#A-组：总览与系统认知骨架" class="headerlink" title="A 组：总览与系统认知骨架"></a>A 组：总览与系统认知骨架</h2><h3 id="1-如果面试官问你视频从采集到显示，你该怎么讲"><a href="#1-如果面试官问你视频从采集到显示，你该怎么讲" class="headerlink" title="1. 如果面试官问你视频从采集到显示，你该怎么讲"></a>1. 如果面试官问你视频从采集到显示，你该怎么讲</h3><p><strong>定位：</strong> 全专栏总入口文章。<br><strong>作用：</strong> 建立整条视频链路的整体画面，后续所有主题都可以回链到这篇。<br><strong>不宜扩太大：</strong> 不展开算法细节，不深挖协议细节，不深入具体 API。</p>
+<h3 id="2-音视频系统到底在处理什么：从数据形态到工程链路的整体认知"><a href="#2-音视频系统到底在处理什么：从数据形态到工程链路的整体认知" class="headerlink" title="2. 音视频系统到底在处理什么：从数据形态到工程链路的整体认知"></a>2. 音视频系统到底在处理什么：从数据形态到工程链路的整体认知</h3><p><strong>定位：</strong> 总览补强篇。<br><strong>作用：</strong> 讲清原始数据、压缩数据、封装数据、网络传输数据、解码后数据分别是什么。<br><strong>不宜扩太大：</strong> 不代替具体编码篇或协议篇。</p>
+<hr>
+<h2 id="B-组：图像基础与像素格式骨架"><a href="#B-组：图像基础与像素格式骨架" class="headerlink" title="B 组：图像基础与像素格式骨架"></a>B 组：图像基础与像素格式骨架</h2><h3 id="3-从像素格式到色彩空间，系统理解-RGB、YUV、NV12-与-YUV420P"><a href="#3-从像素格式到色彩空间，系统理解-RGB、YUV、NV12-与-YUV420P" class="headerlink" title="3. 从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P"></a>3. 从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P</h3><p><strong>定位：</strong> 图像基础核心骨架。<br><strong>作用：</strong> 统一解释像素格式、色彩空间、采样方式和常见工程格式。<br><strong>不宜扩太大：</strong> 不深入 HDR、色彩管理全体系，不展开 GPU 渲染。</p>
+<h3 id="4-为什么视频系统普遍偏爱-YUV：从采样、存储到编码输入的工程取舍"><a href="#4-为什么视频系统普遍偏爱-YUV：从采样、存储到编码输入的工程取舍" class="headerlink" title="4. 为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍"></a>4. 为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍</h3><p><strong>定位：</strong> 上一篇的补强与工程解释篇。<br><strong>作用：</strong> 讲清 RGB 与 YUV 在视频工程里的根本差异。<br><strong>不宜扩太大：</strong> 不展开编码器算法，不展开 OpenCV 全部色彩转换。</p>
+<hr>
+<h2 id="C-组：视频编码核心骨架"><a href="#C-组：视频编码核心骨架" class="headerlink" title="C 组：视频编码核心骨架"></a>C 组：视频编码核心骨架</h2><h3 id="5-从原始视频到压缩码流，彻底理解-H-264-H-265-的基础知识"><a href="#5-从原始视频到压缩码流，彻底理解-H-264-H-265-的基础知识" class="headerlink" title="5. 从原始视频到压缩码流，彻底理解 H.264&#x2F;H.265 的基础知识"></a>5. 从原始视频到压缩码流，彻底理解 H.264&#x2F;H.265 的基础知识</h3><p><strong>定位：</strong> 编码基础篇。<br><strong>当前状态：</strong> 已完成。<br><strong>作用：</strong> 建立编码世界观。</p>
+<h3 id="6-一文讲清-I-帧、P-帧、B-帧、GOP-与视频预测结构"><a href="#6-一文讲清-I-帧、P-帧、B-帧、GOP-与视频预测结构" class="headerlink" title="6. 一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构"></a>6. 一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构</h3><p><strong>定位：</strong> 预测结构独立骨架篇。<br><strong>作用：</strong> 把 I&#x2F;P&#x2F;B 与 GOP 从“大而全的编码篇”里拆出来单独讲透。<br><strong>不宜扩太大：</strong> 不展开 NALU、SPS&#x2F;PPS、Annex B。</p>
+<h3 id="7-从分块到-NALU，一文讲清-H-264-H-265-的编解码流程与码流结构"><a href="#7-从分块到-NALU，一文讲清-H-264-H-265-的编解码流程与码流结构" class="headerlink" title="7. 从分块到 NALU，一文讲清 H.264&#x2F;H.265 的编解码流程与码流结构"></a>7. 从分块到 NALU，一文讲清 H.264&#x2F;H.265 的编解码流程与码流结构</h3><p><strong>定位：</strong> 编解码流程核心篇。<br><strong>当前状态：</strong> 已完成。<br><strong>作用：</strong> 把流程和码流结构串起来。</p>
+<h3 id="8-SPS、PPS、VPS、Annex-B、AVCC-到底是什么关系"><a href="#8-SPS、PPS、VPS、Annex-B、AVCC-到底是什么关系" class="headerlink" title="8. SPS、PPS、VPS、Annex B、AVCC 到底是什么关系"></a>8. SPS、PPS、VPS、Annex B、AVCC 到底是什么关系</h3><p><strong>定位：</strong> 码流组织独立骨架篇。<br><strong>作用：</strong> 专门解决码流组织与参数集问题。<br><strong>不宜扩太大：</strong> 不讲完整网络协议，不讲完整封装层。</p>
+<hr>
+<h2 id="D-组：音频基础骨架"><a href="#D-组：音频基础骨架" class="headerlink" title="D 组：音频基础骨架"></a>D 组：音频基础骨架</h2><h3 id="9-音频系统基础入门：采样率、位宽、声道数与-PCM-到底怎么理解"><a href="#9-音频系统基础入门：采样率、位宽、声道数与-PCM-到底怎么理解" class="headerlink" title="9. 音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解"></a>9. 音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解</h3><p><strong>定位：</strong> 音频地基篇。<br><strong>作用：</strong> 给整个专栏补齐音频底层认知。<br><strong>不宜扩太大：</strong> 不展开 AAC 内部编码算法。</p>
+<h3 id="10-AAC-在音视频工程中的位置：从-PCM-到压缩音频的主线理解"><a href="#10-AAC-在音视频工程中的位置：从-PCM-到压缩音频的主线理解" class="headerlink" title="10. AAC 在音视频工程中的位置：从 PCM 到压缩音频的主线理解"></a>10. AAC 在音视频工程中的位置：从 PCM 到压缩音频的主线理解</h3><p><strong>定位：</strong> 音频编码骨架篇。<br><strong>作用：</strong> 让专栏具备完整音视频链路，不再只有视频没有音频。<br><strong>不宜扩太大：</strong> 不扩展 Opus&#x2F;WebRTC 语音细节。</p>
+<hr>
+<h2 id="E-组：封装与时间戳骨架"><a href="#E-组：封装与时间戳骨架" class="headerlink" title="E 组：封装与时间戳骨架"></a>E 组：封装与时间戳骨架</h2><h3 id="11-什么是容器，什么是码流：MP4、FLV、TS-与裸流不要再混了"><a href="#11-什么是容器，什么是码流：MP4、FLV、TS-与裸流不要再混了" class="headerlink" title="11. 什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了"></a>11. 什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了</h3><p><strong>定位：</strong> 封装层核心骨架。<br><strong>作用：</strong> 解决“码流”和“容器”混淆问题。<br><strong>不宜扩太大：</strong> 不展开完整 RTP 封装细节。</p>
+<h3 id="12-FFmpeg-时间戳体系入门：PTS、DTS、time-base-到底怎么理解"><a href="#12-FFmpeg-时间戳体系入门：PTS、DTS、time-base-到底怎么理解" class="headerlink" title="12. FFmpeg 时间戳体系入门：PTS、DTS、time_base 到底怎么理解"></a>12. FFmpeg 时间戳体系入门：PTS、DTS、time_base 到底怎么理解</h3><p><strong>定位：</strong> 时间戳骨架篇。<br><strong>作用：</strong> 这是后面 FFmpeg、封装、B 帧、弱网、同步问题的总入口。<br><strong>不宜扩太大：</strong> 不讲完整同步算法。</p>
+<hr>
+<h2 id="F-组：协议与传输骨架"><a href="#F-组：协议与传输骨架" class="headerlink" title="F 组：协议与传输骨架"></a>F 组：协议与传输骨架</h2><h3 id="13-RTP、RTCP、RTSP-三者到底是什么关系"><a href="#13-RTP、RTCP、RTSP-三者到底是什么关系" class="headerlink" title="13. RTP、RTCP、RTSP 三者到底是什么关系"></a>13. RTP、RTCP、RTSP 三者到底是什么关系</h3><p><strong>定位：</strong> 实时传输协议骨架篇。<br><strong>作用：</strong> 给实时流媒体打地基。<br><strong>不宜扩太大：</strong> 不展开 WebRTC 整体框架，不深入 jitter buffer 算法。</p>
+<h3 id="14-RTMP-与-WebRTC-的核心区别：为什么它们适合完全不同的场景"><a href="#14-RTMP-与-WebRTC-的核心区别：为什么它们适合完全不同的场景" class="headerlink" title="14. RTMP 与 WebRTC 的核心区别：为什么它们适合完全不同的场景"></a>14. RTMP 与 WebRTC 的核心区别：为什么它们适合完全不同的场景</h3><p><strong>定位：</strong> 直播与实时互动分野篇。<br><strong>作用：</strong> 帮助建立对不同协议体系的场景认知。<br><strong>不宜扩太大：</strong> 不深入 ICE&#x2F;STUN&#x2F;TURN 全细节。</p>
+<h3 id="15-jitter、丢包、乱序与-jitter-buffer：弱网下实时音视频到底在对抗什么"><a href="#15-jitter、丢包、乱序与-jitter-buffer：弱网下实时音视频到底在对抗什么" class="headerlink" title="15. jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么"></a>15. jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么</h3><p><strong>定位：</strong> 弱网与实时性骨架篇。<br><strong>作用：</strong> 后续所有弱网优化文章都挂在这里。<br><strong>不宜扩太大：</strong> 不把全部 WebRTC 拥塞控制都塞进来。</p>
+<h3 id="16-从本地摄像头到网络推流，一条最小视频链路怎么搭起来"><a href="#16-从本地摄像头到网络推流，一条最小视频链路怎么搭起来" class="headerlink" title="16. 从本地摄像头到网络推流，一条最小视频链路怎么搭起来"></a>16. 从本地摄像头到网络推流，一条最小视频链路怎么搭起来</h3><p><strong>定位：</strong> 协议、编码、封装、推流的综合落地骨架篇。<br><strong>作用：</strong> 把采集、编码、封装、推流、播放串成第一条最小实战链路。<br><strong>不宜扩太大：</strong> 不加入完整车载、多路 AI、复杂弱网适配。</p>
+<hr>
+<h2 id="G-组：FFmpeg-与-GStreamer-骨架"><a href="#G-组：FFmpeg-与-GStreamer-骨架" class="headerlink" title="G 组：FFmpeg 与 GStreamer 骨架"></a>G 组：FFmpeg 与 GStreamer 骨架</h2><h3 id="17-从-AVPacket-到-AVFrame，H-264-H-265-在-FFmpeg-中是如何承上启下的"><a href="#17-从-AVPacket-到-AVFrame，H-264-H-265-在-FFmpeg-中是如何承上启下的" class="headerlink" title="17. 从 AVPacket 到 AVFrame，H.264&#x2F;H.265 在 FFmpeg 中是如何承上启下的"></a>17. 从 AVPacket 到 AVFrame，H.264&#x2F;H.265 在 FFmpeg 中是如何承上启下的</h3><p><strong>定位：</strong> FFmpeg codec 层骨架篇。<br><strong>当前状态：</strong> 已完成。<br><strong>作用：</strong> 连接编码知识与 FFmpeg 工程主线。</p>
+<h3 id="18-FFmpeg-filter-graph-入门：从-scale、fps、overlay-到完整滤镜链"><a href="#18-FFmpeg-filter-graph-入门：从-scale、fps、overlay-到完整滤镜链" class="headerlink" title="18. FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链"></a>18. FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链</h3><p><strong>定位：</strong> 滤镜链骨架篇。<br><strong>作用：</strong> 解决 frame 层处理和 filter 思维问题。<br><strong>不宜扩太大：</strong> 不深入复杂自定义 filter 开发。</p>
+<h3 id="19-GStreamer-的-pipeline-思维是什么：它和-FFmpeg-的差别到底在哪"><a href="#19-GStreamer-的-pipeline-思维是什么：它和-FFmpeg-的差别到底在哪" class="headerlink" title="19. GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪"></a>19. GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪</h3><p><strong>定位：</strong> GStreamer 骨架篇。<br><strong>作用：</strong> 建立第二套主流媒体框架的系统观。<br><strong>不宜扩太大：</strong> 不一上来就讲复杂插件开发。</p>
+<hr>
+<h2 id="H-组：采集、车载与工程场景骨架"><a href="#H-组：采集、车载与工程场景骨架" class="headerlink" title="H 组：采集、车载与工程场景骨架"></a>H 组：采集、车载与工程场景骨架</h2><h3 id="20-熟悉视频采集设备，到底需要理解哪些关键问题"><a href="#20-熟悉视频采集设备，到底需要理解哪些关键问题" class="headerlink" title="20. 熟悉视频采集设备，到底需要理解哪些关键问题"></a>20. 熟悉视频采集设备，到底需要理解哪些关键问题</h3><p><strong>定位：</strong> 采集设备认知骨架篇。<br><strong>作用：</strong> 讲清采集设备、格式、驱动、缓存和链路衔接。<br><strong>不宜扩太大：</strong> 不展开完整车载链路。</p>
+<h3 id="21-车载摄像头视频链路是怎么跑起来的"><a href="#21-车载摄像头视频链路是怎么跑起来的" class="headerlink" title="21. 车载摄像头视频链路是怎么跑起来的"></a>21. 车载摄像头视频链路是怎么跑起来的</h3><p><strong>定位：</strong> 车载方向核心骨架篇。<br><strong>作用：</strong> 打出你自己的辨识度，把通用音视频知识拉回你的业务场景。<br><strong>不宜扩太大：</strong> 不把所有车载产品形态和 AI 任务都塞进来。</p>
+<h3 id="22-为什么音视频系统特别强调队列、缓冲区和背压机制"><a href="#22-为什么音视频系统特别强调队列、缓冲区和背压机制" class="headerlink" title="22. 为什么音视频系统特别强调队列、缓冲区和背压机制"></a>22. 为什么音视频系统特别强调队列、缓冲区和背压机制</h3><p><strong>定位：</strong> 系统工程骨架篇。<br><strong>作用：</strong> 解决“会写功能但不懂系统稳定性”的问题。<br><strong>不宜扩太大：</strong> 不展开完整操作系统调度细节。</p>
+<hr>
+<h2 id="I-组：硬件加速、GPU-与推理骨架"><a href="#I-组：硬件加速、GPU-与推理骨架" class="headerlink" title="I 组：硬件加速、GPU 与推理骨架"></a>I 组：硬件加速、GPU 与推理骨架</h2><h3 id="23-软编码和硬编码到底差在哪，不只是速度问题"><a href="#23-软编码和硬编码到底差在哪，不只是速度问题" class="headerlink" title="23. 软编码和硬编码到底差在哪，不只是速度问题"></a>23. 软编码和硬编码到底差在哪，不只是速度问题</h3><p><strong>定位：</strong> 编码实现路线骨架篇。<br><strong>作用：</strong> 建立软编&#x2F;硬编&#x2F;延迟&#x2F;画质&#x2F;资源的 trade-off 认知。<br><strong>不宜扩太大：</strong> 不展开所有厂商 API 细节。</p>
+<h3 id="24-为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定"><a href="#24-为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定" class="headerlink" title="24. 为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定"></a>24. 为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定</h3><p><strong>定位：</strong> 显卡能力差异骨架篇。<br><strong>作用：</strong> 把 NVENC &#x2F; NVDEC &#x2F; QSV &#x2F; VAAPI 等路线的差异认知立起来。<br><strong>不宜扩太大：</strong> 不深入每一代显卡参数表。</p>
+<h3 id="25-从视频帧到推理结果，OpenCV、CUDA、ONNX-Runtime-怎么串成一条链路"><a href="#25-从视频帧到推理结果，OpenCV、CUDA、ONNX-Runtime-怎么串成一条链路" class="headerlink" title="25. 从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路"></a>25. 从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路</h3><p><strong>定位：</strong> 视频 AI 工程骨架篇。<br><strong>作用：</strong> 把视频处理、GPU、推理部署三块接起来。<br><strong>不宜扩太大：</strong> 不把模型训练内容塞进来。</p>
+<hr>
+<h1 id="五、为什么核心骨架先定这-25-篇"><a href="#五、为什么核心骨架先定这-25-篇" class="headerlink" title="五、为什么核心骨架先定这 25 篇"></a>五、为什么核心骨架先定这 25 篇</h1><p>看到这里，可能会觉得 25 篇还是很多。</p>
+<p>但如果从整个音视频工程的大图来看，这 25 篇其实已经是刻意压缩后的结果。</p>
+<p>因为它们刚好覆盖了下面这些真正不可缺的主柱：</p>
+<ul>
+<li>总览与系统链路</li>
+<li>图像基础</li>
+<li>视频编码</li>
+<li>音频基础</li>
+<li>容器与时间戳</li>
+<li>实时协议与弱网</li>
+<li>FFmpeg &#x2F; GStreamer</li>
+<li>采集与车载</li>
+<li>硬编硬解与推理部署</li>
+</ul>
+<p>更重要的是，它们的粒度已经尽量控制在：</p>
+<ul>
+<li>一篇能讲透一个核心问题</li>
+<li>又不会小到只剩一个零散知识点</li>
+</ul>
+<p>所以从长期专栏角度，这一批足够像“主干”。</p>
+<p>后续所有更细的文章，都可以作为这些骨架文章的支线继续展开。</p>
+<hr>
+<h1 id="六、核心骨架确定后，后续支线怎么长出来"><a href="#六、核心骨架确定后，后续支线怎么长出来" class="headerlink" title="六、核心骨架确定后，后续支线怎么长出来"></a>六、核心骨架确定后，后续支线怎么长出来</h1><p>骨架文章先写稳，不代表后面不深入。相反，后面真正深入的内容，应该作为“二级支线”继续长出来。</p>
+<p>例如：</p>
+<h2 id="围绕第-15-篇，可以继续拆出："><a href="#围绕第-15-篇，可以继续拆出：" class="headerlink" title="围绕第 15 篇，可以继续拆出："></a>围绕第 15 篇，可以继续拆出：</h2><ul>
+<li>jitter buffer 的基本算法设计</li>
+<li>自适应 jitter buffer 的思路</li>
+<li>WebRTC 弱网恢复常见机制</li>
+<li>丢包、乱序、重传、NACK、FEC 的工程取舍</li>
+</ul>
+<h2 id="围绕第-18-篇，可以继续拆出："><a href="#围绕第-18-篇，可以继续拆出：" class="headerlink" title="围绕第 18 篇，可以继续拆出："></a>围绕第 18 篇，可以继续拆出：</h2><ul>
+<li>FFmpeg 中 scale 滤镜详解</li>
+<li>overlay 和 drawtext 的工程用法</li>
+<li>filter graph 中多输入多输出怎么走</li>
+<li>硬件 filter 与软件 filter 的数据流差异</li>
+</ul>
+<h2 id="围绕第-21-篇，可以继续拆出："><a href="#围绕第-21-篇，可以继续拆出：" class="headerlink" title="围绕第 21 篇，可以继续拆出："></a>围绕第 21 篇，可以继续拆出：</h2><ul>
+<li>车载系统中的录像链路</li>
+<li>车载系统中的预览链路</li>
+<li>抓拍与 AI 分析链路如何并行</li>
+<li>车载视频系统的主链路与附属链路拆分</li>
+</ul>
+<h2 id="围绕第-25-篇，可以继续拆出："><a href="#围绕第-25-篇，可以继续拆出：" class="headerlink" title="围绕第 25 篇，可以继续拆出："></a>围绕第 25 篇，可以继续拆出：</h2><ul>
+<li>ONNX Runtime C++ 推理部署实践</li>
+<li>OpenCV 与 CUDA 图像预处理优化</li>
+<li>视频流上的目标检测链路设计</li>
+<li>推理结果叠加显示的渲染路径</li>
+</ul>
+<p>也就是说，骨架不是终点，而是目录树的一级节点。</p>
+<hr>
+<h1 id="七、后续写作时的统一约束条件"><a href="#七、后续写作时的统一约束条件" class="headerlink" title="七、后续写作时的统一约束条件"></a>七、后续写作时的统一约束条件</h1><p>为了让这个专栏持续写下去时不散，我给自己定一套统一约束。</p>
+<h2 id="7-1-每篇文章尽量回答-6-个问题"><a href="#7-1-每篇文章尽量回答-6-个问题" class="headerlink" title="7.1 每篇文章尽量回答 6 个问题"></a>7.1 每篇文章尽量回答 6 个问题</h2><ol>
+<li>这个主题在整个音视频系统里处于哪一层  </li>
+<li>它解决什么问题  </li>
+<li>它和上下游模块怎么连接  </li>
+<li>工程里通常怎么落地  </li>
+<li>常见坑是什么  </li>
+<li>面试里该怎么讲</li>
+</ol>
+<h2 id="7-2-每篇至少包含以下内容中的-2-类以上"><a href="#7-2-每篇至少包含以下内容中的-2-类以上" class="headerlink" title="7.2 每篇至少包含以下内容中的 2 类以上"></a>7.2 每篇至少包含以下内容中的 2 类以上</h2><ul>
+<li>架构图</li>
+<li>时序图</li>
+<li>关键代码片段</li>
+<li>常见问题排查图</li>
+</ul>
+<h2 id="7-3-每篇尽量采用统一结构"><a href="#7-3-每篇尽量采用统一结构" class="headerlink" title="7.3 每篇尽量采用统一结构"></a>7.3 每篇尽量采用统一结构</h2><ul>
+<li>前言</li>
+<li>问题背景</li>
+<li>核心概念</li>
+<li>主链路分析</li>
+<li>工程落地</li>
+<li>常见问题</li>
+<li>面试表达</li>
+<li>总结</li>
+</ul>
+<h2 id="7-4-优先写“高串联、高复用、高辨识度”的主题"><a href="#7-4-优先写“高串联、高复用、高辨识度”的主题" class="headerlink" title="7.4 优先写“高串联、高复用、高辨识度”的主题"></a>7.4 优先写“高串联、高复用、高辨识度”的主题</h2><p>优先级判断标准：</p>
+<ul>
+<li>能连接多个模块的，优先</li>
+<li>能服务面试表达的，优先</li>
+<li>能体现你的方向特色的，优先</li>
+<li>能自然延展出支线专题的，优先</li>
+</ul>
+<h2 id="7-5-文章之间尽量互相引用"><a href="#7-5-文章之间尽量互相引用" class="headerlink" title="7.5 文章之间尽量互相引用"></a>7.5 文章之间尽量互相引用</h2><p>这样整个专栏最终会更像一个知识网络，而不是单篇合集。</p>
+<hr>
+<h1 id="八、第一阶段的实际写作顺序建议"><a href="#八、第一阶段的实际写作顺序建议" class="headerlink" title="八、第一阶段的实际写作顺序建议"></a>八、第一阶段的实际写作顺序建议</h1><p>虽然核心骨架已经定了，但实际写作仍然需要有节奏。</p>
+<p>如果按“先搭地基，再搭主干，再进入工程深化”的思路，我建议第一阶段优先按下面顺序推进。</p>
+<h2 id="第一批，先把总入口和最关键基础打稳"><a href="#第一批，先把总入口和最关键基础打稳" class="headerlink" title="第一批，先把总入口和最关键基础打稳"></a>第一批，先把总入口和最关键基础打稳</h2><ol>
+<li>如果面试官问你视频从采集到显示，你该怎么讲</li>
+<li>从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P</li>
+<li>一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构</li>
+<li>什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了</li>
+<li>FFmpeg 时间戳体系入门：PTS、DTS、time_base 到底怎么理解</li>
+</ol>
+<h2 id="第二批，把实时传输主线搭起来"><a href="#第二批，把实时传输主线搭起来" class="headerlink" title="第二批，把实时传输主线搭起来"></a>第二批，把实时传输主线搭起来</h2><ol start="6">
+<li>RTP、RTCP、RTSP 三者到底是什么关系</li>
+<li>RTMP 与 WebRTC 的核心区别：为什么它们适合完全不同的场景</li>
+<li>jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么</li>
+<li>从本地摄像头到网络推流，一条最小视频链路怎么搭起来</li>
+</ol>
+<h2 id="第三批，把工程辨识度打出来"><a href="#第三批，把工程辨识度打出来" class="headerlink" title="第三批，把工程辨识度打出来"></a>第三批，把工程辨识度打出来</h2><ol start="10">
+<li>FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链</li>
+<li>车载摄像头视频链路是怎么跑起来的</li>
+<li>软编码和硬编码到底差在哪，不只是速度问题</li>
+<li>从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路</li>
+</ol>
+<p>这样推进，会比无差别铺开更稳。</p>
+<hr>
+<h1 id="九、这篇总纲在整个专栏中的位置"><a href="#九、这篇总纲在整个专栏中的位置" class="headerlink" title="九、这篇总纲在整个专栏中的位置"></a>九、这篇总纲在整个专栏中的位置</h1><p>这篇文章本身不会去深入讲某个具体技术点。</p>
+<p>它真正的作用，是成为后续整个音视频工程专栏的“目录页”和“路线约束”。</p>
+<p>后面再写新的文章时，我都可以回到这篇看两件事：</p>
+<ol>
+<li>这个新题目属于哪根主骨架  </li>
+<li>它应该是骨架文章，还是某一骨架下的支线深化文章</li>
+</ol>
+<p>这样一来，后续不管是写：</p>
+<ul>
+<li>RTSP</li>
+<li>RTMP</li>
+<li>WebRTC</li>
+<li>GStreamer</li>
+<li>AAC</li>
+<li>OpenGL</li>
+<li>CUDA</li>
+<li>ONNX Runtime</li>
+<li>车载摄像头链路</li>
+<li>SDK 开发</li>
+<li>弱网优化</li>
+</ul>
+<p>都不会再是“临时起意写一篇”，而是在同一张地图里继续填图。</p>
+<hr>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>如果后续这个专栏真的要一直写下去，那么最重要的一步，不是先把所有主题都写出来，而是先把主干定住。</p>
+<p>这篇文章做的，就是这件事。</p>
+<p>我最终把整个音视频工程长期专栏，先收敛成：</p>
+<ul>
+<li><strong>10 个一级模块</strong></li>
+<li><strong>25 篇核心骨架文章</strong></li>
+<li>一套统一的写作约束条件</li>
+<li>一套分阶段推进的写作顺序</li>
+</ul>
+<p>后面所有更细的内容，都应该挂靠在这些骨架文章之下，持续扩展。</p>
+<p>如果说之前的几篇文章是在“局部开工”，那么从这篇开始，这个系列才算真正进入：</p>
+<p><strong>按体系长期建设。</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/" class="print-no-link">#车载开发</a>
+      
+        <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/" class="print-no-link">#方法论</a>
+      
+        <a href="/tags/RTSP/" class="print-no-link">#RTSP</a>
+      
+        <a href="/tags/WebRTC/" class="print-no-link">#WebRTC</a>
+      
+        <a href="/tags/GStreamer/" class="print-no-link">#GStreamer</a>
+      
+        <a href="/tags/%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/" class="print-no-link">#学习路线</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>音视频工程长期写作总纲：我的知识体系骨架与专栏线路图</div>
+      <div>https://breaker505.github.io/2026/04/17/audio-video-series-roadmap/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月17日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/17/h264-h265-in-ffmpeg/" title="从 AVPacket 到 AVFrame，H.264/H.265 在 FFmpeg 中是如何承上启下的">
+                        <span class="hidden-mobile">从 AVPacket 到 AVFrame，H.264/H.265 在 FFmpeg 中是如何承上启下的</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
