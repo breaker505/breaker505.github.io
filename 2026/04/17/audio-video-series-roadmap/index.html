@@ -27,7 +27,7 @@
 <meta property="og:description" content="前言：为什么我要先搭“骨架”，而不是继续零散写当一个人开始系统学习音视频时，很容易进入一种状态：  今天看一点 H.264 明天看一点 FFmpeg 后天又跳去看 RTSP &#x2F; RTP 再往后开始接触 OpenCV、GStreamer、CUDA、WebRTC、AAC、弱网优化  表面上看，学过的东西越来越多；但实际上，知识很容易变成一地散点。 最后常见的问题是：  每个词都见过，但串不起">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-17T15:55:00.000Z">
-<meta property="article:modified_time" content="2026-04-17T15:57:52.046Z">
+<meta property="article:modified_time" content="2026-04-17T16:04:06.605Z">
 <meta property="article:author" content="鱼跃厂长">
 <meta property="article:tag" content="车载开发">
 <meta property="article:tag" content="FFmpeg">
@@ -333,7 +333,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.9k 字
+          7.6k 字
         
       </span>
     
@@ -344,7 +344,7 @@
         
         
         
-          58 分钟
+          63 分钟
         
       </span>
     
@@ -513,8 +513,11 @@
 <li>GStreamer pipeline</li>
 <li>两套框架的工程思维差异</li>
 </ul>
-<h2 id="模块-H：采集设备、摄像头链路与车载系统"><a href="#模块-H：采集设备、摄像头链路与车载系统" class="headerlink" title="模块 H：采集设备、摄像头链路与车载系统"></a>模块 H：采集设备、摄像头链路与车载系统</h2><ul>
+<h2 id="模块-H：采集设备、Camera-Pipeline、车载系统与业务链路"><a href="#模块-H：采集设备、Camera-Pipeline、车载系统与业务链路" class="headerlink" title="模块 H：采集设备、Camera Pipeline、车载系统与业务链路"></a>模块 H：采集设备、Camera Pipeline、车载系统与业务链路</h2><ul>
 <li>本地摄像头采集链路</li>
+<li>Camera pipeline 搭建</li>
+<li>Sensor 调试与图像链路联调</li>
+<li>录像、拍照、回放等典型业务</li>
 <li>车载摄像头主链路与附属链路</li>
 <li>SDK 开发与平台封装</li>
 </ul>
@@ -590,13 +593,16 @@
 <h3 id="18-FFmpeg-filter-graph-入门：从-scale、fps、overlay-到完整滤镜链"><a href="#18-FFmpeg-filter-graph-入门：从-scale、fps、overlay-到完整滤镜链" class="headerlink" title="18. FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链"></a>18. FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链</h3><p><strong>定位：</strong> 滤镜链骨架篇。<br><strong>作用：</strong> 解决 frame 层处理和 filter 思维问题。<br><strong>不宜扩太大：</strong> 不深入复杂自定义 filter 开发。</p>
 <h3 id="19-GStreamer-的-pipeline-思维是什么：它和-FFmpeg-的差别到底在哪"><a href="#19-GStreamer-的-pipeline-思维是什么：它和-FFmpeg-的差别到底在哪" class="headerlink" title="19. GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪"></a>19. GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪</h3><p><strong>定位：</strong> GStreamer 骨架篇。<br><strong>作用：</strong> 建立第二套主流媒体框架的系统观。<br><strong>不宜扩太大：</strong> 不一上来就讲复杂插件开发。</p>
 <hr>
-<h2 id="H-组：采集、车载与工程场景骨架"><a href="#H-组：采集、车载与工程场景骨架" class="headerlink" title="H 组：采集、车载与工程场景骨架"></a>H 组：采集、车载与工程场景骨架</h2><h3 id="20-熟悉视频采集设备，到底需要理解哪些关键问题"><a href="#20-熟悉视频采集设备，到底需要理解哪些关键问题" class="headerlink" title="20. 熟悉视频采集设备，到底需要理解哪些关键问题"></a>20. 熟悉视频采集设备，到底需要理解哪些关键问题</h3><p><strong>定位：</strong> 采集设备认知骨架篇。<br><strong>作用：</strong> 讲清采集设备、格式、驱动、缓存和链路衔接。<br><strong>不宜扩太大：</strong> 不展开完整车载链路。</p>
-<h3 id="21-车载摄像头视频链路是怎么跑起来的"><a href="#21-车载摄像头视频链路是怎么跑起来的" class="headerlink" title="21. 车载摄像头视频链路是怎么跑起来的"></a>21. 车载摄像头视频链路是怎么跑起来的</h3><p><strong>定位：</strong> 车载方向核心骨架篇。<br><strong>作用：</strong> 打出你自己的辨识度，把通用音视频知识拉回你的业务场景。<br><strong>不宜扩太大：</strong> 不把所有车载产品形态和 AI 任务都塞进来。</p>
-<h3 id="22-为什么音视频系统特别强调队列、缓冲区和背压机制"><a href="#22-为什么音视频系统特别强调队列、缓冲区和背压机制" class="headerlink" title="22. 为什么音视频系统特别强调队列、缓冲区和背压机制"></a>22. 为什么音视频系统特别强调队列、缓冲区和背压机制</h3><p><strong>定位：</strong> 系统工程骨架篇。<br><strong>作用：</strong> 解决“会写功能但不懂系统稳定性”的问题。<br><strong>不宜扩太大：</strong> 不展开完整操作系统调度细节。</p>
+<h2 id="H-组：采集、Camera-Pipeline、车载与工程场景骨架"><a href="#H-组：采集、Camera-Pipeline、车载与工程场景骨架" class="headerlink" title="H 组：采集、Camera Pipeline、车载与工程场景骨架"></a>H 组：采集、Camera Pipeline、车载与工程场景骨架</h2><h3 id="20-熟悉视频采集设备，到底需要理解哪些关键问题"><a href="#20-熟悉视频采集设备，到底需要理解哪些关键问题" class="headerlink" title="20. 熟悉视频采集设备，到底需要理解哪些关键问题"></a>20. 熟悉视频采集设备，到底需要理解哪些关键问题</h3><p><strong>定位：</strong> 采集设备认知骨架篇。<br><strong>作用：</strong> 讲清采集设备、格式、驱动、缓存和链路衔接。<br><strong>不宜扩太大：</strong> 不展开完整车载链路。</p>
+<h3 id="21-Camera-Pipeline-是怎么搭起来的：从-Sensor-到图像输出的主链路"><a href="#21-Camera-Pipeline-是怎么搭起来的：从-Sensor-到图像输出的主链路" class="headerlink" title="21. Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路"></a>21. Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路</h3><p><strong>定位：</strong> Camera pipeline 核心骨架篇。<br><strong>作用：</strong> 讲清 sensor、ISP、格式转换、缩放、编码前处理等模块关系，把 Camera 从“设备”提升到“系统链路”层来理解。<br><strong>不宜扩太大：</strong> 不把具体厂商 ISP 细节和所有驱动接口全塞进来。</p>
+<h3 id="22-Sensor-调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位"><a href="#22-Sensor-调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位" class="headerlink" title="22. Sensor 调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位"></a>22. Sensor 调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位</h3><p><strong>定位：</strong> Camera 联调骨架篇。<br><strong>作用：</strong> 把 sensor 调试从“玄学经验”整理成结构化问题域。<br><strong>不宜扩太大：</strong> 不展开每一家 sensor 芯片寄存器手册。</p>
+<h3 id="23-录像、拍照、回放三条业务链路，到底该怎么拆开理解"><a href="#23-录像、拍照、回放三条业务链路，到底该怎么拆开理解" class="headerlink" title="23. 录像、拍照、回放三条业务链路，到底该怎么拆开理解"></a>23. 录像、拍照、回放三条业务链路，到底该怎么拆开理解</h3><p><strong>定位：</strong> 典型视频业务骨架篇。<br><strong>作用：</strong> 讲清录像、抓拍、回放虽然都围绕视频数据，但链路重点和系统约束完全不同。<br><strong>不宜扩太大：</strong> 不把播放器内核和完整文件系统实现全讲进去。</p>
+<h3 id="24-车载摄像头视频链路是怎么跑起来的"><a href="#24-车载摄像头视频链路是怎么跑起来的" class="headerlink" title="24. 车载摄像头视频链路是怎么跑起来的"></a>24. 车载摄像头视频链路是怎么跑起来的</h3><p><strong>定位：</strong> 车载方向核心骨架篇。<br><strong>作用：</strong> 打出你自己的辨识度，把通用音视频知识拉回你的业务场景。<br><strong>不宜扩太大：</strong> 不把所有车载产品形态和 AI 任务都塞进来。</p>
+<h3 id="25-为什么音视频系统特别强调队列、缓冲区和背压机制"><a href="#25-为什么音视频系统特别强调队列、缓冲区和背压机制" class="headerlink" title="25. 为什么音视频系统特别强调队列、缓冲区和背压机制"></a>25. 为什么音视频系统特别强调队列、缓冲区和背压机制</h3><p><strong>定位：</strong> 系统工程骨架篇。<br><strong>作用：</strong> 解决“会写功能但不懂系统稳定性”的问题。<br><strong>不宜扩太大：</strong> 不展开完整操作系统调度细节。</p>
 <hr>
-<h2 id="I-组：硬件加速、GPU-与推理骨架"><a href="#I-组：硬件加速、GPU-与推理骨架" class="headerlink" title="I 组：硬件加速、GPU 与推理骨架"></a>I 组：硬件加速、GPU 与推理骨架</h2><h3 id="23-软编码和硬编码到底差在哪，不只是速度问题"><a href="#23-软编码和硬编码到底差在哪，不只是速度问题" class="headerlink" title="23. 软编码和硬编码到底差在哪，不只是速度问题"></a>23. 软编码和硬编码到底差在哪，不只是速度问题</h3><p><strong>定位：</strong> 编码实现路线骨架篇。<br><strong>作用：</strong> 建立软编&#x2F;硬编&#x2F;延迟&#x2F;画质&#x2F;资源的 trade-off 认知。<br><strong>不宜扩太大：</strong> 不展开所有厂商 API 细节。</p>
-<h3 id="24-为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定"><a href="#24-为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定" class="headerlink" title="24. 为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定"></a>24. 为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定</h3><p><strong>定位：</strong> 显卡能力差异骨架篇。<br><strong>作用：</strong> 把 NVENC &#x2F; NVDEC &#x2F; QSV &#x2F; VAAPI 等路线的差异认知立起来。<br><strong>不宜扩太大：</strong> 不深入每一代显卡参数表。</p>
-<h3 id="25-从视频帧到推理结果，OpenCV、CUDA、ONNX-Runtime-怎么串成一条链路"><a href="#25-从视频帧到推理结果，OpenCV、CUDA、ONNX-Runtime-怎么串成一条链路" class="headerlink" title="25. 从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路"></a>25. 从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路</h3><p><strong>定位：</strong> 视频 AI 工程骨架篇。<br><strong>作用：</strong> 把视频处理、GPU、推理部署三块接起来。<br><strong>不宜扩太大：</strong> 不把模型训练内容塞进来。</p>
+<h2 id="I-组：硬件加速、GPU-与推理骨架"><a href="#I-组：硬件加速、GPU-与推理骨架" class="headerlink" title="I 组：硬件加速、GPU 与推理骨架"></a>I 组：硬件加速、GPU 与推理骨架</h2><h3 id="26-软编码和硬编码到底差在哪，不只是速度问题"><a href="#26-软编码和硬编码到底差在哪，不只是速度问题" class="headerlink" title="26. 软编码和硬编码到底差在哪，不只是速度问题"></a>26. 软编码和硬编码到底差在哪，不只是速度问题</h3><p><strong>定位：</strong> 编码实现路线骨架篇。<br><strong>作用：</strong> 建立软编&#x2F;硬编&#x2F;延迟&#x2F;画质&#x2F;资源的 trade-off 认知。<br><strong>不宜扩太大：</strong> 不展开所有厂商 API 细节。</p>
+<h3 id="27-为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定"><a href="#27-为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定" class="headerlink" title="27. 为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定"></a>27. 为什么不同型号显卡支持不一样：硬件编解码能力到底由什么决定</h3><p><strong>定位：</strong> 显卡能力差异骨架篇。<br><strong>作用：</strong> 把 NVENC &#x2F; NVDEC &#x2F; QSV &#x2F; VAAPI 等路线的差异认知立起来。<br><strong>不宜扩太大：</strong> 不深入每一代显卡参数表。</p>
+<h3 id="28-从视频帧到推理结果，OpenCV、CUDA、ONNX-Runtime-怎么串成一条链路"><a href="#28-从视频帧到推理结果，OpenCV、CUDA、ONNX-Runtime-怎么串成一条链路" class="headerlink" title="28. 从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路"></a>28. 从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路</h3><p><strong>定位：</strong> 视频 AI 工程骨架篇。<br><strong>作用：</strong> 把视频处理、GPU、推理部署三块接起来。<br><strong>不宜扩太大：</strong> 不把模型训练内容塞进来。</p>
 <hr>
 <h1 id="五、为什么核心骨架先定这-25-篇"><a href="#五、为什么核心骨架先定这-25-篇" class="headerlink" title="五、为什么核心骨架先定这 25 篇"></a>五、为什么核心骨架先定这 25 篇</h1><p>看到这里，可能会觉得 25 篇还是很多。</p>
 <p>但如果从整个音视频工程的大图来看，这 25 篇其实已经是刻意压缩后的结果。</p>
@@ -699,6 +705,9 @@
 </ol>
 <h2 id="第三批，把工程辨识度打出来"><a href="#第三批，把工程辨识度打出来" class="headerlink" title="第三批，把工程辨识度打出来"></a>第三批，把工程辨识度打出来</h2><ol start="10">
 <li>FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链</li>
+<li>Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路</li>
+<li>Sensor 调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位</li>
+<li>录像、拍照、回放三条业务链路，到底该怎么拆开理解</li>
 <li>车载摄像头视频链路是怎么跑起来的</li>
 <li>软编码和硬编码到底差在哪，不只是速度问题</li>
 <li>从视频帧到推理结果，OpenCV、CUDA、ONNX Runtime 怎么串成一条链路</li>
@@ -707,6 +716,14 @@
 <hr>
 <h1 id="九、这篇总纲在整个专栏中的位置"><a href="#九、这篇总纲在整个专栏中的位置" class="headerlink" title="九、这篇总纲在整个专栏中的位置"></a>九、这篇总纲在整个专栏中的位置</h1><p>这篇文章本身不会去深入讲某个具体技术点。</p>
 <p>它真正的作用，是成为后续整个音视频工程专栏的“目录页”和“路线约束”。</p>
+<p>此外，Camera 这一大块后续我也会单独作为重点分支持续扩展，尤其包括：</p>
+<ul>
+<li>Camera pipeline 搭建</li>
+<li>Sensor 调试与联调方法</li>
+<li>ISP 前后图像链路理解</li>
+<li>录像、拍照、回放三类业务链路拆分</li>
+<li>Camera 与编码、推流、AI 分析之间的衔接</li>
+</ul>
 <p>后面再写新的文章时，我都可以回到这篇看两件事：</p>
 <ol>
 <li>这个新题目属于哪根主骨架  </li>
@@ -733,7 +750,7 @@
 <p>我最终把整个音视频工程长期专栏，先收敛成：</p>
 <ul>
 <li><strong>10 个一级模块</strong></li>
-<li><strong>25 篇核心骨架文章</strong></li>
+<li><strong>28 篇核心骨架文章</strong></li>
 <li>一套统一的写作约束条件</li>
 <li>一套分阶段推进的写作顺序</li>
 </ul>
