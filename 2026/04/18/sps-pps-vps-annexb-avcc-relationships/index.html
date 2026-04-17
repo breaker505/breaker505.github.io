@@ -1,0 +1,1263 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么很多人学了 H.264&#x2F;H.265，还是一碰码流组织就发虚如果你已经开始接触 H.264 &#x2F; H.265，很快就会碰到下面这些词：  SPS PPS VPS NALU Annex B AVCC extradata  很多人第一次看时都会有一种很强的混乱感。 因为这些词表面上都和“码流”有关，但它们又不在同一个层次：  有的是参数集 有的是码流组织方式 有的是容器里常">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SPS、PPS、VPS、Annex B、AVCC 到底是什么关系">
+<meta property="og:url" content="https://breaker505.github.io/2026/04/18/sps-pps-vps-annexb-avcc-relationships/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么很多人学了 H.264&#x2F;H.265，还是一碰码流组织就发虚如果你已经开始接触 H.264 &#x2F; H.265，很快就会碰到下面这些词：  SPS PPS VPS NALU Annex B AVCC extradata  很多人第一次看时都会有一种很强的混乱感。 因为这些词表面上都和“码流”有关，但它们又不在同一个层次：  有的是参数集 有的是码流组织方式 有的是容器里常">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-17T17:24:00.000Z">
+<meta property="article:modified_time" content="2026-04-17T17:25:20.544Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="H264">
+<meta property="article:tag" content="H265">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="码流">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>SPS、PPS、VPS、Annex B、AVCC 到底是什么关系 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SPS、PPS、VPS、Annex B、AVCC 到底是什么关系"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-18 01:24" pubdate>
+          2026年4月18日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          63 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SPS、PPS、VPS、Annex B、AVCC 到底是什么关系</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么很多人学了-H-264-H-265，还是一碰码流组织就发虚"><a href="#前言：为什么很多人学了-H-264-H-265，还是一碰码流组织就发虚" class="headerlink" title="前言：为什么很多人学了 H.264&#x2F;H.265，还是一碰码流组织就发虚"></a>前言：为什么很多人学了 H.264&#x2F;H.265，还是一碰码流组织就发虚</h1><p>如果你已经开始接触 H.264 &#x2F; H.265，很快就会碰到下面这些词：</p>
+<ul>
+<li>SPS</li>
+<li>PPS</li>
+<li>VPS</li>
+<li>NALU</li>
+<li>Annex B</li>
+<li>AVCC</li>
+<li>extradata</li>
+</ul>
+<p>很多人第一次看时都会有一种很强的混乱感。</p>
+<p>因为这些词表面上都和“码流”有关，但它们又不在同一个层次：</p>
+<ul>
+<li>有的是参数集</li>
+<li>有的是码流组织方式</li>
+<li>有的是容器里常见的存储形式</li>
+<li>有的是解码器初始化依赖的信息</li>
+</ul>
+<p>于是工程里就很容易出现这些典型状态：</p>
+<ul>
+<li>明明都是 H.264，为什么这个流能解，那个流不能解</li>
+<li>为什么 MP4 里的 H.264 和裸流里的 H.264 长得不一样</li>
+<li>为什么有时候要把 AVCC 转成 Annex B</li>
+<li>为什么某些流缺了 SPS&#x2F;PPS 就完全起不来</li>
+<li>为什么 FFmpeg 里会有 extradata、bitstream filter 这些东西</li>
+</ul>
+<p>我觉得这里最容易乱的根本原因是：</p>
+<p><strong>很多人把“码流内容”和“码流组织方式”混在了一起。</strong></p>
+<p>所以这篇文章的目标，就是把这几件事拆清楚，再重新串起来。</p>
+<p>重点讲明白：</p>
+<ul>
+<li>SPS &#x2F; PPS &#x2F; VPS 到底各自是什么</li>
+<li>它们和普通视频数据 NALU 是什么关系</li>
+<li>Annex B 和 AVCC 到底差在哪</li>
+<li>为什么 MP4、裸流、网络传输里经常需要做组织方式转换</li>
+<li>FFmpeg 工程里这些概念会落在哪些位置</li>
+</ul>
+<p>而且这篇会尽量多放结构图、时序图和代码，不只停留在术语解释上。</p>
+<hr>
+<h1 id="一、先给一句总结：SPS-PPS-VPS-是“参数信息”，Annex-B-AVCC-是“码流组织方式”"><a href="#一、先给一句总结：SPS-PPS-VPS-是“参数信息”，Annex-B-AVCC-是“码流组织方式”" class="headerlink" title="一、先给一句总结：SPS &#x2F; PPS &#x2F; VPS 是“参数信息”，Annex B &#x2F; AVCC 是“码流组织方式”"></a>一、先给一句总结：SPS &#x2F; PPS &#x2F; VPS 是“参数信息”，Annex B &#x2F; AVCC 是“码流组织方式”</h1><p>如果你现在只想先抓住一句最关键的话，那就是：</p>
+<p><strong>SPS &#x2F; PPS &#x2F; VPS 解决的是“解码器需要先知道什么参数”，而 Annex B &#x2F; AVCC 解决的是“这些 NALU 在字节流里怎么组织”。</strong></p>
+<p>这两类东西看起来总同时出现，但它们不是一层含义。</p>
+<p>可以先粗分成：</p>
+<h2 id="第一类：参数集"><a href="#第一类：参数集" class="headerlink" title="第一类：参数集"></a>第一类：参数集</h2><ul>
+<li>SPS</li>
+<li>PPS</li>
+<li>VPS（H.265）</li>
+</ul>
+<p>它们回答的是：</p>
+<blockquote>
+<p>这段视频流是什么规格、该怎么初始化解码。</p>
+</blockquote>
+<h2 id="第二类：组织方式"><a href="#第二类：组织方式" class="headerlink" title="第二类：组织方式"></a>第二类：组织方式</h2><ul>
+<li>Annex B</li>
+<li>AVCC</li>
+</ul>
+<p>它们回答的是：</p>
+<blockquote>
+<p>这些 NALU 在字节流里是怎么切分和存放的。</p>
+</blockquote>
+<p>这一步先分开，后面就会顺很多。</p>
+<hr>
+<h1 id="二、先把大框架放出来：一条-H-264-H-265-码流里到底有什么"><a href="#二、先把大框架放出来：一条-H-264-H-265-码流里到底有什么" class="headerlink" title="二、先把大框架放出来：一条 H.264&#x2F;H.265 码流里到底有什么"></a>二、先把大框架放出来：一条 H.264&#x2F;H.265 码流里到底有什么</h1><p>先看一个总图。</p>
+<pre><code class=" mermaid">flowchart TD
+    A[视频码流] --&gt; B[NALU 序列]
+    B --&gt; C1[参数集 NALU]
+    B --&gt; C2[图像数据 NALU]
+
+    C1 --&gt; D1[SPS]
+    C1 --&gt; D2[PPS]
+    C1 --&gt; D3[VPS(H265)]
+
+    C2 --&gt; E1[IDR / I 帧相关]
+    C2 --&gt; E2[P/B 帧相关 slice]
+
+    B --&gt; F[字节组织方式]
+    F --&gt; G1[Annex B]
+    F --&gt; G2[AVCC/HVCC]
+</code></pre>
+
+<p>这张图最重要的作用，是先让你知道：</p>
+<p><strong>一条视频码流里，不只有“画面数据”，还有“解释画面该怎么解”的参数信息。</strong></p>
+<p>而且这些 NALU 还会以不同方式被组织起来。</p>
+<hr>
+<h1 id="三、NALU-是什么，为什么它是理解一切的入口"><a href="#三、NALU-是什么，为什么它是理解一切的入口" class="headerlink" title="三、NALU 是什么，为什么它是理解一切的入口"></a>三、NALU 是什么，为什么它是理解一切的入口</h1><p>如果不先理解 NALU，后面很多概念都会悬空。</p>
+<h2 id="3-1-NALU-的本质"><a href="#3-1-NALU-的本质" class="headerlink" title="3.1 NALU 的本质"></a>3.1 NALU 的本质</h2><p>NALU 可以粗略理解成：</p>
+<p><strong>视频码流中的一个基本数据单元。</strong></p>
+<p>也就是：</p>
+<ul>
+<li>一条 H.264&#x2F;H.265 码流，并不是一整坨不可分的数据</li>
+<li>它内部其实是由一个个 NALU 组成</li>
+</ul>
+<p>这些 NALU 里，有些装的是参数，有些装的是图像相关数据。</p>
+<h2 id="3-2-为什么-NALU-很重要"><a href="#3-2-为什么-NALU-很重要" class="headerlink" title="3.2 为什么 NALU 很重要"></a>3.2 为什么 NALU 很重要</h2><p>因为后面你看到的这些东西，本质上都在围绕 NALU 发生：</p>
+<ul>
+<li>SPS &#x2F; PPS &#x2F; VPS 本身就是某些特定类型的 NALU</li>
+<li>slice 数据也在 NALU 里</li>
+<li>Annex B 和 AVCC 组织的，本质上也是 NALU</li>
+</ul>
+<p>所以你可以把 NALU 先看成：</p>
+<p><strong>视频码流里的“基本块”。</strong></p>
+<hr>
+<h1 id="四、SPS-到底是什么，它为什么像“全局说明书”"><a href="#四、SPS-到底是什么，它为什么像“全局说明书”" class="headerlink" title="四、SPS 到底是什么，它为什么像“全局说明书”"></a>四、SPS 到底是什么，它为什么像“全局说明书”</h1><h2 id="4-1-SPS-的本质"><a href="#4-1-SPS-的本质" class="headerlink" title="4.1 SPS 的本质"></a>4.1 SPS 的本质</h2><p>SPS 全称是 Sequence Parameter Set。</p>
+<p>如果不按文档腔去记，我更建议你把它理解成：</p>
+<p><strong>一段视频序列的全局规格说明。</strong></p>
+<p>它通常会包含这类信息：</p>
+<ul>
+<li>分辨率相关信息</li>
+<li>profile &#x2F; level</li>
+<li>帧编号、参考相关约束</li>
+<li>色度格式相关信息</li>
+<li>一些解码器需要预先知道的全局参数</li>
+</ul>
+<h2 id="4-2-为什么没有-SPS，解码器通常起不来"><a href="#4-2-为什么没有-SPS，解码器通常起不来" class="headerlink" title="4.2 为什么没有 SPS，解码器通常起不来"></a>4.2 为什么没有 SPS，解码器通常起不来</h2><p>因为解码器得先知道：</p>
+<ul>
+<li>这是个什么规格的视频</li>
+<li>宽高大概怎么解释</li>
+<li>后面 slice 应该按什么规则理解</li>
+</ul>
+<p>如果连这些都不知道，后面的图像数据就很难正确还原。</p>
+<p>所以从工程角度看，SPS 很像：</p>
+<p><strong>让解码器知道“这道题的题型是什么”的前置条件。</strong></p>
+<hr>
+<h1 id="五、PPS-到底是什么，它为什么更像“当前解码规则补充”"><a href="#五、PPS-到底是什么，它为什么更像“当前解码规则补充”" class="headerlink" title="五、PPS 到底是什么，它为什么更像“当前解码规则补充”"></a>五、PPS 到底是什么，它为什么更像“当前解码规则补充”</h1><h2 id="5-1-PPS-的本质"><a href="#5-1-PPS-的本质" class="headerlink" title="5.1 PPS 的本质"></a>5.1 PPS 的本质</h2><p>PPS 全称是 Picture Parameter Set。</p>
+<p>你可以把它理解成：</p>
+<p><strong>比 SPS 更贴近具体图像解码控制的一组参数。</strong></p>
+<p>它通常和：</p>
+<ul>
+<li>slice 的解析规则</li>
+<li>熵编码模式</li>
+<li>某些参考和控制参数</li>
+</ul>
+<p>更相关。</p>
+<h2 id="5-2-SPS-和-PPS-的关系怎么记"><a href="#5-2-SPS-和-PPS-的关系怎么记" class="headerlink" title="5.2 SPS 和 PPS 的关系怎么记"></a>5.2 SPS 和 PPS 的关系怎么记</h2><p>我更建议这样记：</p>
+<ul>
+<li><strong>SPS 更像全局说明书</strong></li>
+<li><strong>PPS 更像当前图像解码时的具体规则补充</strong></li>
+</ul>
+<p>你不用强行把它背成特别死的标准定义，但一定要知道：</p>
+<p><strong>它俩都不是“画面内容本身”，而是在给解码过程提供必要上下文。</strong></p>
+<hr>
+<h1 id="六、VPS-又是什么，为什么-H-264-没这个词，H-265-有"><a href="#六、VPS-又是什么，为什么-H-264-没这个词，H-265-有" class="headerlink" title="六、VPS 又是什么，为什么 H.264 没这个词，H.265 有"></a>六、VPS 又是什么，为什么 H.264 没这个词，H.265 有</h1><h2 id="6-1-VPS-的本质"><a href="#6-1-VPS-的本质" class="headerlink" title="6.1 VPS 的本质"></a>6.1 VPS 的本质</h2><p>VPS 全称是 Video Parameter Set。</p>
+<p>它主要出现在 H.265 &#x2F; HEVC 中。</p>
+<p>你可以把它理解成：</p>
+<p><strong>比 SPS 更上一层的、面向更高层视频配置组织的参数集。</strong></p>
+<h2 id="6-2-为什么-H-265-里会多这一层"><a href="#6-2-为什么-H-265-里会多这一层" class="headerlink" title="6.2 为什么 H.265 里会多这一层"></a>6.2 为什么 H.265 里会多这一层</h2><p>因为 H.265 的整体结构和扩展能力比 H.264 更复杂，参数组织层次也更细。</p>
+<p>所以从工程理解角度可以先记成：</p>
+<ul>
+<li>H.264 常说 SPS &#x2F; PPS</li>
+<li>H.265 常说 VPS &#x2F; SPS &#x2F; PPS</li>
+</ul>
+<h2 id="6-3-一句话直觉记忆"><a href="#6-3-一句话直觉记忆" class="headerlink" title="6.3 一句话直觉记忆"></a>6.3 一句话直觉记忆</h2><p>可以这样粗记：</p>
+<ul>
+<li>VPS：更高层视频级参数</li>
+<li>SPS：序列级参数</li>
+<li>PPS：图像 &#x2F; slice 解码控制相关参数</li>
+</ul>
+<p>这个层级感先建立起来就够用了。</p>
+<hr>
+<h1 id="七、一张图把-VPS-SPS-PPS-的层级感放清楚"><a href="#七、一张图把-VPS-SPS-PPS-的层级感放清楚" class="headerlink" title="七、一张图把 VPS &#x2F; SPS &#x2F; PPS 的层级感放清楚"></a>七、一张图把 VPS &#x2F; SPS &#x2F; PPS 的层级感放清楚</h1><pre><code class=" mermaid">flowchart TD
+    A[H.265 视频参数层级] --&gt; B[VPS]
+    B --&gt; C[SPS]
+    C --&gt; D[PPS]
+    D --&gt; E[具体 slice / 图像数据]
+</code></pre>
+
+<p>而如果是 H.264，可以更接近：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[H.264 参数层级] --&gt; B[SPS]
+    B --&gt; C[PPS]
+    C --&gt; D[具体 slice / 图像数据]
+</code></pre>
+
+<p>这两张图的目的不是让你死背层级，而是帮助你形成一个理解：</p>
+<p><strong>参数集本质上在给图像数据提供“解释上下文”。</strong></p>
+<hr>
+<h1 id="八、Annex-B-到底是什么，为什么很多裸流都长这个样子"><a href="#八、Annex-B-到底是什么，为什么很多裸流都长这个样子" class="headerlink" title="八、Annex B 到底是什么，为什么很多裸流都长这个样子"></a>八、Annex B 到底是什么，为什么很多裸流都长这个样子</h1><p>接下来进入另一个非常高频的坑点：</p>
+<p><strong>Annex B。</strong></p>
+<h2 id="8-1-Annex-B-的本质"><a href="#8-1-Annex-B-的本质" class="headerlink" title="8.1 Annex B 的本质"></a>8.1 Annex B 的本质</h2><p>Annex B 可以理解成：</p>
+<p><strong>一种以起始码分隔 NALU 的字节流组织方式。</strong></p>
+<p>也就是说，在 Annex B 里，一个 NALU 的边界通常靠起始码来表示，比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">00 00 01<br></code></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">00 00 00 01<br></code></pre></td></tr></table></figure>
+
+<h2 id="8-2-为什么它常见于裸流"><a href="#8-2-为什么它常见于裸流" class="headerlink" title="8.2 为什么它常见于裸流"></a>8.2 为什么它常见于裸流</h2><p>因为它非常适合“顺着字节流往前扫”的场景。</p>
+<p>例如：</p>
+<ul>
+<li>裸 H.264 &#x2F; H.265 文件</li>
+<li>某些传输场景</li>
+<li>某些编码器直接吐出的数据</li>
+</ul>
+<h2 id="8-3-一张示意图看懂-Annex-B"><a href="#8-3-一张示意图看懂-Annex-B" class="headerlink" title="8.3 一张示意图看懂 Annex B"></a>8.3 一张示意图看懂 Annex B</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">[start code][NALU1][start code][NALU2][start code][NALU3]...<br></code></pre></td></tr></table></figure>
+
+<p>所以你以后看到 Annex B，可以先直接记成：</p>
+<p><strong>靠起始码找 NALU 边界。</strong></p>
+<hr>
+<h1 id="九、AVCC-到底是什么，为什么-MP4-里常见的是这种组织方式"><a href="#九、AVCC-到底是什么，为什么-MP4-里常见的是这种组织方式" class="headerlink" title="九、AVCC 到底是什么，为什么 MP4 里常见的是这种组织方式"></a>九、AVCC 到底是什么，为什么 MP4 里常见的是这种组织方式</h1><h2 id="9-1-AVCC-的本质"><a href="#9-1-AVCC-的本质" class="headerlink" title="9.1 AVCC 的本质"></a>9.1 AVCC 的本质</h2><p>AVCC 可以理解成：</p>
+<p><strong>一种用长度前缀来表示 NALU 边界的组织方式。</strong></p>
+<p>也就是说，和 Annex B 不一样，它不是靠起始码，而是靠“前面先写长度”。</p>
+<p>示意上更像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">[length][NALU1][length][NALU2][length][NALU3]...<br></code></pre></td></tr></table></figure>
+
+<h2 id="9-2-为什么-MP4-里常见的是-AVCC"><a href="#9-2-为什么-MP4-里常见的是-AVCC" class="headerlink" title="9.2 为什么 MP4 里常见的是 AVCC"></a>9.2 为什么 MP4 里常见的是 AVCC</h2><p>因为在 MP4 这类容器里，长度前缀方式通常更适合封装和索引管理。</p>
+<p>同时，参数集（比如 SPS&#x2F;PPS）往往不会每次都直接混在每个包里，而常常被单独提取到更适合初始化解码器的位置，比如：</p>
+<ul>
+<li>容器头信息</li>
+<li>codec extradata</li>
+</ul>
+<p>所以你在 MP4 里看到的 H.264，通常和裸流里的 H.264 长得不一样。</p>
+<p>这不是 codec 变了，而是：</p>
+<p><strong>组织方式变了。</strong></p>
+<hr>
+<h1 id="十、一张图把-Annex-B-和-AVCC-的差别一次讲清楚"><a href="#十、一张图把-Annex-B-和-AVCC-的差别一次讲清楚" class="headerlink" title="十、一张图把 Annex B 和 AVCC 的差别一次讲清楚"></a>十、一张图把 Annex B 和 AVCC 的差别一次讲清楚</h1><pre><code class=" mermaid">flowchart LR
+    A[NALU 序列] --&gt; B1[Annex B]
+    A --&gt; B2[AVCC]
+
+    B1 --&gt; C1[起始码分隔]
+    B1 --&gt; C2[常见于裸流 / 某些传输链路]
+
+    B2 --&gt; D1[长度前缀分隔]
+    B2 --&gt; D2[常见于 MP4 / 容器组织]
+</code></pre>
+
+<p>你可以直接把这张图压成一句话：</p>
+<ul>
+<li>Annex B：<strong>看起始码找边界</strong></li>
+<li>AVCC：<strong>看长度前缀找边界</strong></li>
+</ul>
+<p>这已经能解决大部分第一层理解问题。</p>
+<hr>
+<h1 id="十一、SPS-PPS-VPS-和-Annex-B-AVCC-是怎么交叉在一起的"><a href="#十一、SPS-PPS-VPS-和-Annex-B-AVCC-是怎么交叉在一起的" class="headerlink" title="十一、SPS &#x2F; PPS &#x2F; VPS 和 Annex B &#x2F; AVCC 是怎么交叉在一起的"></a>十一、SPS &#x2F; PPS &#x2F; VPS 和 Annex B &#x2F; AVCC 是怎么交叉在一起的</h1><p>这部分非常关键。</p>
+<p>因为很多人学到这里最大的困惑就是：</p>
+<blockquote>
+<p>参数集和组织方式到底是怎么同时存在的？</p>
+</blockquote>
+<p>答案是：</p>
+<p><strong>参数集本身也是 NALU，而 Annex B &#x2F; AVCC 决定这些 NALU 怎么被排进字节流。</strong></p>
+<p>换句话说：</p>
+<ul>
+<li>SPS&#x2F;PPS&#x2F;VPS 是“内容类型”</li>
+<li>Annex B&#x2F;AVCC 是“排布方式”</li>
+</ul>
+<p>所以它们不是互斥关系，而是两层叠在一起。</p>
+<h2 id="11-1-一张交叉关系图"><a href="#11-1-一张交叉关系图" class="headerlink" title="11.1 一张交叉关系图"></a>11.1 一张交叉关系图</h2><pre><code class=" mermaid">flowchart TD
+    A[NALU] --&gt; B1[参数集 NALU]
+    A --&gt; B2[图像数据 NALU]
+
+    B1 --&gt; C1[SPS/PPS/VPS]
+    B2 --&gt; C2[Slice / IDR / 非IDR]
+
+    A --&gt; D[组织方式]
+    D --&gt; E1[Annex B]
+    D --&gt; E2[AVCC]
+</code></pre>
+
+<p>这张图一旦立住，后面很多事就容易理解了。</p>
+<hr>
+<h1 id="十二、为什么-MP4-里的-H-264-H-265-和裸流里的长得不一样"><a href="#十二、为什么-MP4-里的-H-264-H-265-和裸流里的长得不一样" class="headerlink" title="十二、为什么 MP4 里的 H.264&#x2F;H.265 和裸流里的长得不一样"></a>十二、为什么 MP4 里的 H.264&#x2F;H.265 和裸流里的长得不一样</h1><p>这个问题特别高频。</p>
+<h2 id="12-1-裸流里常见什么"><a href="#12-1-裸流里常见什么" class="headerlink" title="12.1 裸流里常见什么"></a>12.1 裸流里常见什么</h2><p>裸流中，常见的是：</p>
+<ul>
+<li>Annex B 组织方式</li>
+<li>参数集可能直接以内联 NALU 形式出现在码流里</li>
+</ul>
+<h2 id="12-2-MP4-里常见什么"><a href="#12-2-MP4-里常见什么" class="headerlink" title="12.2 MP4 里常见什么"></a>12.2 MP4 里常见什么</h2><p>MP4 里常见的是：</p>
+<ul>
+<li>AVCC（H.264）或 HVCC（H.265）形式</li>
+<li>参数集常常被提取到 extradata &#x2F; 容器头信息中</li>
+<li>每个 packet 里主要放具体图像相关 NALU</li>
+</ul>
+<p>所以看起来会像：</p>
+<ul>
+<li>同样是 H.264</li>
+<li>但字节布局完全不一样</li>
+</ul>
+<p>这就是为什么你经常会遇到：</p>
+<ul>
+<li>裸流能直接喂某些解码器</li>
+<li>MP4 拆出来的 packet 却还要进一步处理</li>
+</ul>
+<hr>
+<h1 id="十三、FFmpeg-工程里这些东西会落在哪些地方"><a href="#十三、FFmpeg-工程里这些东西会落在哪些地方" class="headerlink" title="十三、FFmpeg 工程里这些东西会落在哪些地方"></a>十三、FFmpeg 工程里这些东西会落在哪些地方</h1><p>这部分最实用。</p>
+<h2 id="13-1-extradata-是什么"><a href="#13-1-extradata-是什么" class="headerlink" title="13.1 extradata 是什么"></a>13.1 extradata 是什么</h2><p>FFmpeg 里，<code>extradata</code> 很多时候就是在保存 codec 初始化所需的重要参数信息。</p>
+<p>比如：</p>
+<ul>
+<li>H.264 的 SPS &#x2F; PPS</li>
+<li>H.265 的 VPS &#x2F; SPS &#x2F; PPS</li>
+</ul>
+<p>你可以先粗记成：</p>
+<p><strong>extradata 是给解码器“先打底”的那部分信息。</strong></p>
+<h2 id="13-2-为什么-demux-出来的-packet-不一定能直接送解码器"><a href="#13-2-为什么-demux-出来的-packet-不一定能直接送解码器" class="headerlink" title="13.2 为什么 demux 出来的 packet 不一定能直接送解码器"></a>13.2 为什么 demux 出来的 packet 不一定能直接送解码器</h2><p>因为：</p>
+<ul>
+<li>容器里可能是 AVCC&#x2F;HVCC 风格</li>
+<li>解码器或某些后续链路可能更希望看到 Annex B 风格</li>
+<li>参数集可能在 extradata 里，而不在当前 packet 数据里</li>
+</ul>
+<p>这时候就经常需要：</p>
+<ul>
+<li>parser</li>
+<li>bitstream filter</li>
+<li>组织方式转换</li>
+</ul>
+<h2 id="13-3-一张-FFmpeg-里的关系图"><a href="#13-3-一张-FFmpeg-里的关系图" class="headerlink" title="13.3 一张 FFmpeg 里的关系图"></a>13.3 一张 FFmpeg 里的关系图</h2><pre><code class=" mermaid">flowchart LR
+    A[MP4/FLV/TS] --&gt; B[Demux]
+    B --&gt; C[AVPacket]
+    B --&gt; D[extradata]
+    D --&gt; E[SPS/PPS/VPS]
+    C --&gt; F[AVCC/HVCC or Annex B]
+    F --&gt; G[必要时做 bitstream 转换]
+    G --&gt; H[送解码器]
+</code></pre>
+
+<p>这张图的核心是：</p>
+<p><strong>同一个 codec，在不同容器里出来的 packet 组织方式可能不同，而解码器初始化依赖的信息又可能在 extradata 里。</strong></p>
+<hr>
+<h1 id="十四、为什么工程里经常要做-Annex-B-和-AVCC-的转换"><a href="#十四、为什么工程里经常要做-Annex-B-和-AVCC-的转换" class="headerlink" title="十四、为什么工程里经常要做 Annex B 和 AVCC 的转换"></a>十四、为什么工程里经常要做 Annex B 和 AVCC 的转换</h1><p>因为上下游预期不一致。</p>
+<h2 id="14-1-一个典型场景"><a href="#14-1-一个典型场景" class="headerlink" title="14.1 一个典型场景"></a>14.1 一个典型场景</h2><p>比如：</p>
+<ul>
+<li>输入是 MP4</li>
+<li>demux 出来是 AVCC 风格</li>
+<li>但后续 mux 到 TS 或某些网络链路时，更需要 Annex B 风格</li>
+</ul>
+<p>这时就需要转换。</p>
+<h2 id="14-2-再比如"><a href="#14-2-再比如" class="headerlink" title="14.2 再比如"></a>14.2 再比如</h2><ul>
+<li>某个编码器直接输出 Annex B</li>
+<li>但你要写进 MP4</li>
+<li>MP4 更倾向于 AVCC&#x2F;HVCC 组织方式</li>
+</ul>
+<p>也要转换。</p>
+<p>所以很多时候问题根本不是：</p>
+<blockquote>
+<p>codec 对不对</p>
+</blockquote>
+<p>而是：</p>
+<blockquote>
+<p>码流组织方式对不对</p>
+</blockquote>
+<p>这也是这篇文章最想帮你建立的工程意识之一。</p>
+<hr>
+<h1 id="十五、一段-FFmpeg-代码，怎么看-codec-extradata"><a href="#十五、一段-FFmpeg-代码，怎么看-codec-extradata" class="headerlink" title="十五、一段 FFmpeg 代码，怎么看 codec extradata"></a>十五、一段 FFmpeg 代码，怎么看 codec extradata</h1><p>这段代码很有代表性。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c">AVCodecParameters *par = stream-&gt;codecpar;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;codec id: %d\n&quot;</span>, par-&gt;codec_id);<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;extradata size: %d\n&quot;</span>, par-&gt;extradata_size);<br><br><span class="hljs-keyword">if</span> (par-&gt;extradata &amp;&amp; par-&gt;extradata_size &gt; <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; par-&gt;extradata_size &amp;&amp; i &lt; <span class="hljs-number">32</span>; ++i) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%02X &quot;</span>, par-&gt;extradata[i]);<br>    &#125;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;\n&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码本身不复杂，但它的工程意义很大：</p>
+<p><strong>你要养成习惯，知道参数集信息未必在当前 packet 数据里，也可能提前放在 extradata 里。</strong></p>
+<hr>
+<h1 id="十六、一段-FFmpeg-代码，怎么做-H-264-MP4-到-Annex-B-的常见转换"><a href="#十六、一段-FFmpeg-代码，怎么做-H-264-MP4-到-Annex-B-的常见转换" class="headerlink" title="十六、一段 FFmpeg 代码，怎么做 H.264 MP4 到 Annex B 的常见转换"></a>十六、一段 FFmpeg 代码，怎么做 H.264 MP4 到 Annex B 的常见转换</h1><p>FFmpeg 里常见会用到 bitstream filter，比如 <code>h264_mp4toannexb</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">const</span> AVBitStreamFilter *filter = av_bsf_get_by_name(<span class="hljs-string">&quot;h264_mp4toannexb&quot;</span>);<br>AVBSFContext *bsf_ctx = <span class="hljs-literal">NULL</span>;<br><br>av_bsf_alloc(filter, &amp;bsf_ctx);<br>avcodec_parameters_copy(bsf_ctx-&gt;par_in, stream-&gt;codecpar);<br>av_bsf_init(bsf_ctx);<br><br>av_bsf_send_packet(bsf_ctx, pkt);<br><span class="hljs-keyword">while</span> (av_bsf_receive_packet(bsf_ctx, pkt) == <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-comment">// 这里拿到的通常就是 Annex B 风格 packet</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码后面站着的实际问题就是：</p>
+<ul>
+<li>输入组织方式和输出需求不一致</li>
+<li>需要把 AVCC 风格转成 Annex B 风格</li>
+</ul>
+<p>同理 H.265 也有对应的 bitstream filter。</p>
+<hr>
+<h1 id="十七、一张时序图看懂“容器-解码器”之间为什么老要折腾一下"><a href="#十七、一张时序图看懂“容器-解码器”之间为什么老要折腾一下" class="headerlink" title="十七、一张时序图看懂“容器 -&gt; 解码器”之间为什么老要折腾一下"></a>十七、一张时序图看懂“容器 -&gt; 解码器”之间为什么老要折腾一下</h1><pre><code class=" mermaid">sequenceDiagram
+    participant File as MP4文件
+    participant Demux as Demux
+    participant Extra as extradata
+    participant BSF as Bitstream Filter
+    participant Dec as Decoder
+
+    File-&gt;&gt;Demux: 读容器数据
+    Demux-&gt;&gt;Extra: 提取 SPS/PPS/VPS
+    Demux-&gt;&gt;BSF: 输出 AVCC/HVCC 风格 packet
+    BSF-&gt;&gt;Dec: 转成解码器期望的 Annex B / 合法输入
+    Extra-&gt;&gt;Dec: 初始化解码参数
+</code></pre>
+
+<p>这张时序图非常重要，因为它解释了一个工程现实：</p>
+<p><strong>解码前的工作，不只是“把 packet 喂进去”，而是先把初始化参数和组织方式都准备对。</strong></p>
+<hr>
+<h1 id="十八、工程里最常见的几个坑"><a href="#十八、工程里最常见的几个坑" class="headerlink" title="十八、工程里最常见的几个坑"></a>十八、工程里最常见的几个坑</h1><h2 id="18-1-误区一：SPS-PPS-VPS-就是普通视频帧的一部分"><a href="#18-1-误区一：SPS-PPS-VPS-就是普通视频帧的一部分" class="headerlink" title="18.1 误区一：SPS&#x2F;PPS&#x2F;VPS 就是普通视频帧的一部分"></a>18.1 误区一：SPS&#x2F;PPS&#x2F;VPS 就是普通视频帧的一部分</h2><p>不对。</p>
+<p>它们也是 NALU，但它们承载的是参数信息，不是普通画面内容本身。</p>
+<h2 id="18-2-误区二：Annex-B-和-AVCC-是两种不同编码格式"><a href="#18-2-误区二：Annex-B-和-AVCC-是两种不同编码格式" class="headerlink" title="18.2 误区二：Annex B 和 AVCC 是两种不同编码格式"></a>18.2 误区二：Annex B 和 AVCC 是两种不同编码格式</h2><p>也不对。</p>
+<p>它们不是不同 codec，而是同一 codec 下不同的字节流组织方式。</p>
+<h2 id="18-3-误区三：只要-codec-是-H-264，就一定能直接喂任何下游"><a href="#18-3-误区三：只要-codec-是-H-264，就一定能直接喂任何下游" class="headerlink" title="18.3 误区三：只要 codec 是 H.264，就一定能直接喂任何下游"></a>18.3 误区三：只要 codec 是 H.264，就一定能直接喂任何下游</h2><p>不一定。</p>
+<p>你还得看：</p>
+<ul>
+<li>参数集有没有准备好</li>
+<li>组织方式对不对</li>
+<li>上下游预期是不是一致</li>
+</ul>
+<h2 id="18-4-误区四：解码失败一定是编码器问题"><a href="#18-4-误区四：解码失败一定是编码器问题" class="headerlink" title="18.4 误区四：解码失败一定是编码器问题"></a>18.4 误区四：解码失败一定是编码器问题</h2><p>也不一定。</p>
+<p>工程里很多“解不出来”的问题，根因其实是：</p>
+<ul>
+<li>SPS&#x2F;PPS&#x2F;VPS 缺失</li>
+<li>AVCC &#x2F; Annex B 混用</li>
+<li>extradata 没传对</li>
+<li>packet 边界没处理对</li>
+</ul>
+<hr>
+<h1 id="十九、面试里怎么讲，才不像只会背几个缩写"><a href="#十九、面试里怎么讲，才不像只会背几个缩写" class="headerlink" title="十九、面试里怎么讲，才不像只会背几个缩写"></a>十九、面试里怎么讲，才不像只会背几个缩写</h1><p>如果面试官问：</p>
+<blockquote>
+<p>SPS、PPS、VPS、Annex B、AVCC 你怎么理解？</p>
+</blockquote>
+<p>我建议你按下面这个结构讲。</p>
+<h2 id="19-1-先分层"><a href="#19-1-先分层" class="headerlink" title="19.1 先分层"></a>19.1 先分层</h2><p>SPS、PPS、VPS 是参数集，用来给解码器提供必要初始化和解码上下文；Annex B 和 AVCC 则是码流中 NALU 的两种常见组织方式。</p>
+<h2 id="19-2-再讲关系"><a href="#19-2-再讲关系" class="headerlink" title="19.2 再讲关系"></a>19.2 再讲关系</h2><p>参数集本身也是 NALU，而 Annex B &#x2F; AVCC 决定这些 NALU 在字节流里如何分隔和存储。Annex B 依赖起始码，AVCC 依赖长度前缀。</p>
+<h2 id="19-3-最后讲工程意义"><a href="#19-3-最后讲工程意义" class="headerlink" title="19.3 最后讲工程意义"></a>19.3 最后讲工程意义</h2><p>在工程里，裸流、MP4、TS、网络流等场景中，这些组织方式可能不同，所以经常需要借助 extradata、parser 或 bitstream filter 做适配，否则即使 codec 本身是一样的，也可能出现解码失败或上下游不兼容。</p>
+<p>如果你能这么讲，基本就不是“我背过这些缩写”，而是真的知道这些东西在系统里各自负责什么。</p>
+<hr>
+<h1 id="总结：真正要分清的，不是几个缩写，而是“参数信息”和“组织方式”这两层"><a href="#总结：真正要分清的，不是几个缩写，而是“参数信息”和“组织方式”这两层" class="headerlink" title="总结：真正要分清的，不是几个缩写，而是“参数信息”和“组织方式”这两层"></a>总结：真正要分清的，不是几个缩写，而是“参数信息”和“组织方式”这两层</h1><p>回到这篇文章最开始的问题：</p>
+<p><strong>SPS、PPS、VPS、Annex B、AVCC 到底是什么关系？</strong></p>
+<p>我觉得最稳的主线就是：</p>
+<ul>
+<li>一条 H.264&#x2F;H.265 码流是由 NALU 组成的</li>
+<li>其中有些 NALU 装的是参数集（SPS&#x2F;PPS&#x2F;VPS）</li>
+<li>有些 NALU 装的是图像相关数据</li>
+<li>Annex B 和 AVCC 不是参数内容，而是这些 NALU 的组织方式</li>
+<li>FFmpeg 工程里，extradata、bitstream filter、demux &#x2F; mux 都会围绕这两层做适配</li>
+</ul>
+<p>只要这条线建立起来，后面你再看：</p>
+<ul>
+<li>裸流和 MP4 的差异</li>
+<li>H.264 &#x2F; H.265 packet 为什么长得不一样</li>
+<li>为什么某些流缺 SPS&#x2F;PPS 就起不来</li>
+<li>为什么 FFmpeg 里老要 mp4toannexb</li>
+</ul>
+<p>这些问题都会自然很多。</p>
+<p>因为到那时你已经不再只是记住几个缩写，而是真的知道：</p>
+<p><strong>哪些是在告诉解码器“这是什么视频”，哪些是在告诉系统“这些 NALU 怎么排”。</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
+      
+        <a href="/tags/H264/" class="print-no-link">#H264</a>
+      
+        <a href="/tags/H265/" class="print-no-link">#H265</a>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/%E7%A0%81%E6%B5%81/" class="print-no-link">#码流</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SPS、PPS、VPS、Annex B、AVCC 到底是什么关系</div>
+      <div>https://breaker505.github.io/2026/04/18/sps-pps-vps-annexb-avcc-relationships/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月18日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/18/i-p-b-frames-gop-and-video-prediction/" title="一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构">
+                        <span class="hidden-mobile">一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
