@@ -336,6 +336,79 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2026/04/18/why-webrtc-is-hard-from-capture-to-jitter-buffer/" target="_self">
+          WebRTC 为什么难：从采集、编码、传输到抗抖动，实时音视频链路到底难在哪
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/why-webrtc-is-hard-from-capture-to-jitter-buffer/" target="_self">
+        <div>
+          前言：为什么很多人觉得 WebRTC “东西很多”，但真正难的不是名词多，而是系统目标太苛刻只要开始碰实时音视频，几乎迟早都会听到一句话：  WebRTC 很复杂。  这话当然没错。 因为你很快就会遇到一大堆名词：  SDP ICE STUN TURN RTP RTCP NACK PLI jitter buffer AEC FEC congestion control  看起来像一整面墙。 所以很
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-18 16:08" pubdate>
+              2026-04-18
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/WebRTC/">#WebRTC</a>
+            
+              <a href="/tags/RTP/">#RTP</a>
+            
+              <a href="/tags/RTCP/">#RTCP</a>
+            
+              <a href="/tags/jitter-buffer/">#jitter buffer</a>
+            
+              <a href="/tags/%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91/">#实时音视频</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2026/04/18/hardware-vs-software-video-encoding/" target="_self">
           硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍
         </a>
@@ -964,77 +1037,6 @@
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/why-video-systems-prefer-yuv/" target="_self">
-          为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/why-video-systems-prefer-yuv/" target="_self">
-        <div>
-          前言：为什么很多图像系统最后都会绕回 YUV如果你前面已经接触过：  Camera FFmpeg 编码器 播放器 OpenCV 硬件编解码  那你大概率已经发现一个现象： 虽然 RGB 看起来最直观，但真正的视频系统里，经常一路绕着绕着，最后还是会回到 YUV。 典型场景包括：  Camera 输出 NV12 编码器要求 YUV420 FFmpeg 解码后给你 YUV420P 硬件编解码器更喜欢
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:17" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/Camera/">#Camera</a>
-            
-              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
             
           </div>
         
