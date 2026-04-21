@@ -1,0 +1,1169 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="H.264 全流程讲解，从一帧图像到最终码流 这篇文章按一条完整主线来讲清楚 H.264：输入到底是什么，编码时到底做了什么，输出到底是什么，I&#x2F;P&#x2F;B 帧如何协作，编码器和解码器为什么都必须缓存历史帧，以及 NALU 码流在整条链路中的位置。  H.264 最容易让人困惑的地方，不是概念名词多，而是链路长。宏块、帧内预测、运动估计、残差、变换、量化、熵编码、NALU、GOP、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="H.264 全流程讲解，从一帧图像到最终码流">
+<meta property="og:url" content="https://breaker505.github.io/2026/04/22/h264-full-pipeline-from-frame-to-bitstream/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="H.264 全流程讲解，从一帧图像到最终码流 这篇文章按一条完整主线来讲清楚 H.264：输入到底是什么，编码时到底做了什么，输出到底是什么，I&#x2F;P&#x2F;B 帧如何协作，编码器和解码器为什么都必须缓存历史帧，以及 NALU 码流在整条链路中的位置。  H.264 最容易让人困惑的地方，不是概念名词多，而是链路长。宏块、帧内预测、运动估计、残差、变换、量化、熵编码、NALU、GOP、">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-21T16:00:00.000Z">
+<meta property="article:modified_time" content="2026-04-21T16:01:00.347Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="视频编码">
+<meta property="article:tag" content="H.264">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="I帧 P帧 B帧">
+<meta property="article:tag" content="NALU">
+<meta property="article:tag" content="工程基础">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>H.264 全流程讲解，从一帧图像到最终码流 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="H.264 全流程讲解，从一帧图像到最终码流"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-22 00:00" pubdate>
+          2026年4月22日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          55 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">H.264 全流程讲解，从一帧图像到最终码流</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="H-264-全流程讲解，从一帧图像到最终码流"><a href="#H-264-全流程讲解，从一帧图像到最终码流" class="headerlink" title="H.264 全流程讲解，从一帧图像到最终码流"></a>H.264 全流程讲解，从一帧图像到最终码流</h1><blockquote>
+<p>这篇文章按一条完整主线来讲清楚 H.264：输入到底是什么，编码时到底做了什么，输出到底是什么，I&#x2F;P&#x2F;B 帧如何协作，编码器和解码器为什么都必须缓存历史帧，以及 NALU 码流在整条链路中的位置。</p>
+</blockquote>
+<p>H.264 最容易让人困惑的地方，不是概念名词多，而是链路长。宏块、帧内预测、运动估计、残差、变换、量化、熵编码、NALU、GOP、参考帧缓存，这些点单独看都不难，难的是把它们连成一条完整数据路径。</p>
+<p>如果把问题压缩成一句话，H.264 本质上是在做这件事：<strong>尽量不直接保存整张图，而是想办法只保存“和已有画面相比，发生了什么变化”</strong>。为了做到这一点，编码器和解码器必须共享同一套参考画面，因此它们两边都离不开缓存机制。</p>
+<hr>
+<h2 id="一、先抓住主线：H-264-到底在压什么"><a href="#一、先抓住主线：H-264-到底在压什么" class="headerlink" title="一、先抓住主线：H.264 到底在压什么"></a>一、先抓住主线：H.264 到底在压什么</h2><p>H.264 编码器接收的不是 JPG、PNG，也不是 MP4 文件，而是<strong>未经压缩的原始视频帧</strong>，常见形式是 YUV420。你可以把它理解成一张张完整的裸像素图片。</p>
+<p>编码器的目标不是“把图片换个格式保存”，而是把这张原始图像拆解成更容易压缩的信息：</p>
+<ul>
+<li>哪些区域和已有画面很像</li>
+<li>哪些区域只是发生了位置移动</li>
+<li>哪些区域才是真正新增的信息</li>
+<li>哪些高频细节可以被适当丢弃</li>
+</ul>
+<p>最后输出的也不是“图片”，而是一串<strong>压缩后的视频比特流</strong>。这串比特流里包含参数信息、预测信息、残差数据和编码后的语法元素，最终再以 NALU 的形式组织起来。</p>
+<p>可以先看整条编码主线。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[Raw frame YUV] --&gt; B[Split into MB]
+    B --&gt; C[Choose frame type]
+    C --&gt; D[Intra or inter prediction]
+    D --&gt; E[Residual]
+    E --&gt; F[Transform]
+    F --&gt; G[Quant]
+    G --&gt; H[Entropy coding]
+    H --&gt; I[NALU bitstream]
+</code></pre>
+
+<p>这张图里最关键的分水岭是 <code>Intra or inter prediction</code>。这里决定了当前帧到底是靠自己压，还是靠历史参考帧一起压。</p>
+<hr>
+<h2 id="二、一帧图像进入-H-264-后，到底经历了什么"><a href="#二、一帧图像进入-H-264-后，到底经历了什么" class="headerlink" title="二、一帧图像进入 H.264 后，到底经历了什么"></a>二、一帧图像进入 H.264 后，到底经历了什么</h2><h3 id="1-输入是一帧原始-YUV-图像"><a href="#1-输入是一帧原始-YUV-图像" class="headerlink" title="1. 输入是一帧原始 YUV 图像"></a>1. 输入是一帧原始 YUV 图像</h3><p>编码器看到的输入，本质上是一帧完整图像。假设是 1920×1080 的 YUV420 帧，那么这一帧里已经包含了亮度和色度采样信息，只是还没有经过压缩。</p>
+<p>这一步的特点是：</p>
+<ul>
+<li>数据量大</li>
+<li>画面完整</li>
+<li>每个像素都真实存在</li>
+<li>还没有任何“只记录变化”的思想</li>
+</ul>
+<p>也正因为原始帧数据太大，视频编码的核心任务就是把这类数据压到足够小。</p>
+<h3 id="2-先把整张图切成宏块"><a href="#2-先把整张图切成宏块" class="headerlink" title="2. 先把整张图切成宏块"></a>2. 先把整张图切成宏块</h3><p>H.264 早期编码分析常从 <strong>16×16 宏块</strong> 入手，这也是最常见的理解入口。虽然标准内部还有更细的子块划分和不同分区方式，但从学习主线来说，可以先把整张图理解为被切成很多个小块。</p>
+<p>切块的目的很直接：</p>
+<ul>
+<li>便于做局部预测</li>
+<li>便于做局部运动搜索</li>
+<li>便于做局部残差压缩</li>
+<li>便于让不同区域采用不同编码策略</li>
+</ul>
+<p>也就是说，H.264 不是拿整张图一次性做压缩，而是按块处理。</p>
+<h3 id="3-判断当前帧是什么类型"><a href="#3-判断当前帧是什么类型" class="headerlink" title="3. 判断当前帧是什么类型"></a>3. 判断当前帧是什么类型</h3><p>编码器接下来要决定当前帧按什么方式编码，常见就是 I、P、B 三类。</p>
+<table>
+<thead>
+<tr>
+<th>帧类型</th>
+<th>依赖关系</th>
+<th>主要特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I 帧</td>
+<td>不依赖其他参考帧</td>
+<td>压缩率较低，但独立性最强</td>
+</tr>
+<tr>
+<td>P 帧</td>
+<td>参考之前的参考帧</td>
+<td>只保存相对过去的变化</td>
+</tr>
+<tr>
+<td>B 帧</td>
+<td>可参考前后参考帧</td>
+<td>压缩率更高，但时序更复杂</td>
+</tr>
+</tbody></table>
+<p>这一步本质决定了后面的预测方式。</p>
+<h3 id="4-做预测，找到“已有的信息”"><a href="#4-做预测，找到“已有的信息”" class="headerlink" title="4. 做预测，找到“已有的信息”"></a>4. 做预测，找到“已有的信息”</h3><p>预测是 H.264 最核心的一步，因为它决定了后续到底还剩多少东西需要编码。</p>
+<h4 id="4-1-I-帧做帧内预测"><a href="#4-1-I-帧做帧内预测" class="headerlink" title="4.1 I 帧做帧内预测"></a>4.1 I 帧做帧内预测</h4><p>I 帧不参考历史帧，它只看<strong>当前帧内部已经编码过的邻近像素块</strong>，尝试预测当前块大概长什么样。</p>
+<p>例如，一个区域如果本来就是平滑渐变或者明显边缘延续，那么周围像素就能给出相当好的估计，当前块就不必完整保存。</p>
+<p>可以把 I 帧理解成：</p>
+<ul>
+<li>不向前借画面</li>
+<li>不向后借画面</li>
+<li>只从当前帧内部借上下左右邻域信息</li>
+</ul>
+<h4 id="4-2-P-帧做帧间预测"><a href="#4-2-P-帧做帧间预测" class="headerlink" title="4.2 P 帧做帧间预测"></a>4.2 P 帧做帧间预测</h4><p>P 帧会去参考列表里找历史参考帧，然后问一个问题：</p>
+<p><strong>当前这个块，能不能在过去的某一帧里找到一个非常像的块？</strong></p>
+<p>如果能找到，编码器只需要记录：</p>
+<ul>
+<li>它来自哪一帧</li>
+<li>它在那一帧里的哪个位置</li>
+<li>当前位置和参考位置之间的偏移量，也就是运动矢量 MV</li>
+</ul>
+<p>这就是运动估计和运动补偿背后的直觉。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[Current block] --&gt; B[Search in reference frame]
+    B --&gt; C[Best matched block]
+    C --&gt; D[Motion vector]
+    D --&gt; E[Pred block]
+</code></pre>
+
+<h4 id="4-3-B-帧做双向预测"><a href="#4-3-B-帧做双向预测" class="headerlink" title="4.3 B 帧做双向预测"></a>4.3 B 帧做双向预测</h4><p>B 帧比 P 帧更进一步。它不只看过去，还可以同时参考前后参考帧。</p>
+<p>更准确地说，<strong>B 帧可以参考前向和后向参考图像，编码和解码中通常伴随显示顺序与编码顺序的重排序</strong>。因此它不是一句简单的“直接读取未来图”就能概括完的，但从学习角度可以先把它理解成“双向借图”。</p>
+<p>B 帧的好处是压缩率更高，代价是：</p>
+<ul>
+<li>编码逻辑更复杂</li>
+<li>参考关系更复杂</li>
+<li>缓存更多</li>
+<li>延迟更高</li>
+</ul>
+<p>所以低延迟场景，比如实时互动直播，常常会尽量少用 B 帧，甚至不用。</p>
+<h3 id="5-预测完后，只编码残差"><a href="#5-预测完后，只编码残差" class="headerlink" title="5. 预测完后，只编码残差"></a>5. 预测完后，只编码残差</h3><p>当编码器拿到了预测块之后，当前块就不需要再“完整保存”了。真正要编码的是：</p>
+<p><strong>原始块 - 预测块 &#x3D; 残差块</strong></p>
+<p>如果预测很准，残差就很小，甚至大部分系数都接近 0。这就是视频压缩能做得这么高效的根本原因之一。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[Original block] --&gt; C[Residual]
+    B[Pred block] --&gt; C[Residual]
+</code></pre>
+
+<p>这一步之后，编码器已经把“画面”转换成了“误差”。</p>
+<h3 id="6-对残差做变换"><a href="#6-对残差做变换" class="headerlink" title="6. 对残差做变换"></a>6. 对残差做变换</h3><p>残差还在空间域里，不够利于后续压缩。于是编码器会对残差块做整数变换，你可以把它理解成工程化实现的 DCT 思想：把像素变化重新表示成不同频率分量的组合。</p>
+<p>变换之后通常会出现一个很有利于压缩的现象：</p>
+<ul>
+<li>低频能量更集中</li>
+<li>高频分量更容易变小</li>
+<li>很多高频细节在视觉上并不重要</li>
+</ul>
+<p>因此，后面的量化就有了发力空间。</p>
+<h3 id="7-量化，主动丢掉一部分细节"><a href="#7-量化，主动丢掉一部分细节" class="headerlink" title="7. 量化，主动丢掉一部分细节"></a>7. 量化，主动丢掉一部分细节</h3><p>量化是有损压缩最直接的一步。它会把一些较小、较不重要的频率系数压得更粗糙，甚至直接变成 0。</p>
+<p>这一步的效果通常是：</p>
+<ul>
+<li>码率明显下降</li>
+<li>大量系数归零</li>
+<li>视觉质量略有损失</li>
+<li>压缩效率大幅提高</li>
+</ul>
+<p>如果把预测理解成“尽量少保存变化”，那量化就是“即便有变化，也不是每一点变化都必须保留得那么精确”。</p>
+<h3 id="8-熵编码，把统计冗余进一步压干"><a href="#8-熵编码，把统计冗余进一步压干" class="headerlink" title="8. 熵编码，把统计冗余进一步压干"></a>8. 熵编码，把统计冗余进一步压干</h3><p>经过量化之后，数据里通常已经有很多 0，也出现了明显的统计规律。这时候再用熵编码继续压缩。</p>
+<p>H.264 常见两类熵编码方式：</p>
+<ul>
+<li>CAVLC</li>
+<li>CABAC</li>
+</ul>
+<p>前者更直观，后者压缩效率更高，但实现和计算更复杂。</p>
+<p>这一步做完之后，块级信息已经被编码成更紧凑的二进制语法元素。</p>
+<h3 id="9-打包成-NALU，形成-H-264-比特流"><a href="#9-打包成-NALU，形成-H-264-比特流" class="headerlink" title="9. 打包成 NALU，形成 H.264 比特流"></a>9. 打包成 NALU，形成 H.264 比特流</h3><p>编码器最终会把参数集、图像数据和其他辅助信息组织成 <strong>NALU</strong>。这也是应用层最常看到的 H.264 数据组织单位。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[H264 stream] --&gt; B[SPS]
+    A --&gt; C[PPS]
+    A --&gt; D[IDR slice]
+    A --&gt; E[P slice]
+    A --&gt; F[B slice]
+    A --&gt; G[SEI]
+</code></pre>
+
+<p>其中常见内容包括：</p>
+<ul>
+<li>SPS：序列级参数，比如分辨率、Profile、Level 等</li>
+<li>PPS：图像级参数</li>
+<li>Slice：真正的帧压缩数据</li>
+<li>SEI：补充增强信息</li>
+</ul>
+<p>如果是 Annex B 形式的裸码流，NALU 之间通常通过起始码分隔，比如 <code>0x000001</code> 或 <code>0x00000001</code>。</p>
+<p>到这里，编码器输出的就是 <strong>H.264 比特流</strong>，而不是“又一张压缩图片”。</p>
+<hr>
+<h2 id="三、H-264-最终输出到底是什么"><a href="#三、H-264-最终输出到底是什么" class="headerlink" title="三、H.264 最终输出到底是什么"></a>三、H.264 最终输出到底是什么</h2><p>这个问题特别容易和 MP4、FLV、MKV 混在一起。</p>
+<p>H.264 本身输出的是<strong>视频编码后的比特流</strong>，也就是一串按标准语法组织起来的二进制数据。它本身不是封装格式，也不是播放器直接展示出来的图像。</p>
+<p>因此要分清三层：</p>
+<ol>
+<li><strong>原始视频帧</strong>，比如 YUV</li>
+<li><strong>H.264 编码后的码流</strong>，比如 Annex B 比特流</li>
+<li><strong>容器封装格式</strong>，比如 MP4、FLV、MKV</li>
+</ol>
+<p>三者关系可以画成下面这样。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[Raw YUV frames] --&gt; B[H264 encoder]
+    B --&gt; C[H264 bitstream]
+    C --&gt; D[MP4 FLV MKV container]
+</code></pre>
+
+<p>也就是说：</p>
+<ul>
+<li>H.264 负责压缩视频内容</li>
+<li>MP4 负责把音视频、时间戳、索引等内容装进一个容器里</li>
+<li>播放器最终还是要先把 H.264 码流解出来，才能重建出 YUV 帧</li>
+</ul>
+<p>一句话说清楚就是：<strong>H.264 的最终输出是比特流，这个比特流不能直接显示，必须经过解码器重建为图像帧后才能播放。</strong></p>
+<hr>
+<h2 id="四、解码端在做什么，本质上就是把上面的过程倒回来"><a href="#四、解码端在做什么，本质上就是把上面的过程倒回来" class="headerlink" title="四、解码端在做什么，本质上就是把上面的过程倒回来"></a>四、解码端在做什么，本质上就是把上面的过程倒回来</h2><p>解码不是“把文件直接显示出来”，而是沿着编码的反方向把画面一步步恢复出来。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[H264 bitstream] --&gt; B[Parse NALU]
+    B --&gt; C[Entropy decode]
+    C --&gt; D[Inverse quant]
+    D --&gt; E[Inverse transform]
+    E --&gt; F[Residual]
+    F --&gt; G[Prediction and MC]
+    G --&gt; H[Reconstructed frame]
+    H --&gt; I[Deblocking]
+    I --&gt; J[Output YUV]
+</code></pre>
+
+<h3 id="1-先解析-NALU"><a href="#1-先解析-NALU" class="headerlink" title="1. 先解析 NALU"></a>1. 先解析 NALU</h3><p>解码器首先把输入比特流按 NALU 拆开，识别出 SPS、PPS、Slice 等内容，建立必要的解码上下文。</p>
+<h3 id="2-熵解码"><a href="#2-熵解码" class="headerlink" title="2. 熵解码"></a>2. 熵解码</h3><p>把 CABAC 或 CAVLC 编出来的语法元素还原回来，得到量化后的系数、运动信息、模式信息等。</p>
+<h3 id="3-反量化和反变换"><a href="#3-反量化和反变换" class="headerlink" title="3. 反量化和反变换"></a>3. 反量化和反变换</h3><p>这两步把压缩域的数据往像素域方向拉回来，恢复出残差块。</p>
+<h3 id="4-再做预测和运动补偿"><a href="#4-再做预测和运动补偿" class="headerlink" title="4. 再做预测和运动补偿"></a>4. 再做预测和运动补偿</h3><p>这里和编码器必须严格一致。</p>
+<ul>
+<li>I 帧按帧内预测规则恢复</li>
+<li>P&#x2F;B 帧按参考帧和运动矢量做运动补偿</li>
+</ul>
+<p>最后得到：</p>
+<p><strong>预测块 + 残差块 &#x3D; 重建块</strong></p>
+<p>这才真正接近原始画面。</p>
+<h3 id="5-去块滤波后输出重建帧"><a href="#5-去块滤波后输出重建帧" class="headerlink" title="5. 去块滤波后输出重建帧"></a>5. 去块滤波后输出重建帧</h3><p>由于块编码和量化，重建图像边界上可能出现块效应。H.264 会通过去块滤波进一步改善视觉质量。处理完之后，解码器才能输出最终的重建 YUV 帧给播放器或后处理模块。</p>
+<hr>
+<h2 id="五、为什么-H-264-一定要缓存历史帧"><a href="#五、为什么-H-264-一定要缓存历史帧" class="headerlink" title="五、为什么 H.264 一定要缓存历史帧"></a>五、为什么 H.264 一定要缓存历史帧</h2><p>这是很多人第一次学视频编码时最想追问的问题，也是最关键的工程直觉之一。</p>
+<p>答案很明确：<strong>一定要缓存，而且编码器和解码器两边都要缓存。</strong></p>
+<p>因为 P 帧和 B 帧不是独立存在的，它们必须依赖参考图像。如果没有缓存，预测就无从谈起。</p>
+<h3 id="1-I-帧为什么相对独立"><a href="#1-I-帧为什么相对独立" class="headerlink" title="1. I 帧为什么相对独立"></a>1. I 帧为什么相对独立</h3><p>I 帧不依赖其他参考帧，所以它可以作为随机访问入口。你从一个 I 帧甚至 IDR 帧开始，后续才有可能逐步恢复出完整视频。</p>
+<p>但要注意，I 帧独立并不代表它编码后没用了。恰恰相反，<strong>I 帧编码并重建完成后，通常会进入参考帧缓存，供后续 P&#x2F;B 帧使用。</strong></p>
+<h3 id="2-P-帧为什么必须读缓存"><a href="#2-P-帧为什么必须读缓存" class="headerlink" title="2. P 帧为什么必须读缓存"></a>2. P 帧为什么必须读缓存</h3><p>P 帧的核心思想就是“参考过去”。</p>
+<p>如果当前画面里有一个人从左往右移动，编码器不会重新保存整个人，而更可能记录：</p>
+<ul>
+<li>这个块可以从某个参考帧里找到</li>
+<li>它向右移动了多少像素</li>
+<li>剩余没预测准的部分作为残差补进去</li>
+</ul>
+<p>这一步离不开参考帧缓存。</p>
+<h3 id="3-B-帧为什么对缓存和时序要求更高"><a href="#3-B-帧为什么对缓存和时序要求更高" class="headerlink" title="3. B 帧为什么对缓存和时序要求更高"></a>3. B 帧为什么对缓存和时序要求更高</h3><p>B 帧可以同时参考前后参考图像，所以它带来的问题不只是“多存一帧”，而是：</p>
+<ul>
+<li>参考管理更复杂</li>
+<li>编码顺序和显示顺序可能不一样</li>
+<li>解码器要等到足够参考信息准备好</li>
+<li>整体延迟更高</li>
+</ul>
+<p>因此 B 帧常见于更关注压缩率的场景，而不是极致低延迟场景。</p>
+<hr>
+<h2 id="六、缓存里存的到底是什么，不是原始帧，而是重建帧"><a href="#六、缓存里存的到底是什么，不是原始帧，而是重建帧" class="headerlink" title="六、缓存里存的到底是什么，不是原始帧，而是重建帧"></a>六、缓存里存的到底是什么，不是原始帧，而是重建帧</h2><p>这是一个很容易在面试里被追问的点。</p>
+<p><strong>编码器缓存的不是原始输入帧，而是重建帧。解码器缓存的也是重建帧。</strong></p>
+<p>为什么一定要这样？因为编码器和解码器后面做预测时，必须看到完全一致的参考图像。如果编码器拿原始图做参考、解码器拿重建图做参考，那么两边预测结果就会逐步漂移，最终完全对不上。</p>
+<p>所以编码器内部通常会有一条本地重建路径。</p>
+<pre><code class=" mermaid">flowchart TD
+    A[Original frame] --&gt; B[Prediction]
+    B --&gt; C[Residual]
+    C --&gt; D[Transform and quant]
+    D --&gt; E[Entropy coding]
+    D --&gt; F[Inverse quant and inverse transform]
+    F --&gt; G[Add pred]
+    G --&gt; H[Reconstructed frame]
+    H --&gt; I[Reference buffer]
+</code></pre>
+
+<p>这条路径说明了一个特别重要的事实：</p>
+<ul>
+<li>编码器一边在生成输出码流</li>
+<li>一边也在本地“模拟解码”</li>
+<li>模拟出来的重建帧会进入参考缓存</li>
+<li>之后的 P&#x2F;B 帧预测都基于这些重建帧进行</li>
+</ul>
+<p>这就是为什么很多资料会说：<strong>编码器内部其实也有一个小型解码环。</strong></p>
+<hr>
+<h2 id="七、IDR-帧为什么像一次“缓存重置”"><a href="#七、IDR-帧为什么像一次“缓存重置”" class="headerlink" title="七、IDR 帧为什么像一次“缓存重置”"></a>七、IDR 帧为什么像一次“缓存重置”</h2><p>普通 I 帧强调的是“这一帧本身可以独立编码”，但在工程使用中，大家更常强调的是 <strong>IDR 帧</strong>。</p>
+<p>IDR 可以理解成一次更强的刷新点。它的意义是：</p>
+<ul>
+<li>从这个点开始，后续参考关系不再依赖它之前的画面</li>
+<li>解码器可以安全丢弃旧参考缓存</li>
+<li>丢包、误码、漂移不容易继续向后扩散</li>
+</ul>
+<p>所以在很多资料里会把它概括成一句很实用的话：</p>
+<p><strong>IDR 帧会让参考链路重新开始，相当于一次缓存重置。</strong></p>
+<p>这也是播放器 seek、直播恢复、丢包后重新对齐时非常关键的一个点。</p>
+<hr>
+<h2 id="八、用-GOP-把-I-P-B-帧关系串起来"><a href="#八、用-GOP-把-I-P-B-帧关系串起来" class="headerlink" title="八、用 GOP 把 I&#x2F;P&#x2F;B 帧关系串起来"></a>八、用 GOP 把 I&#x2F;P&#x2F;B 帧关系串起来</h2><p>学习帧类型时，最容易记住的是 GOP，也就是图像组。</p>
+<p>一个典型的 GOP 里，I、P、B 帧大致会形成下面这种结构。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[IDR] --&gt; B[B]
+    B --&gt; C[B]
+    C --&gt; D[P]
+    D --&gt; E[B]
+    E --&gt; F[B]
+    F --&gt; G[P]
+    G --&gt; H[Next IDR]
+</code></pre>
+
+<p>如果从显示顺序去看，可以把它粗略理解为：</p>
+<p><code>I -&gt; B -&gt; B -&gt; P -&gt; B -&gt; B -&gt; P -&gt; IDR</code></p>
+<p>但在真正编码和传输时，为了让 B 帧获得它需要的参考图像，编码顺序往往会发生重排序，所以学习时要区分：</p>
+<ul>
+<li><strong>显示顺序</strong>，播放器看到的顺序</li>
+<li><strong>编码顺序 &#x2F; 传输顺序</strong>，码流里实际组织和送出的顺序</li>
+</ul>
+<p>这也是 B 帧比 P 帧更复杂的一个核心原因。</p>
+<hr>
+<h2 id="九、如果只背一版面试答案，应该怎么说"><a href="#九、如果只背一版面试答案，应该怎么说" class="headerlink" title="九、如果只背一版面试答案，应该怎么说"></a>九、如果只背一版面试答案，应该怎么说</h2><p>可以把整条链路压缩成下面这段。</p>
+<h3 id="1-编码主线"><a href="#1-编码主线" class="headerlink" title="1. 编码主线"></a>1. 编码主线</h3><p>H.264 编码时，先把原始 YUV 帧按块划分，然后根据帧类型做帧内预测或帧间预测。预测后只编码残差，再对残差做变换、量化和熵编码，最后打包成 NALU 输出成 H.264 比特流。</p>
+<h3 id="2-解码主线"><a href="#2-解码主线" class="headerlink" title="2. 解码主线"></a>2. 解码主线</h3><p>解码时先解析 NALU，再做熵解码、反量化、反变换，恢复出残差，然后结合帧内预测或运动补偿重建图像，经过滤波后输出重建帧。</p>
+<h3 id="3-缓存主线"><a href="#3-缓存主线" class="headerlink" title="3. 缓存主线"></a>3. 缓存主线</h3><p>H.264 的 P&#x2F;B 帧必须依赖参考图像，所以编码器和解码器两边都要缓存参考帧。缓存的不是原始输入帧，而是重建帧。IDR 帧会重启参考链，常被视为一次缓存刷新点。</p>
+<hr>
+<h2 id="十、最后把这件事真正想明白"><a href="#十、最后把这件事真正想明白" class="headerlink" title="十、最后把这件事真正想明白"></a>十、最后把这件事真正想明白</h2><p>如果从工程角度重新看一遍，H.264 做的事情其实非常统一：</p>
+<ul>
+<li>用预测消灭时间和空间上的重复信息</li>
+<li>用残差只保留没预测准的部分</li>
+<li>用变换和量化压缩视觉上不重要的细节</li>
+<li>用熵编码榨干统计冗余</li>
+<li>用 NALU 组织成标准码流</li>
+<li>用参考帧缓存保证编码器和解码器看到同一条历史画面链</li>
+</ul>
+<p>所以，H.264 不是“把每一帧单独压成更小的图片”，而是把<strong>一串连续画面之间的关系</strong>编码进了码流里。</p>
+<p>真正理解了这一点，I&#x2F;P&#x2F;B 帧、GOP、运动估计、参考帧缓存、IDR 刷新这些概念就会自然连起来。</p>
+<hr>
+<h2 id="附：一张总览图"><a href="#附：一张总览图" class="headerlink" title="附：一张总览图"></a>附：一张总览图</h2><pre><code class=" mermaid">flowchart TD
+    A[Raw YUV frame] --&gt; B[Split into blocks]
+    B --&gt; C[Frame type]
+    C --&gt; D[Intra pred]
+    C --&gt; E[Inter pred]
+    D --&gt; F[Residual]
+    E --&gt; F[Residual]
+    F --&gt; G[Transform]
+    G --&gt; H[Quant]
+    H --&gt; I[Entropy coding]
+    I --&gt; J[NALU bitstream]
+    H --&gt; K[Inverse quant]
+    K --&gt; L[Inverse transform]
+    L --&gt; M[Reconstruct frame]
+    M --&gt; N[Reference buffer]
+</code></pre>
+
+<p>这张图把两条线放在了一起：</p>
+<ul>
+<li>上面是输出码流的主压缩链</li>
+<li>下面是编码器内部本地重建并写入参考缓存的链</li>
+</ul>
+<p>它也是理解 H.264 最值得记住的一张图。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/" class="print-no-link">#视频编码</a>
+      
+        <a href="/tags/H-264/" class="print-no-link">#H.264</a>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/I%E5%B8%A7-P%E5%B8%A7-B%E5%B8%A7/" class="print-no-link">#I帧 P帧 B帧</a>
+      
+        <a href="/tags/NALU/" class="print-no-link">#NALU</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%9F%BA%E7%A1%80/" class="print-no-link">#工程基础</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>H.264 全流程讲解，从一帧图像到最终码流</div>
+      <div>https://breaker505.github.io/2026/04/22/h264-full-pipeline-from-frame-to-bitstream/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/18/gstreamer-pipeline-thinking-vs-ffmpeg/" title="GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪">
+                        <span class="hidden-mobile">GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
