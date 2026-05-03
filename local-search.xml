@@ -228,13 +228,13 @@
       
       <tag>WebRTC</tag>
       
+      <tag>RTP</tag>
+      
       <tag>NACK</tag>
       
       <tag>PLI</tag>
       
       <tag>FEC</tag>
-      
-      <tag>RTP</tag>
       
       <tag>RTCP</tag>
       
@@ -341,9 +341,9 @@
       
       <tag>RTP</tag>
       
-      <tag>RTCP</tag>
-      
       <tag>jitter buffer</tag>
+      
+      <tag>RTCP</tag>
       
       <tag>实时音视频</tag>
       
@@ -382,9 +382,9 @@
       
       <tag>RTCP</tag>
       
-      <tag>RTMP</tag>
-      
       <tag>流媒体</tag>
+      
+      <tag>RTMP</tag>
       
     </tags>
     
@@ -450,9 +450,9 @@
       
       <tag>WebRTC</tag>
       
-      <tag>RTMP</tag>
-      
       <tag>流媒体</tag>
+      
+      <tag>RTMP</tag>
       
       <tag>实时通信</tag>
       
@@ -520,11 +520,11 @@
       
       <tag>工程实践</tag>
       
+      <tag>视频编码</tag>
+      
       <tag>H.264</tag>
       
       <tag>H.265</tag>
-      
-      <tag>视频编码</tag>
       
       <tag>硬编码</tag>
       
@@ -656,13 +656,13 @@
       
       <tag>工程实践</tag>
       
-      <tag>车载开发</tag>
-      
       <tag>Camera</tag>
       
       <tag>Sensor</tag>
       
       <tag>图像处理</tag>
+      
+      <tag>车载开发</tag>
       
       <tag>调试</tag>
       
@@ -693,13 +693,13 @@
       
       <tag>工程实践</tag>
       
-      <tag>车载开发</tag>
-      
       <tag>Camera</tag>
       
       <tag>Sensor</tag>
       
       <tag>图像处理</tag>
+      
+      <tag>车载开发</tag>
       
     </tags>
     
@@ -761,11 +761,11 @@
       
       <tag>音视频</tag>
       
+      <tag>视频编码</tag>
+      
       <tag>H.264</tag>
       
       <tag>H.265</tag>
-      
-      <tag>视频编码</tag>
       
       <tag>HEVC</tag>
       
@@ -800,11 +800,11 @@
       
       <tag>工程实践</tag>
       
+      <tag>编解码</tag>
+      
       <tag>H.264</tag>
       
       <tag>H.265</tag>
-      
-      <tag>编解码</tag>
       
     </tags>
     
@@ -833,9 +833,9 @@
       
       <tag>工程实践</tag>
       
-      <tag>视频编码</tag>
-      
       <tag>编解码</tag>
+      
+      <tag>视频编码</tag>
       
       <tag>H264</tag>
       
@@ -864,11 +864,11 @@
     
     <tags>
       
+      <tag>视频编码</tag>
+      
       <tag>H.264</tag>
       
       <tag>H.265</tag>
-      
-      <tag>视频编码</tag>
       
     </tags>
     
@@ -1043,13 +1043,13 @@
       
       <tag>FFmpeg</tag>
       
+      <tag>车载开发</tag>
+      
       <tag>RTSP</tag>
       
       <tag>WebRTC</tag>
       
       <tag>GStreamer</tag>
-      
-      <tag>车载开发</tag>
       
       <tag>学习路线</tag>
       
