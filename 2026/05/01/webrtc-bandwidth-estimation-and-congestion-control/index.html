@@ -1,0 +1,1279 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少前面那篇《WebRTC 为什么难》里，我一直在反复强调一件事： 实时音视频不是静态系统，而是动态系统。 这句话背后，最典型、最硬核的一条主线，其实就是：  带宽估计（Bandwidth Estimation, BWE） 拥塞控制（Congestion Control）  很多人第一次看到这两个词时，会下意识把它们理解成比较">
+<meta property="og:type" content="article">
+<meta property="og:title" content="带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探">
+<meta property="og:url" content="https://breaker505.github.io/2026/05/01/webrtc-bandwidth-estimation-and-congestion-control/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少前面那篇《WebRTC 为什么难》里，我一直在反复强调一件事： 实时音视频不是静态系统，而是动态系统。 这句话背后，最典型、最硬核的一条主线，其实就是：  带宽估计（Bandwidth Estimation, BWE） 拥塞控制（Congestion Control）  很多人第一次看到这两个词时，会下意识把它们理解成比较">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-01T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.855Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="WebRTC">
+<meta property="article:tag" content="RTP">
+<meta property="article:tag" content="RTCP">
+<meta property="article:tag" content="拥塞控制">
+<meta property="article:tag" content="带宽估计">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-01 08:00" pubdate>
+          2026年5月1日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          13k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          105 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少"><a href="#前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少" class="headerlink" title="前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少"></a>前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少</h1><p>前面那篇《WebRTC 为什么难》里，我一直在反复强调一件事：</p>
+<p><strong>实时音视频不是静态系统，而是动态系统。</strong></p>
+<p>这句话背后，最典型、最硬核的一条主线，其实就是：</p>
+<ul>
+<li>带宽估计（Bandwidth Estimation, BWE）</li>
+<li>拥塞控制（Congestion Control）</li>
+</ul>
+<p>很多人第一次看到这两个词时，会下意识把它们理解成比较抽象的网络优化概念。</p>
+<p>比如：</p>
+<ul>
+<li>带宽估计，就是“测网速”</li>
+<li>拥塞控制，就是“别发太多”</li>
+</ul>
+<p>这样理解不算完全错，但还是太浅了。</p>
+<p>因为真实的实时音视频系统里，你面对的不是：</p>
+<blockquote>
+<p>我有一条稳定 4Mbps 的链路，那我就一直按 4Mbps 发。</p>
+</blockquote>
+<p>而更可能是：</p>
+<ul>
+<li>刚才还能发 4Mbps，现在突然只剩 2.5Mbps</li>
+<li>上一秒 RTT 还正常，这一秒突然抖了</li>
+<li>码率没超很多，但队列开始积压了</li>
+<li>丢包变多了，但到底是链路拥塞、Wi-Fi 抖动，还是接收端处理不过来</li>
+<li>你要不要立刻降码率，降多少，什么时候再试探着升回去</li>
+</ul>
+<p>你会发现，这根本不是“测一个值然后照着发”这么简单。</p>
+<p>它真正要解决的问题是：</p>
+<p><strong>在一个不停变化、而且你永远看不全的网络里，尽量猜出当前还能安全发多少，并且在发错之前及时收手。</strong></p>
+<p>这件事特别像开车下雾天山路：</p>
+<ul>
+<li>你看不远</li>
+<li>路况一直变</li>
+<li>开慢了效率低</li>
+<li>开快了就可能冲出去</li>
+<li>所以你只能边走边试，边看边调</li>
+</ul>
+<p>这就是实时音视频里的带宽估计和拥塞控制。</p>
+<p>而且这次我会按你特别强调的要求来，<strong>把核心代码示例放进去</strong>，不再只是嘴上讲流程。</p>
+<p>重点讲清：</p>
+<ul>
+<li>带宽估计到底在估什么</li>
+<li>拥塞控制到底在控什么</li>
+<li>为什么它们几乎决定了 WebRTC 体验上限</li>
+<li>一个发送端到底是怎么根据反馈动态调码率的</li>
+<li>接收端的到达时间、丢包、RTT 是怎么参与判断的</li>
+<li>如果你自己实现一个简化版 BWE&#x2F;CC 框架，核心代码骨架会长什么样</li>
+</ul>
+<p>这篇我会继续放：</p>
+<ul>
+<li><strong>结构图</strong></li>
+<li><strong>时序图</strong></li>
+<li><strong>关键状态机图</strong></li>
+<li><strong>核心伪代码 &#x2F; C++ 风格示例</strong></li>
+</ul>
+<p>我希望这篇读完之后，你脑子里对“边传边降边试探”这件事，不再只是一个模糊口号，而是真能看到系统是怎么动起来的。</p>
+<hr>
+<h1 id="一、先给一句最重要的话：带宽估计不是在“测最大值”，而是在持续寻找当前网络还能承受的发送区间"><a href="#一、先给一句最重要的话：带宽估计不是在“测最大值”，而是在持续寻找当前网络还能承受的发送区间" class="headerlink" title="一、先给一句最重要的话：带宽估计不是在“测最大值”，而是在持续寻找当前网络还能承受的发送区间"></a>一、先给一句最重要的话：带宽估计不是在“测最大值”，而是在持续寻找当前网络还能承受的发送区间</h1><p>如果让我先压一句最重要的话，我会这样说：</p>
+<p><strong>带宽估计不是在找一个永远正确的固定值，而是在持续逼近“当前网络还能承受、且不会明显恶化体验”的发送区间。</strong></p>
+<p>这句话特别重要。</p>
+<p>因为很多人一说“带宽估计”，脑子里会自动出现测速软件。</p>
+<p>但实时音视频根本不是那种场景。</p>
+<p>测速软件更像是在做：</p>
+<ul>
+<li>现在尽量压榨带宽上限是多少</li>
+</ul>
+<p>而实时音视频更像在做：</p>
+<ul>
+<li>在不把链路打爆的前提下，我现在大概还能安全发多少</li>
+<li>如果网络变差了，我要尽快收</li>
+<li>如果网络变好了，我也不能一下子冲太猛</li>
+</ul>
+<p>所以它不是“测极限”，而是：</p>
+<p><strong>持续试探、持续修正、持续保守地靠近可用上限。</strong></p>
+<p>这也直接解释了为什么它总和拥塞控制绑在一起。</p>
+<p>因为一旦估错，系统就不是“分数差一点”，而是：</p>
+<ul>
+<li>延迟堆积</li>
+<li>卡顿上升</li>
+<li>丢包飙升</li>
+<li>画质猛降</li>
+<li>用户开始明显感知异常</li>
+</ul>
+<hr>
+<h1 id="二、先看全局：带宽估计和拥塞控制在整条-WebRTC-链路里的位置"><a href="#二、先看全局：带宽估计和拥塞控制在整条-WebRTC-链路里的位置" class="headerlink" title="二、先看全局：带宽估计和拥塞控制在整条 WebRTC 链路里的位置"></a>二、先看全局：带宽估计和拥塞控制在整条 WebRTC 链路里的位置</h1><p>先上总图。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[采集/编码] --&gt; B[发送端码率控制]
+    B --&gt; C[RTP发送]
+    C --&gt; D[网络]
+    D --&gt; E[接收端统计到达情况]
+    E --&gt; F[RTCP/反馈信息]
+    F --&gt; G[发送端带宽估计器]
+    G --&gt; B
+</code></pre>
+
+<p>这张图最关键的意思是：</p>
+<ul>
+<li>编码器不是自己想发多少就发多少</li>
+<li>发送端码率不是写死的</li>
+<li>接收端不是只负责播</li>
+<li>网络反馈不是装饰品</li>
+</ul>
+<p>整条链路真正形成的是一个闭环：</p>
+<p><strong>发 -&gt; 过网 -&gt; 被观察 -&gt; 反馈回来 -&gt; 再调发。</strong></p>
+<p>所以带宽估计和拥塞控制，本质上不是一个“附加优化模块”，而是：</p>
+<p><strong>WebRTC 动态系统的大脑之一。</strong></p>
+<hr>
+<h1 id="三、带宽估计到底在估什么"><a href="#三、带宽估计到底在估什么" class="headerlink" title="三、带宽估计到底在估什么"></a>三、带宽估计到底在估什么</h1><p>这个问题如果不说透，后面都容易飘。</p>
+<h2 id="3-1-它估的不是裸带宽上限"><a href="#3-1-它估的不是裸带宽上限" class="headerlink" title="3.1 它估的不是裸带宽上限"></a>3.1 它估的不是裸带宽上限</h2><p>真正工程上更有用的说法是：</p>
+<p><strong>它估的是当前这条实时链路，在现有网络状态、延迟预算和丢包情况之下，较合适的发送码率范围。</strong></p>
+<p>注意这里几个词：</p>
+<ul>
+<li>当前</li>
+<li>实时链路</li>
+<li>较合适</li>
+<li>范围</li>
+</ul>
+<p>这几个词缺一个都不准。</p>
+<p>因为你不是在实验室里测网卡上限，而是在实时业务里做决策。</p>
+<h2 id="3-2-这个估计值通常会受哪些东西影响"><a href="#3-2-这个估计值通常会受哪些东西影响" class="headerlink" title="3.2 这个估计值通常会受哪些东西影响"></a>3.2 这个估计值通常会受哪些东西影响</h2><p>典型包括：</p>
+<ul>
+<li>接收端包到达时间间隔</li>
+<li>一段时间内的吞吐量</li>
+<li>丢包率</li>
+<li>RTT 变化</li>
+<li>排队延迟趋势</li>
+<li>是否出现明显突发拥塞</li>
+</ul>
+<p>所以它更像一个综合判断，而不是单指标结论。</p>
+<hr>
+<h1 id="四、拥塞控制到底在控什么"><a href="#四、拥塞控制到底在控什么" class="headerlink" title="四、拥塞控制到底在控什么"></a>四、拥塞控制到底在控什么</h1><p>如果说带宽估计负责“猜现在还能发多少”，那拥塞控制负责的就是：</p>
+<p><strong>把这个猜测变成一个真实可执行、且不会太激进的发送行为。</strong></p>
+<p>它通常会控制这些东西：</p>
+<ul>
+<li>目标码率</li>
+<li>是否立刻降码率</li>
+<li>是否允许缓慢升码率</li>
+<li>是否请求编码器降分辨率 &#x2F; 帧率</li>
+<li>pacing 发送节奏</li>
+<li>突发数据是否需要抹平</li>
+</ul>
+<p>也就是说，拥塞控制不是一句“慢点发”。</p>
+<p>它更像一套行为策略：</p>
+<ul>
+<li>什么时候该踩刹车</li>
+<li>什么时候该轻踩油门</li>
+<li>什么时候只能观察，别乱动</li>
+</ul>
+<hr>
+<h1 id="五、为什么实时音视频必须“边传边降边试探”"><a href="#五、为什么实时音视频必须“边传边降边试探”" class="headerlink" title="五、为什么实时音视频必须“边传边降边试探”"></a>五、为什么实时音视频必须“边传边降边试探”</h1><p>这是整篇最核心的主旨之一。</p>
+<h2 id="5-1-因为网络条件是时变的"><a href="#5-1-因为网络条件是时变的" class="headerlink" title="5.1 因为网络条件是时变的"></a>5.1 因为网络条件是时变的</h2><p>今天你能跑 3Mbps，不代表 3 秒后还行。</p>
+<p>比如这些场景都很常见：</p>
+<ul>
+<li>手机从 Wi-Fi 切到蜂窝</li>
+<li>同一 Wi-Fi 下别的设备突然占网</li>
+<li>路由器缓冲开始膨胀</li>
+<li>基站侧调度变化</li>
+<li>上下行链路暂时不对称</li>
+</ul>
+<p>这意味着固定码率策略很容易出事。</p>
+<h2 id="5-2-因为你看不到网络内部，只能通过症状反推"><a href="#5-2-因为你看不到网络内部，只能通过症状反推" class="headerlink" title="5.2 因为你看不到网络内部，只能通过症状反推"></a>5.2 因为你看不到网络内部，只能通过症状反推</h2><p>发送端并不能直接看到整条公网路径里发生了什么。</p>
+<p>它看到的通常只是外在症状：</p>
+<ul>
+<li>到达变慢了</li>
+<li>RTT 变大了</li>
+<li>丢包多了</li>
+<li>吞吐下降了</li>
+</ul>
+<p>所以它做的其实不是“知道”，而是：</p>
+<p><strong>根据反馈去猜，再根据猜测去控。</strong></p>
+<h2 id="5-3-因为过冲的代价特别大"><a href="#5-3-因为过冲的代价特别大" class="headerlink" title="5.3 因为过冲的代价特别大"></a>5.3 因为过冲的代价特别大</h2><p>如果你发猛了，最糟糕的不是平均吞吐差一点，而是会直接导致：</p>
+<ul>
+<li>队列积压</li>
+<li>延迟上涨</li>
+<li>jitter 变大</li>
+<li>丢包增加</li>
+<li>接收端 jitter buffer 被迫变厚</li>
+<li>体验从“清晰”迅速变成“卡、糊、慢”</li>
+</ul>
+<p>所以实时系统非常怕过冲。</p>
+<p>这也是为什么它们通常：</p>
+<ul>
+<li>降码率比较果断</li>
+<li>升码率比较谨慎</li>
+</ul>
+<p>这就形成了你看到的那种典型风格：</p>
+<p><strong>边传边看，出事就降，没事再慢慢试探。</strong></p>
+<hr>
+<h1 id="六、一个典型发送端决策闭环长什么样"><a href="#六、一个典型发送端决策闭环长什么样" class="headerlink" title="六、一个典型发送端决策闭环长什么样"></a>六、一个典型发送端决策闭环长什么样</h1><p>先看决策图。</p>
+<pre><code class=" mermaid">flowchart TD
+    A[发送RTP数据] --&gt; B[接收端统计到达情况]
+    B --&gt; C[生成RTCP/反馈]
+    C --&gt; D[发送端更新网络状态]
+    D --&gt; E&#123;检测到拥塞迹象?&#125;
+    E -- 是 --&gt; F[快速降目标码率]
+    E -- 否 --&gt; G&#123;网络稳定一段时间?&#125;
+    G -- 是 --&gt; H[缓慢升码率]
+    G -- 否 --&gt; I[保持当前码率]
+    F --&gt; J[通知编码器调整输出]
+    H --&gt; J
+    I --&gt; J
+    J --&gt; A
+</code></pre>
+
+<p>这张图几乎就是一个简化版 WebRTC 码率控制核心。</p>
+<p>重点不是它有多复杂，而是你要看见：</p>
+<p><strong>它是一个循环系统，而不是一次性配置。</strong></p>
+<hr>
+<h1 id="七、先上第一段核心代码：一个最小带宽估计器的数据结构该怎么长"><a href="#七、先上第一段核心代码：一个最小带宽估计器的数据结构该怎么长" class="headerlink" title="七、先上第一段核心代码：一个最小带宽估计器的数据结构该怎么长"></a>七、先上第一段核心代码：一个最小带宽估计器的数据结构该怎么长</h1><p>这一节开始上代码。</p>
+<p>下面这个不是某个现成库源码，而是我给你整理出来的一个<strong>简化版工程骨架</strong>，重点是帮助你理解“系统到底怎么组织”。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">PacketFeedback</span> &#123;<br>    <span class="hljs-type">uint64_t</span> send_time_ms;<br>    <span class="hljs-type">uint64_t</span> recv_time_ms;<br>    <span class="hljs-type">size_t</span>   size_bytes;<br>    <span class="hljs-type">bool</span>     lost;<br>&#125;;<br><br><span class="hljs-keyword">struct</span> <span class="hljs-title class_">NetworkMetrics</span> &#123;<br>    <span class="hljs-type">double</span> throughput_bps = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-type">double</span> loss_rate = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-type">double</span> rtt_ms = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-type">double</span> delay_gradient_ms = <span class="hljs-number">0.0</span>;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">BandwidthEstimator</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnFeedback</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;PacketFeedback&gt;&amp; feedbacks,</span></span><br><span class="hljs-params"><span class="hljs-function">                    <span class="hljs-type">double</span> rtt_ms)</span> </span>&#123;<br>        metrics_.throughput_bps = <span class="hljs-built_in">ComputeThroughput</span>(feedbacks);<br>        metrics_.loss_rate = <span class="hljs-built_in">ComputeLossRate</span>(feedbacks);<br>        metrics_.delay_gradient_ms = <span class="hljs-built_in">ComputeDelayGradient</span>(feedbacks);<br>        metrics_.rtt_ms = rtt_ms;<br><br>        <span class="hljs-built_in">UpdateEstimate</span>();<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">target_bitrate_bps</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> target_bitrate_bps_;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">UpdateEstimate</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsOverusing</span>()) &#123;<br>            target_bitrate_bps_ *= <span class="hljs-number">0.85</span>;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsUnderusing</span>()) &#123;<br>            target_bitrate_bps_ *= <span class="hljs-number">1.05</span>;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            target_bitrate_bps_ *= <span class="hljs-number">1.00</span>;<br>        &#125;<br><br>        target_bitrate_bps_ = <span class="hljs-built_in">Clamp</span>(target_bitrate_bps_, min_bitrate_bps_, max_bitrate_bps_);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">IsOverusing</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> metrics_.loss_rate &gt; <span class="hljs-number">0.10</span> ||<br>               metrics_.delay_gradient_ms &gt; <span class="hljs-number">15.0</span> ||<br>               metrics_.rtt_ms &gt; <span class="hljs-number">250.0</span>;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">IsUnderusing</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> metrics_.loss_rate &lt; <span class="hljs-number">0.02</span> &amp;&amp;<br>               metrics_.delay_gradient_ms &lt; <span class="hljs-number">5.0</span> &amp;&amp;<br>               metrics_.throughput_bps &gt; target_bitrate_bps_ * <span class="hljs-number">1.2</span>;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">double</span> <span class="hljs-title">Clamp</span><span class="hljs-params">(<span class="hljs-type">double</span> v, <span class="hljs-type">double</span> lo, <span class="hljs-type">double</span> hi)</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> std::<span class="hljs-built_in">max</span>(lo, std::<span class="hljs-built_in">min</span>(v, hi));<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    NetworkMetrics metrics_;<br>    <span class="hljs-type">double</span> target_bitrate_bps_ = <span class="hljs-number">800000.0</span>;<br>    <span class="hljs-type">double</span> min_bitrate_bps_ = <span class="hljs-number">150000.0</span>;<br>    <span class="hljs-type">double</span> max_bitrate_bps_ = <span class="hljs-number">5000000.0</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码最该看什么"><a href="#这段代码最该看什么" class="headerlink" title="这段代码最该看什么"></a>这段代码最该看什么</h2><p>不是每个阈值本身，而是它体现出来的结构：</p>
+<ol>
+<li><strong>先收反馈</strong>  </li>
+<li><strong>把反馈转成可判断的网络指标</strong>  </li>
+<li><strong>根据指标判断当前是过载、欠载还是稳定</strong>  </li>
+<li><strong>再产出新的目标码率</strong></li>
+</ol>
+<p>这就是一个带宽估计器最基础的骨架。</p>
+<hr>
+<h1 id="八、第二段核心代码：吞吐量、丢包率、延迟梯度这些指标到底怎么从反馈里算出来"><a href="#八、第二段核心代码：吞吐量、丢包率、延迟梯度这些指标到底怎么从反馈里算出来" class="headerlink" title="八、第二段核心代码：吞吐量、丢包率、延迟梯度这些指标到底怎么从反馈里算出来"></a>八、第二段核心代码：吞吐量、丢包率、延迟梯度这些指标到底怎么从反馈里算出来</h1><p>这一步特别关键，因为很多文章喜欢直接讲“根据反馈调整码率”，但不写中间这层，读者其实还是没抓住系统。</p>
+<h2 id="8-1-计算吞吐量"><a href="#8-1-计算吞吐量" class="headerlink" title="8.1 计算吞吐量"></a>8.1 计算吞吐量</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">ComputeThroughput</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;PacketFeedback&gt;&amp; feedbacks)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (feedbacks.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;<br><br>    <span class="hljs-type">uint64_t</span> first_recv = UINT64_MAX;<br>    <span class="hljs-type">uint64_t</span> last_recv = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">size_t</span> total_bytes = <span class="hljs-number">0</span>;<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt : feedbacks) &#123;<br>        <span class="hljs-keyword">if</span> (pkt.lost) <span class="hljs-keyword">continue</span>;<br>        first_recv = std::<span class="hljs-built_in">min</span>(first_recv, pkt.recv_time_ms);<br>        last_recv = std::<span class="hljs-built_in">max</span>(last_recv, pkt.recv_time_ms);<br>        total_bytes += pkt.size_bytes;<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (last_recv &lt;= first_recv) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;<br><br>    <span class="hljs-type">double</span> duration_s = (last_recv - first_recv) / <span class="hljs-number">1000.0</span>;<br>    <span class="hljs-keyword">return</span> (total_bytes * <span class="hljs-number">8.0</span>) / duration_s;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="这里的直觉是什么"><a href="#这里的直觉是什么" class="headerlink" title="这里的直觉是什么"></a>这里的直觉是什么</h3><p>它不是在问“链路理论速度多少”，而是在问：</p>
+<p><strong>这一小段时间里，我实际看见有多少比特真正送到了接收侧。</strong></p>
+<p>这才是实时系统更关心的“有效吞吐”。</p>
+<h2 id="8-2-计算丢包率"><a href="#8-2-计算丢包率" class="headerlink" title="8.2 计算丢包率"></a>8.2 计算丢包率</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">ComputeLossRate</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;PacketFeedback&gt;&amp; feedbacks)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (feedbacks.<span class="hljs-built_in">empty</span>()) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;<br><br>    <span class="hljs-type">int</span> lost = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt : feedbacks) &#123;<br>        <span class="hljs-keyword">if</span> (pkt.lost) &#123;<br>            ++lost;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">double</span>&gt;(lost) / feedbacks.<span class="hljs-built_in">size</span>();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="这里要注意什么"><a href="#这里要注意什么" class="headerlink" title="这里要注意什么"></a>这里要注意什么</h3><p>丢包率不是唯一依据，但它是非常敏感的拥塞信号之一。</p>
+<p>不过真实工程里也不能一看丢包就武断认定“全是网络拥塞”，因为有时候还可能混入：</p>
+<ul>
+<li>无线链路波动</li>
+<li>接收端处理不过来</li>
+<li>队列溢出</li>
+</ul>
+<p>所以它通常是<strong>信号之一</strong>，不是唯一裁决者。</p>
+<h2 id="8-3-计算延迟梯度"><a href="#8-3-计算延迟梯度" class="headerlink" title="8.3 计算延迟梯度"></a>8.3 计算延迟梯度</h2><p>这个指标很像“排队是不是在变严重”。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">ComputeDelayGradient</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;PacketFeedback&gt;&amp; feedbacks)</span> </span>&#123;<br>    <span class="hljs-keyword">if</span> (feedbacks.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">2</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;<br><br>    std::vector&lt;<span class="hljs-type">double</span>&gt; one_way_delays;<br>    one_way_delays.<span class="hljs-built_in">reserve</span>(feedbacks.<span class="hljs-built_in">size</span>());<br><br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt : feedbacks) &#123;<br>        <span class="hljs-keyword">if</span> (pkt.lost) <span class="hljs-keyword">continue</span>;<br>        <span class="hljs-type">double</span> d = <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">double</span>&gt;(pkt.recv_time_ms - pkt.send_time_ms);<br>        one_way_delays.<span class="hljs-built_in">push_back</span>(d);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (one_way_delays.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">2</span>) <span class="hljs-keyword">return</span> <span class="hljs-number">0.0</span>;<br><br>    <span class="hljs-type">double</span> first = one_way_delays.<span class="hljs-built_in">front</span>();<br>    <span class="hljs-type">double</span> last  = one_way_delays.<span class="hljs-built_in">back</span>();<br>    <span class="hljs-keyword">return</span> last - first;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="这个指标为什么重要"><a href="#这个指标为什么重要" class="headerlink" title="这个指标为什么重要"></a>这个指标为什么重要</h3><p>因为很多拥塞在早期未必马上表现成高丢包，但会先表现成：</p>
+<ul>
+<li>包越来越晚到</li>
+<li>队列越来越长</li>
+<li>单向延迟开始上爬</li>
+</ul>
+<p>所以如果你只盯丢包，往往会反应偏慢。</p>
+<hr>
+<h1 id="九、第三段核心代码：为什么发送端通常“降得快，升得慢”"><a href="#九、第三段核心代码：为什么发送端通常“降得快，升得慢”" class="headerlink" title="九、第三段核心代码：为什么发送端通常“降得快，升得慢”"></a>九、第三段核心代码：为什么发送端通常“降得快，升得慢”</h1><p>这是拥塞控制里特别核心的行为风格。</p>
+<p>下面是一个简化版 AIMD 风格策略骨架。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">CongestionController</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Update</span><span class="hljs-params">(<span class="hljs-type">const</span> NetworkMetrics&amp; metrics)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">IsCongested</span>(metrics)) &#123;<br>            <span class="hljs-comment">// 乘性下降，快速收缩</span><br>            target_bitrate_bps_ *= <span class="hljs-number">0.80</span>;<br>            state_ = State::kDecrease;<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-built_in">CanProbeUp</span>(metrics)) &#123;<br>            <span class="hljs-comment">// 加性增长，缓慢试探</span><br>            target_bitrate_bps_ += <span class="hljs-number">30000.0</span>;<br>            state_ = State::kIncrease;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            state_ = State::kHold;<br>        &#125;<br><br>        target_bitrate_bps_ = std::<span class="hljs-built_in">max</span>(min_bitrate_bps_,<br>                                std::<span class="hljs-built_in">min</span>(target_bitrate_bps_, max_bitrate_bps_));<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">target_bitrate_bps</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123; <span class="hljs-keyword">return</span> target_bitrate_bps_; &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-keyword">enum class</span> <span class="hljs-title class_">State</span> &#123;<br>        kHold,<br>        kIncrease,<br>        kDecrease<br>    &#125;;<br><br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">IsCongested</span><span class="hljs-params">(<span class="hljs-type">const</span> NetworkMetrics&amp; m)</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> m.loss_rate &gt; <span class="hljs-number">0.08</span> ||<br>               m.delay_gradient_ms &gt; <span class="hljs-number">12.0</span> ||<br>               m.rtt_ms &gt; <span class="hljs-number">200.0</span>;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">CanProbeUp</span><span class="hljs-params">(<span class="hljs-type">const</span> NetworkMetrics&amp; m)</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> m.loss_rate &lt; <span class="hljs-number">0.02</span> &amp;&amp;<br>               m.delay_gradient_ms &lt; <span class="hljs-number">3.0</span> &amp;&amp;<br>               m.rtt_ms &lt; <span class="hljs-number">120.0</span>;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    State state_ = State::kHold;<br>    <span class="hljs-type">double</span> target_bitrate_bps_ = <span class="hljs-number">1000000.0</span>;<br>    <span class="hljs-type">double</span> min_bitrate_bps_ = <span class="hljs-number">120000.0</span>;<br>    <span class="hljs-type">double</span> max_bitrate_bps_ = <span class="hljs-number">6000000.0</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码背后的工程直觉"><a href="#这段代码背后的工程直觉" class="headerlink" title="这段代码背后的工程直觉"></a>这段代码背后的工程直觉</h2><h3 id="为什么降得快"><a href="#为什么降得快" class="headerlink" title="为什么降得快"></a>为什么降得快</h3><p>因为一旦检测到拥塞，继续犹豫的成本很高：</p>
+<ul>
+<li>队列越积越大</li>
+<li>时延继续涨</li>
+<li>丢包可能变严重</li>
+<li>用户体验会更快恶化</li>
+</ul>
+<p>所以要果断收。</p>
+<h3 id="为什么升得慢"><a href="#为什么升得慢" class="headerlink" title="为什么升得慢"></a>为什么升得慢</h3><p>因为你并不知道“看起来没事”是否就代表还有大量余量。</p>
+<p>如果升太猛，就很容易：</p>
+<ul>
+<li>刚恢复一点，又马上打爆</li>
+<li>形成抖动</li>
+<li>系统在高低码率之间来回抽搐</li>
+</ul>
+<p>所以升码率一般更像试探，而不是冲刺。</p>
+<hr>
+<h1 id="十、第四段核心代码：发送端怎么把新的目标码率真正作用到编码器上"><a href="#十、第四段核心代码：发送端怎么把新的目标码率真正作用到编码器上" class="headerlink" title="十、第四段核心代码：发送端怎么把新的目标码率真正作用到编码器上"></a>十、第四段核心代码：发送端怎么把新的目标码率真正作用到编码器上</h1><p>这一层特别重要，因为很多文章讲到码率控制就停了，但系统真正落地时，得把结论传给编码器。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VideoSender</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnNetworkFeedback</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;PacketFeedback&gt;&amp; fb, <span class="hljs-type">double</span> rtt_ms)</span> </span>&#123;<br>        estimator_.<span class="hljs-built_in">OnFeedback</span>(fb, rtt_ms);<br>        controller_.<span class="hljs-built_in">Update</span>(<span class="hljs-built_in">metrics_from_estimator</span>());<br><br>        <span class="hljs-type">double</span> target = controller_.<span class="hljs-built_in">target_bitrate_bps</span>();<br>        encoder_.<span class="hljs-built_in">SetTargetBitrate</span>(<span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">int</span>&gt;(target));<br><br>        <span class="hljs-built_in">AdaptVideoStream</span>(target);<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function">NetworkMetrics <span class="hljs-title">metrics_from_estimator</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-comment">// 简化示意，真实工程中通常从 estimator 内部导出更完整指标</span><br>        NetworkMetrics m;<br>        m.rtt_ms = current_rtt_ms_;<br>        m.loss_rate = current_loss_rate_;<br>        m.delay_gradient_ms = current_delay_gradient_ms_;<br>        m.throughput_bps = estimator_.<span class="hljs-built_in">target_bitrate_bps</span>();<br>        <span class="hljs-keyword">return</span> m;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">AdaptVideoStream</span><span class="hljs-params">(<span class="hljs-type">double</span> target_bps)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (target_bps &lt; <span class="hljs-number">300000</span>) &#123;<br>            encoder_.<span class="hljs-built_in">SetResolution</span>(<span class="hljs-number">640</span>, <span class="hljs-number">360</span>);<br>            encoder_.<span class="hljs-built_in">SetFps</span>(<span class="hljs-number">15</span>);<br>        &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (target_bps &lt; <span class="hljs-number">800000</span>) &#123;<br>            encoder_.<span class="hljs-built_in">SetResolution</span>(<span class="hljs-number">960</span>, <span class="hljs-number">540</span>);<br>            encoder_.<span class="hljs-built_in">SetFps</span>(<span class="hljs-number">20</span>);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            encoder_.<span class="hljs-built_in">SetResolution</span>(<span class="hljs-number">1280</span>, <span class="hljs-number">720</span>);<br>            encoder_.<span class="hljs-built_in">SetFps</span>(<span class="hljs-number">25</span>);<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    BandwidthEstimator estimator_;<br>    CongestionController controller_;<br>    VideoEncoder encoder_;<br><br>    <span class="hljs-type">double</span> current_rtt_ms_ = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-type">double</span> current_loss_rate_ = <span class="hljs-number">0.0</span>;<br>    <span class="hljs-type">double</span> current_delay_gradient_ms_ = <span class="hljs-number">0.0</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码最值钱的地方"><a href="#这段代码最值钱的地方" class="headerlink" title="这段代码最值钱的地方"></a>这段代码最值钱的地方</h2><p>你能直接看到：</p>
+<p><strong>带宽估计不是最后答案，它真正的意义，是驱动编码器和视频层级一起调整。</strong></p>
+<p>也就是说，拥塞控制最终通常要落到这些具体动作上：</p>
+<ul>
+<li>改目标码率</li>
+<li>改分辨率</li>
+<li>改帧率</li>
+<li>改编码复杂度</li>
+</ul>
+<p>这才是真正能被用户体验感知到的结果。</p>
+<hr>
+<h1 id="十一、第五段核心代码：接收端反馈怎么组织，为什么它不是“随便回个统计值”"><a href="#十一、第五段核心代码：接收端反馈怎么组织，为什么它不是“随便回个统计值”" class="headerlink" title="十一、第五段核心代码：接收端反馈怎么组织，为什么它不是“随便回个统计值”"></a>十一、第五段核心代码：接收端反馈怎么组织，为什么它不是“随便回个统计值”</h1><p>下面给一个简化版接收端反馈收集器。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ReceiverFeedbackCollector</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnPacketReceived</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> seq,</span></span><br><span class="hljs-params"><span class="hljs-function">                          <span class="hljs-type">uint64_t</span> send_time_ms,</span></span><br><span class="hljs-params"><span class="hljs-function">                          <span class="hljs-type">uint64_t</span> recv_time_ms,</span></span><br><span class="hljs-params"><span class="hljs-function">                          <span class="hljs-type">size_t</span> size_bytes)</span> </span>&#123;<br>        PacketFeedback fb;<br>        fb.send_time_ms = send_time_ms;<br>        fb.recv_time_ms = recv_time_ms;<br>        fb.size_bytes = size_bytes;<br>        fb.lost = <span class="hljs-literal">false</span>;<br>        feedbacks_.<span class="hljs-built_in">push_back</span>(fb);<br><br>        <span class="hljs-built_in">DetectLoss</span>(seq);<br>    &#125;<br><br>    <span class="hljs-function">std::vector&lt;PacketFeedback&gt; <span class="hljs-title">ConsumeFeedbackBatch</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">auto</span> out = feedbacks_;<br>        feedbacks_.<span class="hljs-built_in">clear</span>();<br>        <span class="hljs-keyword">return</span> out;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">DetectLoss</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> current_seq)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (!has_last_seq_) &#123;<br>            last_seq_ = current_seq;<br>            has_last_seq_ = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br><br>        <span class="hljs-type">uint16_t</span> expected = last_seq_ + <span class="hljs-number">1</span>;<br>        <span class="hljs-keyword">while</span> (expected != current_seq) &#123;<br>            PacketFeedback lost_fb;<br>            lost_fb.lost = <span class="hljs-literal">true</span>;<br>            feedbacks_.<span class="hljs-built_in">push_back</span>(lost_fb);<br>            ++expected;<br>        &#125;<br>        last_seq_ = current_seq;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::vector&lt;PacketFeedback&gt; feedbacks_;<br>    <span class="hljs-type">uint16_t</span> last_seq_ = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">bool</span> has_last_seq_ = <span class="hljs-literal">false</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这里为什么重要"><a href="#这里为什么重要" class="headerlink" title="这里为什么重要"></a>这里为什么重要</h2><p>因为发送端看到的“网络状态”，本质上是接收端组织后的反馈视图。</p>
+<p>如果接收端反馈做得太粗：</p>
+<ul>
+<li>发送端判断会迟钝</li>
+<li>误判会更多</li>
+<li>码率调整会更抖</li>
+</ul>
+<p>所以这层不是可有可无的小模块，而是闭环里的观测器。</p>
+<hr>
+<h1 id="十二、一张时序图看懂-BWE-CC-为什么像“边开边修的控制系统”"><a href="#十二、一张时序图看懂-BWE-CC-为什么像“边开边修的控制系统”" class="headerlink" title="十二、一张时序图看懂 BWE&#x2F;CC 为什么像“边开边修的控制系统”"></a>十二、一张时序图看懂 BWE&#x2F;CC 为什么像“边开边修的控制系统”</h1><pre><code class=" mermaid">sequenceDiagram
+    participant S as Sender
+    participant N as Network
+    participant R as Receiver
+    participant FB as Feedback Logic
+
+    S-&gt;&gt;N: RTP packets at current bitrate
+    N-&gt;&gt;R: packets arrive with jitter/loss/delay
+    R-&gt;&gt;FB: arrival stats / loss / timing
+    FB-&gt;&gt;S: RTCP / transport feedback
+    S-&gt;&gt;S: estimate bandwidth
+    S-&gt;&gt;S: update congestion state
+    S-&gt;&gt;S: reduce/increase target bitrate
+    S-&gt;&gt;N: next RTP packets with new pacing/bitrate
+</code></pre>
+
+<p>这张图你如果看懂了，基本就知道为什么这套系统不可能只靠一个静态配置活下去。</p>
+<hr>
+<h1 id="十三、为什么很多时候“丢包触发降码率”还不够，你还得盯住延迟趋势"><a href="#十三、为什么很多时候“丢包触发降码率”还不够，你还得盯住延迟趋势" class="headerlink" title="十三、为什么很多时候“丢包触发降码率”还不够，你还得盯住延迟趋势"></a>十三、为什么很多时候“丢包触发降码率”还不够，你还得盯住延迟趋势</h1><p>这是实际工程里非常关键的一点。</p>
+<h2 id="13-1-只盯丢包，常常会慢半拍"><a href="#13-1-只盯丢包，常常会慢半拍" class="headerlink" title="13.1 只盯丢包，常常会慢半拍"></a>13.1 只盯丢包，常常会慢半拍</h2><p>如果一个链路开始拥塞，真实发生的顺序常常更像：</p>
+<ol>
+<li>队列先开始变长  </li>
+<li>延迟和 jitter 先升  </li>
+<li>再往后才开始明显丢包</li>
+</ol>
+<p>也就是说，<strong>丢包很多时候是比较晚的症状。</strong></p>
+<p>如果你只等丢包高了才降，系统往往已经开始难受了。</p>
+<h2 id="13-2-所以很多控制器会把“排队趋势”看得很重"><a href="#13-2-所以很多控制器会把“排队趋势”看得很重" class="headerlink" title="13.2 所以很多控制器会把“排队趋势”看得很重"></a>13.2 所以很多控制器会把“排队趋势”看得很重</h2><p>这也是为什么：</p>
+<ul>
+<li>arrival time</li>
+<li>one-way delay trend</li>
+<li>RTT gradient</li>
+</ul>
+<p>这些指标在实时系统里特别有价值。</p>
+<p>它们不是最终答案，但很像“拥塞前兆”。</p>
+<hr>
+<h1 id="十四、一个更像真实系统的状态机应该怎么想"><a href="#十四、一个更像真实系统的状态机应该怎么想" class="headerlink" title="十四、一个更像真实系统的状态机应该怎么想"></a>十四、一个更像真实系统的状态机应该怎么想</h1><p>下面给一个更接近工程思维的简化状态机。</p>
+<pre><code class=" mermaid">stateDiagram-v2
+    [*] --&gt; Hold
+    Hold --&gt; Increase: 网络稳定且余量看起来足够
+    Hold --&gt; Decrease: 检测到拥塞迹象
+    Increase --&gt; Hold: 继续观察
+    Increase --&gt; Decrease: 试探过猛出现拥塞
+    Decrease --&gt; Hold: 收缩后等待稳定
+</code></pre>
+
+<p>这张图想表达的是：</p>
+<ul>
+<li>不是每次反馈都必须动作</li>
+<li>不是永远涨或者永远降</li>
+<li>很多时候最好的决策恰恰是“先稳住，别乱动”</li>
+</ul>
+<p>这点特别像真正做系统的人会有的判断。</p>
+<hr>
+<h1 id="十五、发送-pacing-为什么也很重要，它和单纯改码率不是一回事"><a href="#十五、发送-pacing-为什么也很重要，它和单纯改码率不是一回事" class="headerlink" title="十五、发送 pacing 为什么也很重要，它和单纯改码率不是一回事"></a>十五、发送 pacing 为什么也很重要，它和单纯改码率不是一回事</h1><p>很多人一说拥塞控制，只想到“改 bitrate”。</p>
+<p>但真实工程里，<strong>pacing</strong> 也非常关键。</p>
+<p>因为即便平均码率没超，如果你发得太突发，也可能把链路打出问题。</p>
+<h2 id="15-1-一个简化版-pacing-发送器骨架"><a href="#15-1-一个简化版-pacing-发送器骨架" class="headerlink" title="15.1 一个简化版 pacing 发送器骨架"></a>15.1 一个简化版 pacing 发送器骨架</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">Pacer</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">SetRate</span><span class="hljs-params">(<span class="hljs-type">double</span> bps)</span> </span>&#123;<br>        pacing_rate_bps_ = bps;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Enqueue</span><span class="hljs-params">(<span class="hljs-type">const</span> EncodedPacket&amp; pkt)</span> </span>&#123;<br>        queue_.<span class="hljs-built_in">push</span>(pkt);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Process</span><span class="hljs-params">(<span class="hljs-type">uint64_t</span> now_ms)</span> </span>&#123;<br>        <span class="hljs-type">double</span> budget_bits = pacing_rate_bps_ * (now_ms - last_process_ms_) / <span class="hljs-number">1000.0</span>;<br>        last_process_ms_ = now_ms;<br><br>        <span class="hljs-keyword">while</span> (!queue_.<span class="hljs-built_in">empty</span>()) &#123;<br>            <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt = queue_.<span class="hljs-built_in">front</span>();<br>            <span class="hljs-type">double</span> pkt_bits = pkt.size_bytes * <span class="hljs-number">8.0</span>;<br>            <span class="hljs-keyword">if</span> (pkt_bits &gt; budget_bits) <span class="hljs-keyword">break</span>;<br><br>            <span class="hljs-built_in">SendToNetwork</span>(pkt);<br>            budget_bits -= pkt_bits;<br>            queue_.<span class="hljs-built_in">pop</span>();<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::queue&lt;EncodedPacket&gt; queue_;<br>    <span class="hljs-type">double</span> pacing_rate_bps_ = <span class="hljs-number">1000000.0</span>;<br>    <span class="hljs-type">uint64_t</span> last_process_ms_ = <span class="hljs-number">0</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="15-2-这段代码说明什么"><a href="#15-2-这段代码说明什么" class="headerlink" title="15.2 这段代码说明什么"></a>15.2 这段代码说明什么</h2><p>它说明拥塞控制不只是“发多少”，还包括：</p>
+<p><strong>怎么把这些数据更平滑地送出去。</strong></p>
+<p>这对减少网络瞬时压力非常有帮助。</p>
+<hr>
+<h1 id="十六、为什么这个系统本质上永远在做“次优解”"><a href="#十六、为什么这个系统本质上永远在做“次优解”" class="headerlink" title="十六、为什么这个系统本质上永远在做“次优解”"></a>十六、为什么这个系统本质上永远在做“次优解”</h1><p>这一点我特别想强调。</p>
+<p>因为很多人学算法时容易潜意识觉得：</p>
+<blockquote>
+<p>应该有一个正确码率，系统只要算出来就好了。</p>
+</blockquote>
+<p>但真实网络不是数学题。</p>
+<p>你拿到的永远都是：</p>
+<ul>
+<li>延迟的滞后反馈</li>
+<li>局部观测</li>
+<li>噪声很大的信号</li>
+<li>时刻在变的链路</li>
+</ul>
+<p>所以带宽估计和拥塞控制本质上不是“求真值”，而是：</p>
+<p><strong>在不完整信息下做尽量不蠢的动态决策。</strong></p>
+<p>这也是为什么不同实现会有不同风格：</p>
+<ul>
+<li>有的更激进</li>
+<li>有的更保守</li>
+<li>有的更偏延迟优先</li>
+<li>有的更偏吞吐优先</li>
+</ul>
+<p>它们很多时候不是谁绝对对，而是谁更适合当前场景。</p>
+<hr>
+<h1 id="十七、最后给一句更像工程师的话：BWE-CC-的真正目标，不是把带宽吃满，而是把体验打稳"><a href="#十七、最后给一句更像工程师的话：BWE-CC-的真正目标，不是把带宽吃满，而是把体验打稳" class="headerlink" title="十七、最后给一句更像工程师的话：BWE&#x2F;CC 的真正目标，不是把带宽吃满，而是把体验打稳"></a>十七、最后给一句更像工程师的话：BWE&#x2F;CC 的真正目标，不是把带宽吃满，而是把体验打稳</h1><p>写到这里，最想落下的一句话是：</p>
+<p><strong>实时音视频里的带宽估计与拥塞控制，最终目标不是吃满链路，而是让实时体验尽量稳定。</strong></p>
+<p>这个目标非常重要。</p>
+<p>因为如果你把目标错设成“尽量打满带宽”，系统就会特别容易：</p>
+<ul>
+<li>过冲</li>
+<li>抖动</li>
+<li>延迟膨胀</li>
+<li>频繁降级</li>
+<li>体验不稳定</li>
+</ul>
+<p>而如果你把目标设成：</p>
+<ul>
+<li>尽量稳住可交流体验</li>
+<li>在安全区间里慢慢逼近上限</li>
+<li>出现风险时及时刹车</li>
+</ul>
+<p>那这套系统的很多设计选择就都能解释通了。</p>
+<p>所以真正成熟的实时系统，不会像测速软件那样兴奋地冲极限，而更像一个老练司机：</p>
+<ul>
+<li>看不清时先收</li>
+<li>稳住了再探</li>
+<li>宁可少赚一点，也别翻车</li>
+</ul>
+<hr>
+<h1 id="十八、总结"><a href="#十八、总结" class="headerlink" title="十八、总结"></a>十八、总结</h1><p>最后把这篇收成几句话。</p>
+<h2 id="1-带宽估计不是测固定网速，而是在持续逼近当前可安全发送区间"><a href="#1-带宽估计不是测固定网速，而是在持续逼近当前可安全发送区间" class="headerlink" title="1. 带宽估计不是测固定网速，而是在持续逼近当前可安全发送区间"></a>1. 带宽估计不是测固定网速，而是在持续逼近当前可安全发送区间</h2><p>它关心的是实时体验下的可用发送范围，不是理论最大值。</p>
+<h2 id="2-拥塞控制不是一句“少发点”，而是一整套动态行为策略"><a href="#2-拥塞控制不是一句“少发点”，而是一整套动态行为策略" class="headerlink" title="2. 拥塞控制不是一句“少发点”，而是一整套动态行为策略"></a>2. 拥塞控制不是一句“少发点”，而是一整套动态行为策略</h2><p>它会决定：</p>
+<ul>
+<li>降不降码率</li>
+<li>升不升码率</li>
+<li>升降速度多快</li>
+<li>是否改分辨率 &#x2F; 帧率</li>
+<li>pacing 怎么做</li>
+</ul>
+<h2 id="3-真正的闭环是：发-观察-反馈-再调发"><a href="#3-真正的闭环是：发-观察-反馈-再调发" class="headerlink" title="3. 真正的闭环是：发 -&gt; 观察 -&gt; 反馈 -&gt; 再调发"></a>3. 真正的闭环是：发 -&gt; 观察 -&gt; 反馈 -&gt; 再调发</h2><p>这也是 WebRTC 像动态控制系统的根本原因。</p>
+<h2 id="4-核心代码最值得看的，是系统结构而不是阈值本身"><a href="#4-核心代码最值得看的，是系统结构而不是阈值本身" class="headerlink" title="4. 核心代码最值得看的，是系统结构而不是阈值本身"></a>4. 核心代码最值得看的，是系统结构而不是阈值本身</h2><p>也就是：</p>
+<ul>
+<li>如何组织反馈</li>
+<li>如何计算指标</li>
+<li>如何判断拥塞</li>
+<li>如何把目标码率作用到编码器</li>
+<li>如何做 pacing</li>
+</ul>
+<h2 id="5-BWE-CC-的最终目标不是把带宽吃满，而是把实时体验打稳"><a href="#5-BWE-CC-的最终目标不是把带宽吃满，而是把实时体验打稳" class="headerlink" title="5. BWE&#x2F;CC 的最终目标不是把带宽吃满，而是把实时体验打稳"></a>5. BWE&#x2F;CC 的最终目标不是把带宽吃满，而是把实时体验打稳</h2><p>这才是更像工程师的理解。</p>
+<p>如果你愿意，我下一篇建议直接接：</p>
+<p><strong>《NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救》</strong></p>
+<p>这篇会把“反馈回来以后怎么救”这条线单独讲透，而且我也会继续放核心代码示例。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/WebRTC/" class="print-no-link">#WebRTC</a>
+      
+        <a href="/tags/RTP/" class="print-no-link">#RTP</a>
+      
+        <a href="/tags/RTCP/" class="print-no-link">#RTCP</a>
+      
+        <a href="/tags/%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6/" class="print-no-link">#拥塞控制</a>
+      
+        <a href="/tags/%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1/" class="print-no-link">#带宽估计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探</div>
+      <div>https://breaker505.github.io/2026/05/01/webrtc-bandwidth-estimation-and-congestion-control/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/01/nack-pli-fec-how-realtime-media-recovers-from-loss/" title="NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/30/jitter-loss-reordering-and-jitter-buffer/" title="jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么">
+                        <span class="hidden-mobile">jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

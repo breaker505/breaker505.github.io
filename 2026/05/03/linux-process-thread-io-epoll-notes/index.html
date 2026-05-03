@@ -1,0 +1,1272 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="Linux 这一块最容易学散。 一会儿在看 task_struct，一会儿在背文件描述符，一会儿又跳到 socket、epoll、NAPI，最后脑子里剩下一堆零散关键词，却很难形成真正的系统图。 这篇文章尝试把 进程 &#x2F; 线程、文件与 I&#x2F;O、socket、epoll 串成一条主线，并在最后附上高频面试题整理。你可以把它当成一篇偏”体系化复盘”的 Linux 知识整理。  说明">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I&#x2F;O 核心知识（附高频面试题）">
+<meta property="og:url" content="https://breaker505.github.io/2026/05/03/linux-process-thread-io-epoll-notes/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="Linux 这一块最容易学散。 一会儿在看 task_struct，一会儿在背文件描述符，一会儿又跳到 socket、epoll、NAPI，最后脑子里剩下一堆零散关键词，却很难形成真正的系统图。 这篇文章尝试把 进程 &#x2F; 线程、文件与 I&#x2F;O、socket、epoll 串成一条主线，并在最后附上高频面试题整理。你可以把它当成一篇偏”体系化复盘”的 Linux 知识整理。  说明">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-03T06:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.884Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="进程线程">
+<meta property="article:tag" content="IO">
+<meta property="article:tag" content="epoll">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I/O 核心知识（附高频面试题） - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I/O 核心知识（附高频面试题）"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-03 14:00" pubdate>
+          2026年5月3日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          99 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I/O 核心知识（附高频面试题）</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>Linux 这一块最容易学散。</p>
+<p>一会儿在看 <code>task_struct</code>，一会儿在背文件描述符，一会儿又跳到 socket、epoll、NAPI，最后脑子里剩下一堆零散关键词，却很难形成真正的系统图。</p>
+<p>这篇文章尝试把 <strong>进程 &#x2F; 线程、文件与 I&#x2F;O、socket、epoll</strong> 串成一条主线，并在最后附上高频面试题整理。你可以把它当成一篇偏”体系化复盘”的 Linux 知识整理。</p>
+<blockquote>
+<p>说明：主要站在 Linux 内核常见实现和工程理解视角来讲，个别地方会做适度抽象，方便建立整体认知。</p>
+</blockquote>
+<h2 id="一、先建立主线：Linux-到底在管理什么"><a href="#一、先建立主线：Linux-到底在管理什么" class="headerlink" title="一、先建立主线：Linux 到底在管理什么"></a>一、先建立主线：Linux 到底在管理什么</h2><p>从内核视角看，Linux 管理的核心对象可以粗暴概括成三类：</p>
+<ul>
+<li><strong>执行实体</strong>：也就是 task</li>
+<li><strong>内存地址空间</strong></li>
+<li><strong>I&#x2F;O 对象与等待机制</strong></li>
+</ul>
+<p>很多看似分散的问题，本质上都在围绕这几件事：</p>
+<ul>
+<li>一个任务怎么被调度</li>
+<li>多个任务怎么共享或隔离资源</li>
+<li>用户态如何通过文件描述符访问内核对象</li>
+<li>数据没准备好时，线程该怎么等</li>
+<li>多个 fd 同时存在时，如何避免低效轮询</li>
+</ul>
+<p>本文按这条线展开：</p>
+<ol>
+<li>进程与线程的本质模型</li>
+<li>文件描述符与 Linux I&#x2F;O 抽象</li>
+<li>阻塞、非阻塞与 I&#x2F;O 多路复用</li>
+<li>用户态与内核态切换、零拷贝</li>
+<li>epoll 的核心设计</li>
+<li>高频面试题整理</li>
+</ol>
+<hr>
+<h2 id="二、进程与线程：在-Linux-里本质上都是-task"><a href="#二、进程与线程：在-Linux-里本质上都是-task" class="headerlink" title="二、进程与线程：在 Linux 里本质上都是 task"></a>二、进程与线程：在 Linux 里本质上都是 task</h2><p>很多教材会先严格区分”进程”和”线程”，但在 Linux 内核实现里，更底层的视角是：</p>
+<p><strong>进程和线程本质上都对应一个 <code>task_struct</code>。</strong></p>
+<p>内核真正调度的，是 task，而不是课本里抽象的”进程概念”。</p>
+<pre><code class=" mermaid">flowchart TD
+    A[task_struct] --&gt; B[mm_struct 地址空间]
+    A --&gt; C[files_struct 文件描述符表]
+    A --&gt; D[signal_struct 信号]
+    A --&gt; E[thread_struct 寄存器上下文]
+</code></pre>
+
+<h3 id="1-task-struct-核心成员"><a href="#1-task-struct-核心成员" class="headerlink" title="1. task_struct 核心成员"></a>1. task_struct 核心成员</h3><p>真实内核里 <code>task_struct</code> 成员很多，按功能分组理解更实用：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">task_struct</span> &#123;</span><br>    <span class="hljs-comment">/* 调度相关 */</span><br>    <span class="hljs-keyword">volatile</span> <span class="hljs-type">long</span> state;          <span class="hljs-comment">// 进程状态</span><br>    <span class="hljs-type">int</span> prio;                     <span class="hljs-comment">// 动态优先级</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sched_entity</span> <span class="hljs-title">se</span>;</span>       <span class="hljs-comment">// CFS 调度实体</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sched_class</span> *<span class="hljs-title">sched_class</span>;</span><br><br>    <span class="hljs-comment">/* 标识相关 */</span><br>    <span class="hljs-type">pid_t</span> pid;                    <span class="hljs-comment">// 线程 ID</span><br>    <span class="hljs-type">pid_t</span> tgid;                   <span class="hljs-comment">// 线程组 ID，近似进程 ID</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">task_struct</span> *<span class="hljs-title">real_parent</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">children</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">sibling</span>;</span><br><br>    <span class="hljs-comment">/* 内存相关 */</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mm_struct</span> *<span class="hljs-title">mm</span>;</span>         <span class="hljs-comment">// 用户地址空间</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mm_struct</span> *<span class="hljs-title">active_mm</span>;</span>  <span class="hljs-comment">// 内核线程用</span><br><br>    <span class="hljs-comment">/* 文件系统相关 */</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">files_struct</span> *<span class="hljs-title">files</span>;</span>   <span class="hljs-comment">// 文件描述符表</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">fs_struct</span> *<span class="hljs-title">fs</span>;</span>         <span class="hljs-comment">// 当前目录、root</span><br><br>    <span class="hljs-comment">/* 信号相关 */</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">signal_struct</span> *<span class="hljs-title">signal</span>;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">sighand_struct</span> *<span class="hljs-title">sighand</span>;</span><br><br>    <span class="hljs-comment">/* 线程上下文 */</span><br>    <span class="hljs-type">void</span> *<span class="hljs-built_in">stack</span>;                  <span class="hljs-comment">// 内核栈</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">thread_struct</span> <span class="hljs-title">thread</span>;</span>  <span class="hljs-comment">// CPU 寄存器上下文</span><br><br>    <span class="hljs-comment">/* 时间统计 */</span><br>    u64 utime;                    <span class="hljs-comment">// 用户态运行时间</span><br>    u64 stime;                    <span class="hljs-comment">// 内核态运行时间</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>核心理解：<code>task_struct</code> 描述了”一个可被调度执行的任务”以及它的状态、资源和执行上下文。</p>
+<h4 id="1-1-最关键的几类成员"><a href="#1-1-最关键的几类成员" class="headerlink" title="1.1 最关键的几类成员"></a>1.1 最关键的几类成员</h4><p><strong>调度相关</strong>：<code>state</code>、<code>prio</code>、<code>sched_entity</code>，决定 task 当前状态和如何参与调度。</p>
+<p><strong>标识相关</strong>：<code>pid</code>、<code>tgid</code>、<code>parent</code>、<code>children</code>，确定任务是谁、属于哪个线程组、父子关系。</p>
+<p><strong>内存相关</strong>：<code>mm</code>、<code>active_mm</code>，决定这个任务用哪份地址空间。</p>
+<p><strong>文件相关</strong>：<code>files</code>、<code>fs</code>，前者和文件描述符表相关，后者和当前工作目录等有关。</p>
+<p><strong>执行上下文</strong>：<code>stack</code>、<code>thread</code>，关系到 task 被切走和切回来时 CPU 上下文怎么恢复。</p>
+<h3 id="2-为什么说-Linux-“不严格区分进程和线程”"><a href="#2-为什么说-Linux-“不严格区分进程和线程”" class="headerlink" title="2. 为什么说 Linux “不严格区分进程和线程”"></a>2. 为什么说 Linux “不严格区分进程和线程”</h3><p>关键不在 <code>task_struct</code> 本身，而在 <strong>多个 task 是否共享资源</strong>——最核心的是是否共享 <code>mm_struct</code>。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-keyword">if</span> (task1-&gt;mm == task2-&gt;mm) &#123;<br>    <span class="hljs-comment">// 更接近线程关系：共享同一份用户地址空间</span><br>&#125; <span class="hljs-keyword">else</span> &#123;<br>    <span class="hljs-comment">// 更接近进程关系：各自独立地址空间</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果两个 <code>task_struct</code> 指向同一个 <code>mm_struct</code>，它们共享同一份用户态地址空间——这就是工程上”同一进程里的多个线程”。</p>
+<h3 id="3-mm-struct-为什么关键"><a href="#3-mm-struct-为什么关键" class="headerlink" title="3. mm_struct 为什么关键"></a>3. mm_struct 为什么关键</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">mm_struct</span> &#123;</span><br>    <span class="hljs-type">pgd_t</span> *pgd;                   <span class="hljs-comment">// 页表顶级目录</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> start_code, end_code;   <span class="hljs-comment">// 代码段</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> start_data, end_data;   <span class="hljs-comment">// 数据段</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> start_brk, brk;         <span class="hljs-comment">// 堆区</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> start_stack;            <span class="hljs-comment">// 用户栈起始</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">vm_area_struct</span> *<span class="hljs-title">mmap</span>;</span>          <span class="hljs-comment">// VMA 链表</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>Linux 中的执行实体可以理解成三个东西的组合：</p>
+<ul>
+<li><code>task_struct</code>：执行者</li>
+<li><code>mm_struct</code>：地址空间</li>
+<li><code>files_struct</code>：打开文件集合</li>
+</ul>
+<p>VMA 是一段具有一致权限和用途的虚拟内存区域：代码段、数据段、堆、栈、动态库映射区、<code>mmap</code> 映射区。</p>
+<h3 id="4-进程状态：理解”现在在等什么”"><a href="#4-进程状态：理解”现在在等什么”" class="headerlink" title="4. 进程状态：理解”现在在等什么”"></a>4. 进程状态：理解”现在在等什么”</h3><h4 id="TASK-RUNNING"><a href="#TASK-RUNNING" class="headerlink" title="TASK_RUNNING"></a>TASK_RUNNING</h4><p>不是说”正在占用 CPU”，而是表示要么正在运行、要么已经就绪等待调度。</p>
+<h4 id="TASK-INTERRUPTIBLE（S-状态）"><a href="#TASK-INTERRUPTIBLE（S-状态）" class="headerlink" title="TASK_INTERRUPTIBLE（S 状态）"></a>TASK_INTERRUPTIBLE（S 状态）</h4><p>任务在睡眠，但可以被信号唤醒。常见于可中断等待、定时等待、普通阻塞 I&#x2F;O。</p>
+<h4 id="TASK-UNINTERRUPTIBLE（D-状态）"><a href="#TASK-UNINTERRUPTIBLE（D-状态）" class="headerlink" title="TASK_UNINTERRUPTIBLE（D 状态）"></a>TASK_UNINTERRUPTIBLE（D 状态）</h4><p>不可中断睡眠，通常和底层 I&#x2F;O 等待、磁盘等待有关。即使发 <code>kill -9</code> 也未必能立即结束，因为任务当前处在不能安全响应信号的内核等待点。</p>
+<h4 id="TASK-ZOMBIE（Z-状态）"><a href="#TASK-ZOMBIE（Z-状态）" class="headerlink" title="TASK_ZOMBIE（Z 状态）"></a>TASK_ZOMBIE（Z 状态）</h4><p>任务已退出，但退出信息还没被父进程回收。不再执行，只保留最小信息，等父进程 <code>wait</code>。</p>
+<h4 id="TASK-STOPPED-TASK-TRACED"><a href="#TASK-STOPPED-TASK-TRACED" class="headerlink" title="TASK_STOPPED &#x2F; TASK_TRACED"></a>TASK_STOPPED &#x2F; TASK_TRACED</h4><p>前者被 <code>SIGSTOP</code> 等信号暂停；后者处于调试器跟踪状态。</p>
+<hr>
+<h2 id="三、文件描述符：Linux-I-O-抽象的入口"><a href="#三、文件描述符：Linux-I-O-抽象的入口" class="headerlink" title="三、文件描述符：Linux I&#x2F;O 抽象的入口"></a>三、文件描述符：Linux I&#x2F;O 抽象的入口</h2><p>Linux 最经典的一句抽象是：<strong>一切 I&#x2F;O 都可以通过 fd 进入内核。</strong></p>
+<p>用户态统一通过文件描述符索引内核中的 <code>file</code> 对象，再由 <code>file_operations</code> 把不同类型对象的行为分发下去。</p>
+<h3 id="1-文件描述符的三层关系"><a href="#1-文件描述符的三层关系" class="headerlink" title="1. 文件描述符的三层关系"></a>1. 文件描述符的三层关系</h3><pre><code class=" mermaid">flowchart LR
+    A[用户态 fd] --&gt; B[fdtable]
+    B --&gt; C[struct file]
+    C --&gt; D1[inode / 文件系统]
+    C --&gt; D2[socket / sock]
+    C --&gt; D3[pipe / 设备对象]
+</code></pre>
+
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs csharp">用户态                 内核态<br>fd (<span class="hljs-built_in">int</span>)<br>  │<br>  ▼<br>fdtable[fd] ───────► <span class="hljs-keyword">struct</span> <span class="hljs-keyword">file</span><br>                        │<br>                        ├── inode / address_space（普通文件）<br>                        ├── socket / sock（网络）<br>                        ├── pipe_inode_info（管道）<br>                        └── 设备驱动对象<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>fd 只是一个整数索引</li>
+<li><code>file*</code> 才是内核中的打开对象</li>
+<li>再往下，才是真实文件、socket 或设备</li>
+</ul>
+<h4 id="为什么-fd-只是”下标”"><a href="#为什么-fd-只是”下标”" class="headerlink" title="为什么 fd 只是”下标”"></a>为什么 fd 只是”下标”</h4><ul>
+<li>一个进程可以把同一个 <code>file*</code> 映射到多个 fd</li>
+<li>父子进程 <code>fork</code> 后也可能持有指向同一个 <code>file*</code> 的不同 fd 表项</li>
+<li>文件偏移、打开标志等真实状态存在 <code>file</code> 层，而非 fd 整数本身</li>
+</ul>
+<h3 id="2-read-fd-…-为什么能统一处理这么多对象"><a href="#2-read-fd-…-为什么能统一处理这么多对象" class="headerlink" title="2. read(fd, …) 为什么能统一处理这么多对象"></a>2. read(fd, …) 为什么能统一处理这么多对象</h3><p>当你调用 <code>read(fd, buf, 1024)</code>，内核不是直接”读文件”，而是先做统一查找：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">ssize_t</span> <span class="hljs-title function_">sys_read</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> fd, <span class="hljs-type">char</span> __user *buf, <span class="hljs-type">size_t</span> count)</span><br>&#123;<br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file</span> *<span class="hljs-title">file</span>;</span><br>    file = current-&gt;files-&gt;fdt-&gt;fd[fd];<br>    <span class="hljs-keyword">if</span> (!file)<br>        <span class="hljs-keyword">return</span> -EBADF;<br>    <span class="hljs-keyword">return</span> file-&gt;f_op-&gt;read(file, buf, count, &amp;file-&gt;f_pos);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<ol>
+<li>找当前任务 <code>current</code></li>
+<li>找它的 <code>files</code></li>
+<li>找 <code>fdtable</code></li>
+<li>用 fd 取到对应 <code>file*</code></li>
+<li>根据 <code>file-&gt;f_op</code> 调用具体对象的读逻辑</li>
+</ol>
+<p>普通文件走文件系统读路径，socket 走协议栈读路径，pipe 走管道读路径。</p>
+<h3 id="3-普通文件-vs-socket：统一入口，不同底层"><a href="#3-普通文件-vs-socket：统一入口，不同底层" class="headerlink" title="3. 普通文件 vs socket：统一入口，不同底层"></a>3. 普通文件 vs socket：统一入口，不同底层</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>普通文件</th>
+<th>socket</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>file 下层</td>
+<td>inode → address_space → page cache → 磁盘文件系统</td>
+<td>socket → sock → 接收&#x2F;发送队列 → 协议栈 → 网卡缓冲区</td>
+</tr>
+<tr>
+<td>等待语义</td>
+<td>通常数据已有（page cache）</td>
+<td>等网络数据到达</td>
+</tr>
+<tr>
+<td>是否适合 epoll</td>
+<td>通常不（总是 ready）</td>
+<td>非常适合</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="四、I-O-的根本问题：不是”读不读”，而是”等不等”"><a href="#四、I-O-的根本问题：不是”读不读”，而是”等不等”" class="headerlink" title="四、I&#x2F;O 的根本问题：不是”读不读”，而是”等不等”"></a>四、I&#x2F;O 的根本问题：不是”读不读”，而是”等不等”</h2><p>在高并发场景中，真正本质的问题是：<strong>如果数据还没准备好，线程怎么办？</strong></p>
+<h3 id="1-阻塞-I-O"><a href="#1-阻塞-I-O" class="headerlink" title="1. 阻塞 I&#x2F;O"></a>1. 阻塞 I&#x2F;O</h3><pre><code class=" mermaid">flowchart TD
+    A[用户调用 read] --&gt; B[进入内核]
+    B --&gt; C&#123;数据是否准备好&#125;
+    C -- 否 --&gt; D[线程睡眠]
+    D --&gt; E[数据到达后被唤醒]
+    E --&gt; F[内核拷贝数据到用户缓冲区]
+    F --&gt; G[返回用户态]
+    C -- 是 --&gt; F
+</code></pre>
+
+<p>好处是简单，问题是一个线程只能”等一个地方”。</p>
+<h3 id="2-非阻塞-I-O"><a href="#2-非阻塞-I-O" class="headerlink" title="2. 非阻塞 I&#x2F;O"></a>2. 非阻塞 I&#x2F;O</h3><p>非阻塞不是”不进内核”，而是如果没数据就不睡眠，直接返回 <code>EAGAIN</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-type">int</span> fd = socket(AF_INET, SOCK_STREAM, <span class="hljs-number">0</span>);<br>fcntl(fd, F_SETFL, O_NONBLOCK);<br><br><span class="hljs-type">ssize_t</span> n = read(fd, buf, <span class="hljs-keyword">sizeof</span>(buf));<br><span class="hljs-keyword">if</span> (n &lt; <span class="hljs-number">0</span> &amp;&amp; errno == EAGAIN) &#123;<br>    <span class="hljs-comment">// 当前没数据，不阻塞，直接返回</span><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>如果不停轮询，即使没数据也要反复执行：用户态→内核态→查 fd→查 file→查对象状态→返回。带来了大量系统调用开销和 CPU 空转。</p>
+<h3 id="3-I-O-多路复用为什么出现"><a href="#3-I-O-多路复用为什么出现" class="headerlink" title="3. I&#x2F;O 多路复用为什么出现"></a>3. I&#x2F;O 多路复用为什么出现</h3><pre><code class=" mermaid">flowchart LR
+    A[用户关注多个 fd] --&gt; B[把等待交给内核]
+    B --&gt; C[内核统一管理等待]
+    C --&gt; D[只有 fd 就绪时才唤醒线程]
+    D --&gt; E[用户处理 ready fd]
+</code></pre>
+
+<p>核心：<strong>把等待这件事，从用户态低效轮询，转成内核态统一管理。</strong></p>
+<hr>
+<h2 id="五、用户态与内核态切换的开销"><a href="#五、用户态与内核态切换的开销" class="headerlink" title="五、用户态与内核态切换的开销"></a>五、用户态与内核态切换的开销</h2><p>这是 I&#x2F;O 性能中常被低估但影响极大的问题。</p>
+<h3 id="1-每一次系统调用的成本"><a href="#1-每一次系统调用的成本" class="headerlink" title="1. 每一次系统调用的成本"></a>1. 每一次系统调用的成本</h3><p>当用户态程序调用 <code>read(fd, ...)</code>、<code>write(fd, ...)</code> 或 <code>epoll_wait(...)</code> 时，CPU 需要：</p>
+<ol>
+<li>从用户态切换到内核态（mode switch）</li>
+<li>保存用户态寄存器上下文</li>
+<li>切换到内核栈</li>
+<li>执行内核代码</li>
+<li>恢复用户态寄存器上下文</li>
+<li>返回用户态</li>
+</ol>
+<p>每次切换不是”无代价”的。现代 CPU 上的一次系统调用大约需要几百到几千 CPU 周期（含 TLB&#x2F;cache 影响）。在高并发场景下，大量无效系统调用（如非阻塞轮询反复返回 <code>EAGAIN</code>）会显著浪费 CPU。</p>
+<h3 id="2-系统调用开销的工程影响"><a href="#2-系统调用开销的工程影响" class="headerlink" title="2. 系统调用开销的工程影响"></a>2. 系统调用开销的工程影响</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>系统调用次数</th>
+<th>影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>非阻塞轮询 1000 个 fd</td>
+<td>每次轮询 1000 次 read</td>
+<td>CPU 空转严重</td>
+</tr>
+<tr>
+<td>epoll_wait + 就绪 fd 的 read</td>
+<td>1 次 epoll_wait + N 次 read（N ≈ 就绪数）</td>
+<td>显著减少</td>
+</tr>
+<tr>
+<td>read + write 传统拷贝</td>
+<td>2 次系统调用（读 + 写）</td>
+<td>数据在用户态中转</td>
+</tr>
+<tr>
+<td>sendfile 零拷贝</td>
+<td>1 次系统调用</td>
+<td>无需用户态参与</td>
+</tr>
+</tbody></table>
+<p>这也引出了零拷贝的必要性。</p>
+<h3 id="3-mmap-vs-read"><a href="#3-mmap-vs-read" class="headerlink" title="3. mmap vs read"></a>3. mmap vs read</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 传统 read：数据先到 page cache，再拷贝到用户缓冲区</span><br><span class="hljs-type">char</span> buf[<span class="hljs-number">4096</span>];<br>read(fd, buf, <span class="hljs-number">4096</span>);<br><br><span class="hljs-comment">// mmap：直接把 page cache 映射到用户地址空间</span><br><span class="hljs-type">char</span> *mapped = mmap(<span class="hljs-literal">NULL</span>, <span class="hljs-number">4096</span>, PROT_READ, MAP_PRIVATE, fd, <span class="hljs-number">0</span>);<br><span class="hljs-comment">// mapped 指向的是内核 page cache 在用户态的视图</span><br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>read</th>
+<th>mmap</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据拷贝次数</td>
+<td>2 次（DMA→page cache→用户缓冲区）</td>
+<td>1 次（DMA→page cache，用户直接访问）</td>
+</tr>
+<tr>
+<td>系统调用次数</td>
+<td>每次读都需 read</td>
+<td>只需 1 次 mmap + 后续直接内存访问</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>小数据、随机访问</td>
+<td>大数据、顺序访问、文件映射</td>
+</tr>
+<tr>
+<td>风险</td>
+<td>无</td>
+<td>页错误、映射管理、文件截断处理</td>
+</tr>
+</tbody></table>
+<p>mmap 适合大文件场景和 IPC（共享内存），但在小文件或写密集型场景中，mmap 的缺页处理和脏页回写可能反而得不偿失。</p>
+<h3 id="4-零拷贝：sendfile-splice"><a href="#4-零拷贝：sendfile-splice" class="headerlink" title="4. 零拷贝：sendfile &#x2F; splice"></a>4. 零拷贝：sendfile &#x2F; splice</h3><p>零拷贝的核心思路是：<strong>避免数据在用户态和内核态之间来回拷贝，让数据在内核内部直接传输。</strong></p>
+<h4 id="sendfile"><a href="#sendfile" class="headerlink" title="sendfile"></a>sendfile</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 从 in_fd 传输 count 字节到 out_fd（out_fd 通常是 socket）</span><br>sendfile(out_fd, in_fd, <span class="hljs-literal">NULL</span>, count);<br></code></pre></td></tr></table></figure>
+
+<p>适用于从磁盘文件到 socket 的传输（如静态文件服务器）。数据路径：</p>
+<ul>
+<li>传统方式：磁盘 → DMA → page cache → CPU 拷贝到用户缓冲区 → CPU 拷贝到 socket 缓冲区 → DMA 到网卡</li>
+<li>sendfile：磁盘 → DMA → page cache → DMA 到网卡（需网卡支持 SG-DMA）</li>
+</ul>
+<p>减少了 2 次 CPU 参与的数据拷贝，同时减少了 2 次用户态&#x2F;内核态切换（省掉了 <code>read</code> + <code>write</code> 两个系统调用）。</p>
+<h4 id="splice"><a href="#splice" class="headerlink" title="splice"></a>splice</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 在两个 fd 之间移动数据，无需用户缓冲区</span><br>splice(fd_in, <span class="hljs-literal">NULL</span>, fd_out, <span class="hljs-literal">NULL</span>, count, flags);<br></code></pre></td></tr></table></figure>
+
+<p>比 sendfile 更通用：可以在任意两个 fd 之间传输数据（而不仅限于文件到 socket），并且支持零拷贝。内核通过 pipe buffer 传递页面引用而不是数据内容。</p>
+<table>
+<thead>
+<tr>
+<th>对比</th>
+<th>sendfile</th>
+<th>splice</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>适用范围</td>
+<td>文件 → socket</td>
+<td>任意 fd 之间</td>
+</tr>
+<tr>
+<td>零拷贝条件</td>
+<td>网卡支持 SG-DMA</td>
+<td>依赖 pipe buffer 机制</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>静态文件服务</td>
+<td>代理转发、协议转换</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、从网卡到-socket：数据到底怎么走进来"><a href="#六、从网卡到-socket：数据到底怎么走进来" class="headerlink" title="六、从网卡到 socket：数据到底怎么走进来"></a>六、从网卡到 socket：数据到底怎么走进来</h2><pre><code class=" mermaid">flowchart TD
+    A[网卡收到数据包] --&gt; B[DMA 写入 Ring Buffer]
+    B --&gt; C[触发硬中断]
+    C --&gt; D[驱动处理中断上半部]
+    D --&gt; E[软中断 / NAPI poll]
+    E --&gt; F[批量取包并构造 sk_buff]
+    F --&gt; G[协议栈逐层处理]
+    G --&gt; H[根据四元组找到 socket]
+    H --&gt; I[放入 socket 接收队列]
+    I --&gt; J[socket 变为可读]
+    J --&gt; K[回调通知 epoll]
+    K --&gt; L[epitem 进入 ready list]
+    L --&gt; M[唤醒 epoll_wait]
+</code></pre>
+
+<ol>
+<li>网卡通过 DMA 把数据写到内存缓冲区</li>
+<li>触发硬中断通知 CPU</li>
+<li>驱动快速处理中断上半部</li>
+<li>交给软中断 &#x2F; NAPI 继续处理</li>
+<li>批量从 ring buffer 取包，封装成 <code>sk_buff</code></li>
+<li>交给协议栈逐层处理</li>
+<li>根据四元组找到目标 socket</li>
+<li>放入 socket 接收队列</li>
+<li>标记 socket 变为可读</li>
+<li>回调把对应 epoll 节点放进 ready list</li>
+<li>唤醒 <code>epoll_wait</code> 等待者</li>
+</ol>
+<h3 id="NAPI-为什么必要"><a href="#NAPI-为什么必要" class="headerlink" title="NAPI 为什么必要"></a>NAPI 为什么必要</h3><p>高并发下每来一个包就触发一次硬中断，CPU 会被中断风暴打爆。NAPI 的工作方式：</p>
+<ul>
+<li>第一个包来，触发一次中断</li>
+<li>暂时关闭该队列中断</li>
+<li>改成软中断轮询，批量收包</li>
+<li>流量下去后，重新开启中断</li>
+</ul>
+<p><strong>流量小时靠中断及时响应，流量大时靠轮询批量处理。</strong></p>
+<h3 id="网卡-ring-buffer-抽象"><a href="#网卡-ring-buffer-抽象" class="headerlink" title="网卡 ring buffer 抽象"></a>网卡 ring buffer 抽象</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">rx_desc</span> &#123;</span><br>    <span class="hljs-type">dma_addr_t</span> buffer_addr;<br>    <span class="hljs-type">uint32_t</span> length;<br>    <span class="hljs-type">uint32_t</span> status;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>驱动组织出一个固定大小、连续内存、环形使用的描述符数组。网卡通过 DMA 往缓冲区写数据，内核再从中批量取包。</p>
+<hr>
+<h2 id="七、epoll-为什么快"><a href="#七、epoll-为什么快" class="headerlink" title="七、epoll 为什么快"></a>七、epoll 为什么快</h2><h3 id="1-select-poll-的痛点"><a href="#1-select-poll-的痛点" class="headerlink" title="1. select &#x2F; poll 的痛点"></a>1. select &#x2F; poll 的痛点</h3><p>用户态每次调用时，内核都要扫描整批关注的 fd，看谁准备好了。连接很多但真正就绪的很少时，大量扫描被浪费。复杂度 O(N)，N 是总 fd 数。</p>
+<h3 id="2-epoll-的核心思想"><a href="#2-epoll-的核心思想" class="headerlink" title="2. epoll 的核心思想"></a>2. epoll 的核心思想</h3><p><strong>把”关注谁”和”谁已经就绪”拆开管理。</strong></p>
+<pre><code class=" mermaid">flowchart TD
+    A[eventpoll] --&gt; B[rbr 红黑树 关注列表]
+    A --&gt; C[rdlist 就绪链表]
+    A --&gt; D[wq 等待队列]
+    B --&gt; E[epitem]
+    C --&gt; E
+</code></pre>
+
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">eventpoll</span> &#123;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">rb_root</span> <span class="hljs-title">rbr</span>;</span>        <span class="hljs-comment">// 关注列表，红黑树</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">rdlist</span>;</span>   <span class="hljs-comment">// 就绪列表</span><br>    <span class="hljs-type">wait_queue_head_t</span> wq;      <span class="hljs-comment">// epoll_wait 睡眠队列</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p><code>epoll_wait()</code> 不需要重新扫描全部 fd，直接看 ready list。</p>
+<h3 id="3-epoll-三个核心函数"><a href="#3-epoll-三个核心函数" class="headerlink" title="3. epoll 三个核心函数"></a>3. epoll 三个核心函数</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-comment">// 创建 eventpoll 实例</span><br><span class="hljs-type">int</span> epfd = epoll_create1(<span class="hljs-number">0</span>);<br><br><span class="hljs-comment">// 注册 fd，内核创建 epitem 节点，插入关注红黑树</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">epoll_event</span> <span class="hljs-title">ev</span>;</span><br>ev.events = EPOLLIN;<br>ev.data.fd = listenfd;<br>epoll_ctl(epfd, EPOLL_CTL_ADD, listenfd, &amp;ev);<br><br><span class="hljs-comment">// 等待就绪事件</span><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">epoll_event</span> <span class="hljs-title">events</span>[1024];</span><br><span class="hljs-type">int</span> n = epoll_wait(epfd, events, <span class="hljs-number">1024</span>, <span class="hljs-number">-1</span>);<br></code></pre></td></tr></table></figure>
+
+<h3 id="4-epitem-是什么"><a href="#4-epitem-是什么" class="headerlink" title="4. epitem 是什么"></a>4. epitem 是什么</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">epitem</span> &#123;</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">rb_node</span> <span class="hljs-title">rbn</span>;</span>          <span class="hljs-comment">// 挂入红黑树</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">list_head</span> <span class="hljs-title">rdllink</span>;</span>    <span class="hljs-comment">// 挂入 ready list</span><br>    <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">epoll_event</span> <span class="hljs-title">event</span>;</span>    <span class="hljs-comment">// 用户注册的事件</span><br>    <span class="hljs-type">int</span> fd;                      <span class="hljs-comment">// 被监听的 fd</span><br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>eventpoll</code> 是容器</li>
+<li><code>epitem</code> 是节点</li>
+<li><code>epoll_event</code> 是用户注册的事件标签</li>
+</ul>
+<h3 id="5-回调机制：为什么能做到”一就绪就放进-ready-list”"><a href="#5-回调机制：为什么能做到”一就绪就放进-ready-list”" class="headerlink" title="5. 回调机制：为什么能做到”一就绪就放进 ready list”"></a>5. 回调机制：为什么能做到”一就绪就放进 ready list”</h3><p>epoll 不是靠 <code>epoll_wait</code> 时去扫全部 fd，而是靠回调：</p>
+<figure class="highlight isbl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs isbl"><span class="hljs-variable">socket</span> 状态变化<br>   ↓<br>回调 <span class="hljs-function"><span class="hljs-title">ep_poll_callback</span>()</span><br>   ↓<br>找到对应 <span class="hljs-variable">epitem</span><br>   ↓<br>插入 <span class="hljs-variable">eventpoll</span>-&gt;<span class="hljs-variable">rdlist</span><br>   ↓<br>唤醒 <span class="hljs-variable">epoll_wait</span> 等待者<br>   ↓<br>用户态得到 <span class="hljs-variable">ready</span> <span class="hljs-variable">fd</span> 列表<br></code></pre></td></tr></table></figure>
+
+<p>这就是 epoll 最有代表性的设计：<strong>事件驱动地维护就绪列表，而不是每次全量扫描。</strong></p>
+<h3 id="6-LT-与-ET-模式"><a href="#6-LT-与-ET-模式" class="headerlink" title="6. LT 与 ET 模式"></a>6. LT 与 ET 模式</h3><table>
+<thead>
+<tr>
+<th>对比</th>
+<th>LT（Level Trigger）</th>
+<th>ET（Edge Trigger）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>通知条件</td>
+<td>只要条件满足就持续通知</td>
+<td>只有状态变化时才通知</td>
+</tr>
+<tr>
+<td>数据读取</td>
+<td>可以分多次读</td>
+<td>必须读到 EAGAIN</td>
+</tr>
+<tr>
+<td>实现难度</td>
+<td>简单，容错性好</td>
+<td>需小心处理，否则丢事件</td>
+</tr>
+<tr>
+<td>效率</td>
+<td>可能多次触发</td>
+<td>事件通知次数少，更高效</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>通用场景</td>
+<td>高性能网络框架</td>
+</tr>
+</tbody></table>
+<p>ET 模式下，同一个 <code>epitem</code> 不会被重复插入 ready list。如果应用层没把数据处理干净，剩余数据还在 buffer 里，但新的边沿变化未必再出现。</p>
+<h3 id="7-为什么-ready-list-用链表而不是红黑树"><a href="#7-为什么-ready-list-用链表而不是红黑树" class="headerlink" title="7. 为什么 ready list 用链表而不是红黑树"></a>7. 为什么 ready list 用链表而不是红黑树</h3><p>ready list 的目标不是按 key 查找，而是快速顺序取出已经 ready 的节点。双向链表支持 O(1) 地从中间移除某个节点（如删除监听时该节点已在 ready list 里）。</p>
+<h3 id="8-epoll-ctl-的复杂度"><a href="#8-epoll-ctl-的复杂度" class="headerlink" title="8. epoll_ctl 的复杂度"></a>8. epoll_ctl 的复杂度</h3><ul>
+<li><code>ADD</code>：O(logN)</li>
+<li><code>MOD</code>：O(logN)</li>
+<li><code>DEL</code>：O(logN)</li>
+</ul>
+<p>这些操作针对关注集合（红黑树），不是扫描全部 ready 事件。</p>
+<h3 id="9-为什么-epoll-wait-近似-O-1"><a href="#9-为什么-epoll-wait-近似-O-1" class="headerlink" title="9. 为什么 epoll_wait 近似 O(1)"></a>9. 为什么 epoll_wait 近似 O(1)</h3><p>事件分发阶段与总 fd 数解耦，只与 ready 数相关。不需要每次扫描全部关注 fd。</p>
+<hr>
+<h2 id="八、高频面试题整理"><a href="#八、高频面试题整理" class="headerlink" title="八、高频面试题整理"></a>八、高频面试题整理</h2><h3 id="1-fork-相关"><a href="#1-fork-相关" class="headerlink" title="1. fork 相关"></a>1. fork 相关</h3><p><strong>Q: fork 为什么高效？</strong><br><code>fork</code> 不会一上来就把父进程的全部物理内存拷一份给子进程。而是复制内核结构和页表，物理页先共享，真正写的时候再触发 COW（写时复制）。</p>
+<p><strong>Q: fork 底层原理？</strong></p>
+<ol>
+<li>创建新的 task 结构</li>
+<li>复制页表，但不立刻复制物理页</li>
+<li>父子共享物理页并设为只读</li>
+<li>一旦写入再通过缺页异常分配新页并复制内容</li>
+</ol>
+<p><strong>Q: fork 后父子谁先执行？</strong><br>不确定，由调度器决定。</p>
+<p><strong>Q: fork 两次打印几次？</strong><br>无条件控制下通常是 4 次。第一次 fork 后有 2 条执行流，第二次再各自 fork，变成 4 条。</p>
+<p><strong>Q: fork 在多线程程序里安全吗？</strong><br>多线程程序 <code>fork</code> 后只保留调用线程，其他线程消失。很多锁状态可能留在不一致状态。工程上建议 <code>fork</code> 后尽快 <code>exec</code>。</p>
+<p><strong>Q: 父子进程共享什么？</strong></p>
+<ul>
+<li>初始阶段通过 COW 共享物理页</li>
+<li>可能共享同一个 <code>file</code> 对象</li>
+<li>共享代码逻辑</li>
+<li>但各自有独立地址空间管理视图</li>
+</ul>
+<p><strong>Q: fork 后 fd 表是共享还是复制？</strong><br>fd 表本身会复制，但很多 fd 表项指向的 <code>struct file</code> 对象是共享的。所以文件偏移和打开状态可能共享。</p>
+<h3 id="2-进程-线程"><a href="#2-进程-线程" class="headerlink" title="2. 进程 &#x2F; 线程"></a>2. 进程 &#x2F; 线程</h3><p><strong>Q: 线程切换为什么比进程切换开销小？</strong><br>线程切换通常共享地址空间，进程切换通常要切换地址空间。地址空间切换会涉及页表切换、TLB 刷新、缓存局部性破坏等成本。</p>
+<p><strong>Q: 堆和栈的区别？</strong></p>
+<ul>
+<li>栈：编译器&#x2F;运行时自动管理，函数调用时分配、返回时回收，连续空间，访问快，空间有限</li>
+<li>堆：程序主动申请&#x2F;释放（<code>malloc/free</code>），灵活但可能带来碎片和泄漏</li>
+</ul>
+<p><strong>Q: mmap 在哪里？</strong><br>在用户态虚拟地址空间的堆和栈之间的映射区域。</p>
+<p><strong>Q: 线程栈怎么分配？</strong><br>每个线程有独立的用户栈，每个 task 也有自己的内核栈。共享地址空间，但各自有独立执行栈。</p>
+<p><strong>Q: 栈溢出怎么产生？</strong><br>线程使用栈时越过了分配的栈边界。常见原因：递归太深、局部变量太大、死递归、栈配置过小。</p>
+<p><strong>Q: new&#x2F;malloc 底层一定走 brk 吗？</strong><br>不一定。小块分配常走 <code>brk</code>，大块分配常走 <code>mmap</code>。具体阈值依赖分配器实现。</p>
+<h3 id="3-I-O-与零拷贝"><a href="#3-I-O-与零拷贝" class="headerlink" title="3. I&#x2F;O 与零拷贝"></a>3. I&#x2F;O 与零拷贝</h3><p><strong>Q: 用户态与内核态切换的开销有多大？</strong><br>每次系统调用需要切换 CPU 特权级、保存&#x2F;恢复寄存器上下文、切换栈。现代 CPU 上每次约几百到几千周期（含 TLB&#x2F;cache 影响）。在高并发下，无效系统调用是一个重要的性能瓶颈。</p>
+<p><strong>Q: mmap 相比 read 有什么优势？</strong><br>mmap 减少了一次数据拷贝（read 需要从 page cache→用户缓冲区，mmap 直接映射 page cache），适合大文件场景。但 mmap 有缺页处理、映射管理等额外成本。</p>
+<p><strong>Q: sendfile 是如何实现零拷贝的？</strong><br><code>sendfile(out_fd, in_fd, ...)</code> 直接从文件 page cache 通过 DMA 发送到网卡（需 SG-DMA 支持）。省去了传统 <code>read</code> + <code>write</code> 带来的 2 次 CPU 拷贝和 2 次系统调用。</p>
+<p><strong>Q: splice 和 sendfile 有什么区别？</strong><br>sendfile 专用于文件→socket；splice 可在任意两个 fd 之间传输数据，更通用（如代理转发场景）。</p>
+<p><strong>Q: D 状态是什么？为什么 kill -9 杀不掉？</strong><br>D 状态即 <code>TASK_UNINTERRUPTIBLE</code>，常见于底层 I&#x2F;O 等待。此时任务处在不能安全响应中断信号的内核等待点，所以信号送到了但任务响应不了。</p>
+<h3 id="4-epoll-基础"><a href="#4-epoll-基础" class="headerlink" title="4. epoll 基础"></a>4. epoll 基础</h3><p><strong>Q: 三次握手发生在哪个函数？</strong><br>三次握手是客户端调用 <code>connect()</code> 后由内核 TCP 协议栈自动完成的。<code>listen()</code> 只是让 socket 进入监听状态，<code>accept()</code> 把已完成连接取出来。</p>
+<p><strong>Q: 同一个 fd 被触发 5 次，ready list 里会有 5 份吗？</strong><br>通常不会。内核通过标志位控制避免同一个 <code>epitem</code> 重复入链。</p>
+<p><strong>Q: 为什么 epoll 关注列表用红黑树，不用哈希表？</strong><br>内核已有成熟实现，插入&#x2F;删除&#x2F;查找有稳定复杂度，有序结构利于管理，避免额外哈希设计和退化问题。</p>
+<p><strong>Q: epoll 红黑树的 key 是什么？</strong><br>底层 key 是 <code>struct file*</code> 而非裸整数 fd。fd 是进程级索引，<code>file*</code> 才是内核级对象。</p>
+<p><strong>Q: 既然 key 是 file*，为什么 epoll_ctl 还要传 fd？</strong><br>用户态只能持有 fd，内核需要先根据 fd 找到 <code>file*</code>，再纳入 epoll 管理结构。</p>
+<p><strong>Q: 不同 epoll 实例为什么可以监听同一个 file*？</strong><br>epoll 不独占底层对象，会把自己挂到目标对象的等待机制上。一个底层对象可以对应多个等待者。</p>
+<p><strong>Q: epoll 能否完全替代 select&#x2F;poll？</strong><br>不能。epoll 在高并发网络场景很强，但不同接口有不同使用边界。</p>
+<p><strong>Q: 为什么 regular file 不适合 epoll？</strong><br>普通文件通常总是 ready 的，缺少 socket 那种”等待外部事件到来”的语义。</p>
+<h3 id="5-触发模式"><a href="#5-触发模式" class="headerlink" title="5. 触发模式"></a>5. 触发模式</h3><p><strong>Q: LT 模式的本质？</strong><br>Level Trigger：只要条件满足就持续通知。socket 里数据没读完，下次 <code>epoll_wait</code> 仍然会看到它可读。</p>
+<p><strong>Q: ET 模式的本质？</strong><br>Edge Trigger：更强调状态变化时刻。更高效，但要求应用层更小心。</p>
+<p><strong>Q: ET 为什么必须读到 EAGAIN？</strong><br>要主动把当前可读数据尽可能读干净，否则剩余数据还在但新的边沿变化未必再现。</p>
+<p><strong>Q: ET 会不会丢事件？</strong><br>严格说不是 epoll 自己”丢了”，而是应用层没按 ET 语义把数据处理干净，可能错过后续处理时机。</p>
+<h3 id="6-锁、等待队列与惊群"><a href="#6-锁、等待队列与惊群" class="headerlink" title="6. 锁、等待队列与惊群"></a>6. 锁、等待队列与惊群</h3><p><strong>Q: wq 上挂的是什么？</strong><br>等待 <code>epoll_wait</code> 的任务，即等待队列项对应的线程&#x2F;进程。</p>
+<p><strong>Q: 三个线程同时 epoll_wait 会怎样？</strong><br>都会进入对应等待队列。具体唤醒策略取决于唤醒策略和是否用了 <code>EPOLLEXCLUSIVE</code>。</p>
+<p><strong>Q: 什么是惊群问题？</strong><br>一个事件到来需要一个线程处理，却唤醒了多个等待线程，最后只有一个能处理，其他被白白调度。</p>
+<p><strong>Q: EPOLLEXCLUSIVE 怎么缓解惊群？</strong><br>减少一个 ready 事件把大量等待者全部唤醒的情况。</p>
+<h3 id="7-完整路径"><a href="#7-完整路径" class="headerlink" title="7. 完整路径"></a>7. 完整路径</h3><p><strong>Q: 从网卡中断到 epoll 的完整数据路径？</strong></p>
+<ol>
+<li>网卡 DMA 写入 ring buffer → 2. 触发硬中断 → 3. 驱动中断上半部 → 4. 软中断&#x2F;NAPI poll → 5. 批量取包构造 sk_buff → 6. 协议栈处理 → 7. 根据四元组找 socket → 8. 数据入 socket 接收队列 → 9. socket 可读 → 10. 回调放入 ready list → 11. 唤醒 epoll_wait</li>
+</ol>
+<p><strong>Q: ep_poll_callback 做了什么？</strong><br>在底层 fd ready 时被调用，把对应 epoll 节点放进 ready list，必要时唤醒等待队列。</p>
+<p><strong>Q: 为什么回调里不能做重操作？</strong><br>这条路径处在敏感的事件通知环节，做重操作会拖慢整个事件分发效率。</p>
+<p><strong>Q: epoll_wait 返回前，数据怎么到用户态？</strong><br><code>epoll_wait</code> 只返回 ready 事件。真正业务数据还要靠后续 <code>read</code>&#x2F;<code>recv</code> 从内核拷回用户态。<strong>事件通知和数据读取不是一回事。</strong></p>
+<h3 id="8-系统设计"><a href="#8-系统设计" class="headerlink" title="8. 系统设计"></a>8. 系统设计</h3><p><strong>Q: 10 万连接应该用几个 epoll 实例？</strong><br>取决于单 Reactor&#x2F;多 Reactor 模型、机器核数、是否配合 <code>SO_REUSEPORT</code>、连接分片和业务线程设计。</p>
+<p><strong>Q: 多核机器为什么常配合 SO_REUSEPORT？</strong><br>可以让多个监听 socket 绑定同一端口，把连接自然分散给不同核上的处理单元，降低 accept 竞争。</p>
+<p><strong>Q: 单 Reactor 和多 Reactor 的区别？</strong><br>单 Reactor：一个事件循环处理 accept、读写、分发。多 Reactor：主 Reactor 处理 accept，从 Reactor 处理读写和事件分发。</p>
+<p><strong>Q: 线程池和 epoll 的正确关系？</strong><br>epoll 偏 I&#x2F;O 事件通知，线程池适合耗时业务处理。不要把重计算直接塞进事件循环线程。</p>
+<h3 id="9-边界与深水区"><a href="#9-边界与深水区" class="headerlink" title="9. 边界与深水区"></a>9. 边界与深水区</h3><p><strong>Q: fd ready 时被 close 会怎样？</strong><br>内核不会立即释放一切，依赖引用计数和回收时机保证基本安全。但应用层仍可能因为时序问题出 bug。</p>
+<p><strong>Q: fork 之后 epoll 会怎样？</strong><br>相关资源通过继承机制进入子进程。父子进程如何共享和处理 epoll 事件需要非常谨慎。工程上通常不建议在复杂 epoll 模型里随意 fork。</p>
+<hr>
+<h2 id="九、总结"><a href="#九、总结" class="headerlink" title="九、总结"></a>九、总结</h2><p>把本文压缩成几句话：</p>
+<ol>
+<li><strong>Linux 内核调度的是 task，而非课本式的”进程概念”。</strong></li>
+<li><strong>进程和线程的核心区别，本质是资源是否共享，尤其是地址空间。</strong></li>
+<li><strong>I&#x2F;O 统一入口是 fd，真正的对象分发靠 <code>file</code> 和 <code>file_operations</code>。</strong></li>
+<li><strong>I&#x2F;O 模型的核心不是”读不读”，而是”数据没准备好时怎么等”。</strong></li>
+<li><strong>epoll 快的本质：关注和就绪分开管理，避免无效扫描。</strong></li>
+<li><strong>零拷贝（sendfile&#x2F;splice）减少了数据在用户态和内核态之间的不必要拷贝，是高性能服务的关键优化手段。</strong></li>
+<li><strong>用户态&#x2F;内核态切换的开销会被高并发放大，减少系统调用次数是重要的优化方向。</strong></li>
+</ol>
+<p>面试中真正拉开差距的，往往不是背了多少题，而是：<strong>能不能把这些问题讲成一张连贯的图。</strong></p>
+<p>进一步深入方向：</p>
+<ul>
+<li>fork &#x2F; 写时复制 &#x2F; 地址空间 &#x2F; mmap &#x2F; 栈堆模型</li>
+<li>epoll 深水区：LT&#x2F;ET、惊群、回调、锁与等待队列</li>
+<li>零拷贝在不同场景的工程选型</li>
+<li>更多关于用户态&#x2F;内核态切换与系统调用优化的实践</li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+        <a href="/tags/%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B/" class="print-no-link">#进程线程</a>
+      
+        <a href="/tags/IO/" class="print-no-link">#IO</a>
+      
+        <a href="/tags/epoll/" class="print-no-link">#epoll</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I/O 核心知识（附高频面试题）</div>
+      <div>https://breaker505.github.io/2026/05/03/linux-process-thread-io-epoll-notes/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/03/vlm-intro-from-video-to-understanding/" title="从视频链路到 VLM，视觉语言模型怎么真正看懂画面">
+                        <span class="hidden-mobile">从视频链路到 VLM，视觉语言模型怎么真正看懂画面</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

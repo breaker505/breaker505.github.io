@@ -1,0 +1,1274 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么很多人会用 FFmpeg 命令，但一到滤镜链就开始发虚学 FFmpeg 的过程中，很多人会先学会这些事：  转码 推流 抽帧 改码率 改封装  这时候你会觉得自己已经能“用 FFmpeg 干活了”。 但只要需求再往前走一步，比如想做：  缩放 裁剪 改帧率 加水印 叠字 多路画面拼接 预处理后再编码  你几乎一定会撞上一个核心概念： filter graph。 也是从这里开始，很多人会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链">
+<meta property="og:url" content="https://breaker505.github.io/2026/04/20/ffmpeg-filter-graph-intro/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么很多人会用 FFmpeg 命令，但一到滤镜链就开始发虚学 FFmpeg 的过程中，很多人会先学会这些事：  转码 推流 抽帧 改码率 改封装  这时候你会觉得自己已经能“用 FFmpeg 干活了”。 但只要需求再往前走一步，比如想做：  缩放 裁剪 改帧率 加水印 叠字 多路画面拼接 预处理后再编码  你几乎一定会撞上一个核心概念： filter graph。 也是从这里开始，很多人会">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-04-20T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.819Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="图像处理">
+<meta property="article:tag" content="filter graph">
+<meta property="article:tag" content="推流">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-04-20 08:00" pubdate>
+          2026年4月20日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          65 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么很多人会用-FFmpeg-命令，但一到滤镜链就开始发虚"><a href="#前言：为什么很多人会用-FFmpeg-命令，但一到滤镜链就开始发虚" class="headerlink" title="前言：为什么很多人会用 FFmpeg 命令，但一到滤镜链就开始发虚"></a>前言：为什么很多人会用 FFmpeg 命令，但一到滤镜链就开始发虚</h1><p>学 FFmpeg 的过程中，很多人会先学会这些事：</p>
+<ul>
+<li>转码</li>
+<li>推流</li>
+<li>抽帧</li>
+<li>改码率</li>
+<li>改封装</li>
+</ul>
+<p>这时候你会觉得自己已经能“用 FFmpeg 干活了”。</p>
+<p>但只要需求再往前走一步，比如想做：</p>
+<ul>
+<li>缩放</li>
+<li>裁剪</li>
+<li>改帧率</li>
+<li>加水印</li>
+<li>叠字</li>
+<li>多路画面拼接</li>
+<li>预处理后再编码</li>
+</ul>
+<p>你几乎一定会撞上一个核心概念：</p>
+<p><strong>filter graph。</strong></p>
+<p>也是从这里开始，很多人会突然觉得 FFmpeg 变复杂了。</p>
+<p>因为之前的命令大多还像“改参数”，而 filter graph 已经明显开始进入：</p>
+<p><strong>处理链路编排。</strong></p>
+<p>这也是为什么很多人虽然会写一些简单命令，但一旦看到下面这种东西，就会开始发虚：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">ffmpeg -i input.mp4 -vf <span class="hljs-string">&quot;scale=1280:720,fps=25,drawtext=...,overlay=...&quot;</span> output.mp4<br></code></pre></td></tr></table></figure>
+
+<p>甚至更复杂一点：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">ffmpeg -i a.mp4 -i logo.png -filter_complex <span class="hljs-string">&quot;[0:v]scale=1280:720[v0];[1:v]scale=100:100[logo];[v0][logo]overlay=10:10&quot;</span> out.mp4<br></code></pre></td></tr></table></figure>
+
+<p>真正难的地方不是某个滤镜的参数，而是：</p>
+<ul>
+<li>数据到底在什么时候变成什么样子</li>
+<li>为什么 filter 操作几乎都发生在 frame 层</li>
+<li>多个滤镜串起来之后，链路到底怎么流</li>
+<li>simple filter 和 complex filter 差在哪</li>
+<li>一个系统里的预处理、叠加、缩放、转格式为什么最终都能被统一成一张 graph</li>
+</ul>
+<p>所以这篇文章的目标，不是只给你列几个常见滤镜，而是想把 filter graph 讲成一个更完整的工程概念。</p>
+<p>重点讲清：</p>
+<ul>
+<li>FFmpeg filter graph 到底是什么</li>
+<li>它在整条多媒体处理链路里的位置在哪</li>
+<li>为什么它本质上是一张“frame 处理图”</li>
+<li>scale、fps、overlay 这些滤镜在 graph 里分别扮演什么角色</li>
+<li>如果让你自己写一个最小滤镜链，应该怎么理解它</li>
+</ul>
+<p>而且这篇我会继续按你的要求，重点补：</p>
+<ul>
+<li><strong>结构图</strong></li>
+<li><strong>时序图</strong></li>
+<li><strong>FFmpeg CLI 实例</strong></li>
+<li><strong>libavfilter 关键代码骨架</strong></li>
+</ul>
+<p>我希望这篇读完之后，你不只是“会抄几条滤镜命令”，而是真的开始把它看成系统里的一个处理层。</p>
+<hr>
+<h1 id="一、先给一句最重要的话：filter-graph-本质上是一张“原始帧处理流水线图”"><a href="#一、先给一句最重要的话：filter-graph-本质上是一张“原始帧处理流水线图”" class="headerlink" title="一、先给一句最重要的话：filter graph 本质上是一张“原始帧处理流水线图”"></a>一、先给一句最重要的话：filter graph 本质上是一张“原始帧处理流水线图”</h1><p>如果让我先用一句话概括 FFmpeg 的 filter graph，我会这样说：</p>
+<p><strong>filter graph 本质上是一张围绕原始 frame 展开的处理流水线图。</strong></p>
+<p>这句话特别重要。</p>
+<p>因为它直接告诉你三件事：</p>
+<ol>
+<li>它是 <strong>graph</strong>，不是单点命令  </li>
+<li>它处理的核心对象通常是 <strong>frame</strong>，不是 packet  </li>
+<li>它的作用是把多个处理步骤按图结构串起来</li>
+</ol>
+<p>所以你以后看到 filter graph，不要先把它当成“命令行技巧”，而应该先把它理解成：</p>
+<p><strong>FFmpeg 里的媒体处理编排层。</strong></p>
+<hr>
+<h1 id="二、先看全局：filter-graph-在整条链路里到底处于哪一层"><a href="#二、先看全局：filter-graph-在整条链路里到底处于哪一层" class="headerlink" title="二、先看全局：filter graph 在整条链路里到底处于哪一层"></a>二、先看全局：filter graph 在整条链路里到底处于哪一层</h1><p>先上总图。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[输入源] --&gt; B[Demux]
+    B --&gt; C[Decode]
+    C --&gt; D[原始 Frame]
+    D --&gt; E[Filter Graph]
+    E --&gt; F[处理后 Frame]
+    F --&gt; G[Encode]
+    G --&gt; H[Mux / 输出]
+</code></pre>
+
+<p>这张图最关键的意义是：</p>
+<p><strong>filter graph 基本上是夹在 decode 和 encode 之间的一层。</strong></p>
+<p>也就是说，在最典型的转码 &#x2F; 处理链路里：</p>
+<ul>
+<li>前面先把压缩数据解成原始 frame</li>
+<li>然后在 frame 层做各种处理</li>
+<li>最后再把处理后的 frame 送回编码器</li>
+</ul>
+<p>这就是为什么我前面一直强调：</p>
+<p><strong>filter graph 更像内容处理层，而不是码流处理层。</strong></p>
+<hr>
+<h1 id="三、为什么-filter-graph-主要处理的是-frame，而不是-packet"><a href="#三、为什么-filter-graph-主要处理的是-frame，而不是-packet" class="headerlink" title="三、为什么 filter graph 主要处理的是 frame，而不是 packet"></a>三、为什么 filter graph 主要处理的是 frame，而不是 packet</h1><p>这是理解它最关键的第一步。</p>
+<h2 id="3-1-packet-更像压缩域数据"><a href="#3-1-packet-更像压缩域数据" class="headerlink" title="3.1 packet 更像压缩域数据"></a>3.1 packet 更像压缩域数据</h2><p>packet 通常更接近：</p>
+<ul>
+<li>H.264&#x2F;H.265 压缩码流片段</li>
+<li>AAC 压缩音频数据</li>
+<li>容器拆出来的数据包</li>
+</ul>
+<p>在这个层面，你更容易做的是：</p>
+<ul>
+<li>解封装</li>
+<li>封装</li>
+<li>码流转发</li>
+<li>bitstream 级别处理</li>
+</ul>
+<p>但你很难直接在 packet 层做这些：</p>
+<ul>
+<li>缩放</li>
+<li>裁剪</li>
+<li>加字</li>
+<li>叠图</li>
+<li>调整帧率</li>
+</ul>
+<p>因为内容还没真正展开。</p>
+<h2 id="3-2-frame-更像可加工内容"><a href="#3-2-frame-更像可加工内容" class="headerlink" title="3.2 frame 更像可加工内容"></a>3.2 frame 更像可加工内容</h2><p>而 frame 是：</p>
+<ul>
+<li>YUV &#x2F; RGB 图像帧</li>
+<li>PCM &#x2F; 音频采样帧</li>
+</ul>
+<p>这时候数据已经变成“可操作内容”。</p>
+<p>所以像这些动作：</p>
+<ul>
+<li><code>scale</code></li>
+<li><code>fps</code></li>
+<li><code>overlay</code></li>
+<li><code>drawtext</code></li>
+<li><code>crop</code></li>
+</ul>
+<p>都天然更适合发生在 frame 层。</p>
+<h2 id="3-3-一句话记忆"><a href="#3-3-一句话记忆" class="headerlink" title="3.3 一句话记忆"></a>3.3 一句话记忆</h2><ul>
+<li>packet 更偏传输 &#x2F; 压缩层</li>
+<li>frame 更偏内容处理层</li>
+</ul>
+<p>而 filter graph，本质上站在后者这一边。</p>
+<hr>
+<h1 id="四、一张图看懂-filter-graph-为什么天然适合夹在-decode-和-encode-之间"><a href="#四、一张图看懂-filter-graph-为什么天然适合夹在-decode-和-encode-之间" class="headerlink" title="四、一张图看懂 filter graph 为什么天然适合夹在 decode 和 encode 之间"></a>四、一张图看懂 filter graph 为什么天然适合夹在 decode 和 encode 之间</h1><pre><code class=" mermaid">flowchart TD
+    A[压缩 packet] --&gt; B[解码]
+    B --&gt; C[原始 frame]
+    C --&gt; D1[scale]
+    D1 --&gt; D2[fps]
+    D2 --&gt; D3[overlay]
+    D3 --&gt; E[处理后 frame]
+    E --&gt; F[编码]
+</code></pre>
+
+<p>这张图很重要，因为它让你看到：</p>
+<ul>
+<li>过滤链路更像 frame 上的连续加工</li>
+<li>它不是“顺手做点小操作”，而是可以成为系统主链路的一部分</li>
+</ul>
+<p>所以从工程角度，filter graph 其实是在提供一种能力：</p>
+<p><strong>把图像&#x2F;音频处理步骤可视化地串成一条处理链。</strong></p>
+<hr>
+<h1 id="五、什么叫-graph，为什么它不只是“一个个滤镜按顺序排”"><a href="#五、什么叫-graph，为什么它不只是“一个个滤镜按顺序排”" class="headerlink" title="五、什么叫 graph，为什么它不只是“一个个滤镜按顺序排”"></a>五、什么叫 graph，为什么它不只是“一个个滤镜按顺序排”</h1><p>很多人刚学时，会把 filter graph 理解成：</p>
+<blockquote>
+<p>不就是 scale 后面接 fps，再后面接 overlay 吗？</p>
+</blockquote>
+<p>这当然是 graph 的一种最简单形式，但它还不够。</p>
+<p>因为 graph 的真正含义是：</p>
+<p><strong>它不只能线性串联，还能分支、汇合、多输入、多输出。</strong></p>
+<h2 id="5-1-最简单的是链式结构"><a href="#5-1-最简单的是链式结构" class="headerlink" title="5.1 最简单的是链式结构"></a>5.1 最简单的是链式结构</h2><p>比如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">frame -&gt; scale -&gt; fps -&gt; drawtext -&gt; encode<br></code></pre></td></tr></table></figure>
+
+<h2 id="5-2-更复杂的是图结构"><a href="#5-2-更复杂的是图结构" class="headerlink" title="5.2 更复杂的是图结构"></a>5.2 更复杂的是图结构</h2><p>比如：</p>
+<ul>
+<li>一个视频流进来，拆成两路分别处理</li>
+<li>再和 logo 图片汇合做 overlay</li>
+<li>再输出给编码器</li>
+</ul>
+<p>这时候它就不再是简单“命令列表”，而真的是一张 graph。</p>
+<h2 id="5-3-一张结构图看懂-graph-的含义"><a href="#5-3-一张结构图看懂-graph-的含义" class="headerlink" title="5.3 一张结构图看懂 graph 的含义"></a>5.3 一张结构图看懂 graph 的含义</h2><pre><code class=" mermaid">flowchart LR
+    A[输入视频] --&gt; B[scale]
+    C[logo图片] --&gt; D[scale logo]
+    B --&gt; E[overlay]
+    D --&gt; E
+    E --&gt; F[输出视频]
+</code></pre>
+
+<p>这张图已经明显不是一条单线，而是：</p>
+<ul>
+<li>两路输入</li>
+<li>一个汇合点</li>
+<li>一路输出</li>
+</ul>
+<p>这就是“graph”真正比“filter list”更值钱的地方。</p>
+<hr>
+<h1 id="六、最常见的三个滤镜，为什么特别值得先搞懂：scale、fps、overlay"><a href="#六、最常见的三个滤镜，为什么特别值得先搞懂：scale、fps、overlay" class="headerlink" title="六、最常见的三个滤镜，为什么特别值得先搞懂：scale、fps、overlay"></a>六、最常见的三个滤镜，为什么特别值得先搞懂：scale、fps、overlay</h1><p>如果你想快速建立 filter graph 直觉，我非常建议先抓住这三个。</p>
+<h2 id="6-1-scale：处理空间尺寸"><a href="#6-1-scale：处理空间尺寸" class="headerlink" title="6.1 scale：处理空间尺寸"></a>6.1 scale：处理空间尺寸</h2><p><code>scale</code> 本质上是在做：</p>
+<ul>
+<li>分辨率变换</li>
+<li>缩小 &#x2F; 放大</li>
+<li>为后续编码或显示做适配</li>
+</ul>
+<p>它很常见，因为链路里不同阶段常常要求不同尺寸。</p>
+<h2 id="6-2-fps：处理时间节奏"><a href="#6-2-fps：处理时间节奏" class="headerlink" title="6.2 fps：处理时间节奏"></a>6.2 fps：处理时间节奏</h2><p><code>fps</code> 本质上是在做：</p>
+<ul>
+<li>帧率调整</li>
+<li>补 &#x2F; 丢帧</li>
+<li>让输出符合目标帧率要求</li>
+</ul>
+<p>它特别适合帮助理解：</p>
+<p><strong>filter graph 不只处理空间，还能处理时间上的采样节奏。</strong></p>
+<h2 id="6-3-overlay：处理多路图像合成"><a href="#6-3-overlay：处理多路图像合成" class="headerlink" title="6.3 overlay：处理多路图像合成"></a>6.3 overlay：处理多路图像合成</h2><p><code>overlay</code> 本质上是在做：</p>
+<ul>
+<li>一路主画面</li>
+<li>叠一路次级图像</li>
+</ul>
+<p>比如：</p>
+<ul>
+<li>logo</li>
+<li>水印</li>
+<li>OSD</li>
+<li>小窗画中画</li>
+</ul>
+<p>它特别适合帮助你理解：</p>
+<p><strong>filter graph 不是只能单输入单输出，它可以接多路输入再合成。</strong></p>
+<hr>
+<h1 id="七、一张图把-scale-fps-overlay-的角色分开看清楚"><a href="#七、一张图把-scale-fps-overlay-的角色分开看清楚" class="headerlink" title="七、一张图把 scale &#x2F; fps &#x2F; overlay 的角色分开看清楚"></a>七、一张图把 scale &#x2F; fps &#x2F; overlay 的角色分开看清楚</h1><pre><code class=" mermaid">flowchart TD
+    A[原始视频帧] --&gt; B[scale]
+    B --&gt; C[fps]
+    C --&gt; D[overlay]
+    E[logo/图片] --&gt; D
+    D --&gt; F[处理后帧]
+</code></pre>
+
+<p>这张图非常适合你后面反复回忆，因为它直接对应三类不同处理：</p>
+<ul>
+<li><code>scale</code> 主要改空间尺寸</li>
+<li><code>fps</code> 主要改时间采样节奏</li>
+<li><code>overlay</code> 主要改图像组合关系</li>
+</ul>
+<p>也就是说，filter graph 不是“一个功能点”，而是在统一承载各种 frame 处理需求。</p>
+<hr>
+<h1 id="八、最简单的-CLI-例子：先从一条线性的-filter-chain-开始"><a href="#八、最简单的-CLI-例子：先从一条线性的-filter-chain-开始" class="headerlink" title="八、最简单的 CLI 例子：先从一条线性的 filter chain 开始"></a>八、最简单的 CLI 例子：先从一条线性的 filter chain 开始</h1><p>如果你只是想最直观地感受它，先看一条最简单链：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">ffmpeg -i input.mp4 -vf <span class="hljs-string">&quot;scale=1280:720,fps=25&quot;</span> output.mp4<br></code></pre></td></tr></table></figure>
+
+<p>这条命令背后的 graph 可以理解成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">解码后 frame -&gt; scale -&gt; fps -&gt; 编码<br></code></pre></td></tr></table></figure>
+
+<p>这里的 <code>-vf</code> 本质上就是：</p>
+<ul>
+<li>video filter 的简写入口</li>
+<li>适合单输入、相对简单的线性处理链</li>
+</ul>
+<p>这个阶段你可以先把它理解成“simple graph”。</p>
+<hr>
+<h1 id="九、再看一个更有画面感的-overlay-例子"><a href="#九、再看一个更有画面感的-overlay-例子" class="headerlink" title="九、再看一个更有画面感的 overlay 例子"></a>九、再看一个更有画面感的 overlay 例子</h1><p>比如你想给视频叠一个 logo：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs bash">ffmpeg -i input.mp4 -i logo.png \<br>  -filter_complex <span class="hljs-string">&quot;[0:v]scale=1280:720[main];[1:v]scale=100:100[logo];[main][logo]overlay=10:10[out]&quot;</span> \<br>  -map <span class="hljs-string">&quot;[out]&quot;</span> -c:v libx264 output.mp4<br></code></pre></td></tr></table></figure>
+
+<p>这条命令为什么一下子复杂很多？</p>
+<p>因为这里已经不是一条简单链，而是一张真正的 graph：</p>
+<ul>
+<li>主视频一路处理</li>
+<li>logo 一路处理</li>
+<li>两路汇合 overlay</li>
+<li>再输出</li>
+</ul>
+<h2 id="9-1-对应结构图"><a href="#9-1-对应结构图" class="headerlink" title="9.1 对应结构图"></a>9.1 对应结构图</h2><pre><code class=" mermaid">flowchart LR
+    A[input.mp4] --&gt; B[scale 主视频]
+    C[logo.png] --&gt; D[scale logo]
+    B --&gt; E[overlay]
+    D --&gt; E
+    E --&gt; F[输出 out]
+</code></pre>
+
+<p>这就是 <code>-filter_complex</code> 的典型使用场景。</p>
+<hr>
+<h1 id="十、simple-filter-和-complex-filter-到底差在哪"><a href="#十、simple-filter-和-complex-filter-到底差在哪" class="headerlink" title="十、simple filter 和 complex filter 到底差在哪"></a>十、simple filter 和 complex filter 到底差在哪</h1><p>这个问题特别常见。</p>
+<h2 id="10-1-simple-filter-更适合什么"><a href="#10-1-simple-filter-更适合什么" class="headerlink" title="10.1 simple filter 更适合什么"></a>10.1 simple filter 更适合什么</h2><p>例如：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">-vf <span class="hljs-string">&quot;scale=1280:720,fps=25&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>适合：</p>
+<ul>
+<li>单输入视频流</li>
+<li>相对线性的滤镜链</li>
+<li>不需要多路输入输出管理</li>
+</ul>
+<h2 id="10-2-complex-filter-更适合什么"><a href="#10-2-complex-filter-更适合什么" class="headerlink" title="10.2 complex filter 更适合什么"></a>10.2 complex filter 更适合什么</h2><p>例如：</p>
+<ul>
+<li>多输入</li>
+<li>多输出</li>
+<li>分支和汇合</li>
+<li>overlay &#x2F; concat &#x2F; split 这类图结构</li>
+</ul>
+<p>所以你可以粗记：</p>
+<ul>
+<li><code>-vf</code> &#x2F; <code>-af</code> 更像简单链式入口</li>
+<li><code>-filter_complex</code> 更像真正 graph 编排入口</li>
+</ul>
+<h2 id="10-3-一句话记忆"><a href="#10-3-一句话记忆" class="headerlink" title="10.3 一句话记忆"></a>10.3 一句话记忆</h2><p><strong>simple filter 更像一条管道，complex filter 更像一张路网。</strong></p>
+<hr>
+<h1 id="十一、在-C-C-里，filter-graph-的基本工程骨架长什么样"><a href="#十一、在-C-C-里，filter-graph-的基本工程骨架长什么样" class="headerlink" title="十一、在 C&#x2F;C++ 里，filter graph 的基本工程骨架长什么样"></a>十一、在 C&#x2F;C++ 里，filter graph 的基本工程骨架长什么样</h1><p>如果你不是只用命令行，而是想在代码里接入 <code>libavfilter</code>，最常见的骨架大体是：</p>
+<ol>
+<li>创建 graph</li>
+<li>创建 buffer source</li>
+<li>创建若干 filter 节点</li>
+<li>创建 buffer sink</li>
+<li>把节点连起来</li>
+<li>配置 graph</li>
+<li>把 frame 推进去，再把处理后 frame 拉出来</li>
+</ol>
+<p>这听起来很多，但结构其实很清楚。</p>
+<hr>
+<h1 id="十二、一段最小-libavfilter-骨架代码"><a href="#十二、一段最小-libavfilter-骨架代码" class="headerlink" title="十二、一段最小 libavfilter 骨架代码"></a>十二、一段最小 libavfilter 骨架代码</h1><p>下面这段代码不是完整生产代码，但足够帮你先建立“图是怎么搭起来的”的感觉。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs c">AVFilterGraph *graph = avfilter_graph_alloc();<br>AVFilterContext *src_ctx = <span class="hljs-literal">NULL</span>;<br>AVFilterContext *scale_ctx = <span class="hljs-literal">NULL</span>;<br>AVFilterContext *sink_ctx = <span class="hljs-literal">NULL</span>;<br><br><span class="hljs-type">const</span> AVFilter *buffersrc  = avfilter_get_by_name(<span class="hljs-string">&quot;buffer&quot;</span>);<br><span class="hljs-type">const</span> AVFilter *buffersink = avfilter_get_by_name(<span class="hljs-string">&quot;buffersink&quot;</span>);<br><span class="hljs-type">const</span> AVFilter *scale      = avfilter_get_by_name(<span class="hljs-string">&quot;scale&quot;</span>);<br><br><span class="hljs-type">char</span> args[<span class="hljs-number">256</span>];<br><span class="hljs-built_in">snprintf</span>(args, <span class="hljs-keyword">sizeof</span>(args),<br>         <span class="hljs-string">&quot;video_size=%dx%d:pix_fmt=%d:time_base=1/25:pixel_aspect=1/1&quot;</span>,<br>         width, height, pix_fmt);<br><br>avfilter_graph_create_filter(&amp;src_ctx, buffersrc, <span class="hljs-string">&quot;src&quot;</span>, args, <span class="hljs-literal">NULL</span>, graph);<br>avfilter_graph_create_filter(&amp;scale_ctx, scale, <span class="hljs-string">&quot;scale&quot;</span>, <span class="hljs-string">&quot;1280:720&quot;</span>, <span class="hljs-literal">NULL</span>, graph);<br>avfilter_graph_create_filter(&amp;sink_ctx, buffersink, <span class="hljs-string">&quot;sink&quot;</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>, graph);<br><br>avfilter_link(src_ctx, <span class="hljs-number">0</span>, scale_ctx, <span class="hljs-number">0</span>);<br>avfilter_link(scale_ctx, <span class="hljs-number">0</span>, sink_ctx, <span class="hljs-number">0</span>);<br><br>avfilter_graph_config(graph, <span class="hljs-literal">NULL</span>);<br></code></pre></td></tr></table></figure>
+
+<p>这段代码最值钱的不是 API 名字，而是它体现出：</p>
+<ul>
+<li>你真的在创建“节点”</li>
+<li>你真的在“连边”</li>
+<li>最后真的是一张 graph 被配置好</li>
+</ul>
+<p>所以 <code>filter graph</code> 不是比喻，它在实现层也真的很像一张图。</p>
+<hr>
+<h1 id="十三、frame-是怎么在-graph-里流动的"><a href="#十三、frame-是怎么在-graph-里流动的" class="headerlink" title="十三、frame 是怎么在 graph 里流动的"></a>十三、frame 是怎么在 graph 里流动的</h1><p>配完 graph 之后，核心操作就是：</p>
+<ul>
+<li>把原始 frame 塞进 source</li>
+<li>从 sink 取出处理后的 frame</li>
+</ul>
+<h2 id="13-1-典型流程代码"><a href="#13-1-典型流程代码" class="headerlink" title="13.1 典型流程代码"></a>13.1 典型流程代码</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs c">av_buffersrc_add_frame(src_ctx, input_frame);<br><br><span class="hljs-keyword">while</span> (av_buffersink_get_frame(sink_ctx, output_frame) &gt;= <span class="hljs-number">0</span>) &#123;<br>    <span class="hljs-comment">// output_frame 就是经过 filter graph 处理后的结果</span><br>    process_output(output_frame);<br>    av_frame_unref(output_frame);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码背后其实非常像我们前面讲过的 decode &#x2F; encode send-receive 模型。</p>
+<p>它说明：</p>
+<p><strong>graph 本质上是一层 frame in &#x2F; frame out 的处理系统。</strong></p>
+<hr>
+<h1 id="十四、一张时序图看懂-frame-在-filter-graph-里的流动"><a href="#十四、一张时序图看懂-frame-在-filter-graph-里的流动" class="headerlink" title="十四、一张时序图看懂 frame 在 filter graph 里的流动"></a>十四、一张时序图看懂 frame 在 filter graph 里的流动</h1><pre><code class=" mermaid">sequenceDiagram
+    participant Dec as Decoder
+    participant Src as BufferSrc
+    participant Graph as Filter Graph
+    participant Sink as BufferSink
+    participant Enc as Encoder
+
+    Dec-&gt;&gt;Src: 输入原始 frame
+    Src-&gt;&gt;Graph: frame 进入 graph
+    Graph-&gt;&gt;Sink: 输出处理后 frame
+    Sink-&gt;&gt;Enc: 送编码器继续处理
+</code></pre>
+
+<p>这张图很重要，因为它把 filter graph 在系统里的位置完全接起来了：</p>
+<ul>
+<li>前面连解码器</li>
+<li>后面连编码器</li>
+<li>中间处理 frame</li>
+</ul>
+<p>到这里，你应该能很明确地看到它在整个多媒体系统里的职责。</p>
+<hr>
+<h1 id="十五、filter-graph-为什么特别适合做“工程中的预处理层”"><a href="#十五、filter-graph-为什么特别适合做“工程中的预处理层”" class="headerlink" title="十五、filter graph 为什么特别适合做“工程中的预处理层”"></a>十五、filter graph 为什么特别适合做“工程中的预处理层”</h1><p>这也是我非常想强调的一点。</p>
+<p>在真实系统里，filter graph 经常不只是一个“命令行功能”，而是一层真正的工程处理层。</p>
+<p>它特别适合放这些事情：</p>
+<ul>
+<li>编码前统一缩放</li>
+<li>拉齐目标帧率</li>
+<li>加 logo &#x2F; 水印 &#x2F; OSD</li>
+<li>预览和推流共用某些处理逻辑</li>
+<li>图像叠加与多路拼接</li>
+</ul>
+<p>也就是说，在工程里你完全可以把它理解成：</p>
+<p><strong>一层专门负责 frame 加工和编排的中间层。</strong></p>
+<p>这也是为什么它在实际项目里非常值钱。</p>
+<hr>
+<h1 id="十六、一个更接近真实项目的链路图"><a href="#十六、一个更接近真实项目的链路图" class="headerlink" title="十六、一个更接近真实项目的链路图"></a>十六、一个更接近真实项目的链路图</h1><pre><code class=" mermaid">flowchart LR
+    A[Camera / 文件 / 网络流] --&gt; B[Decode]
+    B --&gt; C[Filter Graph]
+    C --&gt; D1[预览输出]
+    C --&gt; D2[编码推流]
+    C --&gt; D3[抓图/截图]
+</code></pre>
+
+<p>这张图特别有工程感，因为它说明一件事：</p>
+<p><strong>同一层 filter 处理结果，可以同时服务多个后续目标。</strong></p>
+<p>这时候你会发现，filter graph 已经不只是“转码小工具”，而是在系统里承担真正的中间处理枢纽作用。</p>
+<hr>
+<h1 id="十七、最容易踩的几个坑"><a href="#十七、最容易踩的几个坑" class="headerlink" title="十七、最容易踩的几个坑"></a>十七、最容易踩的几个坑</h1><h2 id="17-1-坑一：忘了-filter-graph-处理的是-frame，不是-packet"><a href="#17-1-坑一：忘了-filter-graph-处理的是-frame，不是-packet" class="headerlink" title="17.1 坑一：忘了 filter graph 处理的是 frame，不是 packet"></a>17.1 坑一：忘了 filter graph 处理的是 frame，不是 packet</h2><p>这会导致很多理解上的偏差。</p>
+<p>比如你想在没解码前直接做 <code>scale</code>，那基本方向就错了。</p>
+<h2 id="17-2-坑二：多输入时-graph-标签没理清"><a href="#17-2-坑二：多输入时-graph-标签没理清" class="headerlink" title="17.2 坑二：多输入时 graph 标签没理清"></a>17.2 坑二：多输入时 graph 标签没理清</h2><p>一旦进入 <code>filter_complex</code>，标签一乱，整个 graph 就容易写崩。</p>
+<p>所以最好养成习惯：</p>
+<ul>
+<li>每一路输入先命名</li>
+<li>每个关键中间结果显式标 label</li>
+<li>最后明确输出 label</li>
+</ul>
+<h2 id="17-3-坑三：格式不匹配导致-graph-前后都在偷偷转格式"><a href="#17-3-坑三：格式不匹配导致-graph-前后都在偷偷转格式" class="headerlink" title="17.3 坑三：格式不匹配导致 graph 前后都在偷偷转格式"></a>17.3 坑三：格式不匹配导致 graph 前后都在偷偷转格式</h2><p>比如：</p>
+<ul>
+<li>前面 decoder 给的是 NV12</li>
+<li>某个滤镜更偏某种格式</li>
+<li>后面 encoder 又要 YUV420P</li>
+</ul>
+<p>这时 graph 里可能发生额外格式转换。</p>
+<p>如果你不关心，就容易损失性能。</p>
+<h2 id="17-4-坑四：以为滤镜只是“功能正确”就够了"><a href="#17-4-坑四：以为滤镜只是“功能正确”就够了" class="headerlink" title="17.4 坑四：以为滤镜只是“功能正确”就够了"></a>17.4 坑四：以为滤镜只是“功能正确”就够了</h2><p>不是。</p>
+<p>在工程里你还要关心：</p>
+<ul>
+<li>性能</li>
+<li>copy 次数</li>
+<li>延迟</li>
+<li>是否能走硬件路径</li>
+</ul>
+<hr>
+<h1 id="十八、面试里怎么讲，才不像只会抄-FFmpeg-命令"><a href="#十八、面试里怎么讲，才不像只会抄-FFmpeg-命令" class="headerlink" title="十八、面试里怎么讲，才不像只会抄 FFmpeg 命令"></a>十八、面试里怎么讲，才不像只会抄 FFmpeg 命令</h1><p>如果面试官问：</p>
+<blockquote>
+<p>你怎么理解 FFmpeg 的 filter graph？</p>
+</blockquote>
+<p>我建议你按下面这个结构讲。</p>
+<h2 id="18-1-先讲本质"><a href="#18-1-先讲本质" class="headerlink" title="18.1 先讲本质"></a>18.1 先讲本质</h2><p>filter graph 本质上是一张围绕原始 frame 展开的处理图，它通常位于 decode 和 encode 之间，用来把缩放、裁剪、帧率调整、叠加、水印等操作编排成一条可执行处理链。</p>
+<h2 id="18-2-再讲为什么是-graph"><a href="#18-2-再讲为什么是-graph" class="headerlink" title="18.2 再讲为什么是 graph"></a>18.2 再讲为什么是 graph</h2><p>因为它不只是线性串联，还支持多输入、多输出、分支和汇合，所以在复杂场景里更像一张媒体处理图，而不是简单的命令列表。</p>
+<h2 id="18-3-最后讲工程意义"><a href="#18-3-最后讲工程意义" class="headerlink" title="18.3 最后讲工程意义"></a>18.3 最后讲工程意义</h2><p>在工程里，filter graph 可以被看成一层 frame 预处理 &#x2F; 加工层，它常常承担编码前图像处理、推流前预处理、多路图像叠加等职责，是多媒体系统里的重要中间层。</p>
+<p>如果你能这么讲，面试官通常会觉得你是真的理解了它在系统里的位置，而不是只会写 <code>-vf scale=...</code>。</p>
+<hr>
+<h1 id="总结：filter-graph-的价值，不只是“能加滤镜”，而是它让-frame-处理变成了一张可编排的图"><a href="#总结：filter-graph-的价值，不只是“能加滤镜”，而是它让-frame-处理变成了一张可编排的图" class="headerlink" title="总结：filter graph 的价值，不只是“能加滤镜”，而是它让 frame 处理变成了一张可编排的图"></a>总结：filter graph 的价值，不只是“能加滤镜”，而是它让 frame 处理变成了一张可编排的图</h1><p>回到这篇文章最开始的问题：</p>
+<p><strong>FFmpeg filter graph 到底是什么？</strong></p>
+<p>我觉得最稳的主线就是：</p>
+<ul>
+<li>它本质上是一张 frame 处理图</li>
+<li>它通常位于 decode 和 encode 之间</li>
+<li>它把 scale、fps、overlay、drawtext 这类处理统一纳入一套 graph 结构中</li>
+<li>simple filter 更像单线管道，complex filter 更像真正的图结构</li>
+<li>在工程里，它常常是非常关键的一层预处理 &#x2F; 加工层</li>
+</ul>
+<p>只要这条主线建立起来，后面你再看：</p>
+<ul>
+<li>复杂转码</li>
+<li>多路画面拼接</li>
+<li>推流前预处理</li>
+<li>加 logo &#x2F; 水印 &#x2F; OSD</li>
+<li>Camera 数据进入编码链前的统一处理</li>
+</ul>
+<p>都会顺很多。</p>
+<p>因为到那时你已经不会只把滤镜当成“FFmpeg 命令花活”，而会开始把它当成：</p>
+<p><strong>音视频系统里真正的 frame 处理编排层。</strong> </p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="print-no-link">#图像处理</a>
+      
+        <a href="/tags/filter-graph/" class="print-no-link">#filter graph</a>
+      
+        <a href="/tags/%E6%8E%A8%E6%B5%81/" class="print-no-link">#推流</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链</div>
+      <div>https://breaker505.github.io/2026/04/20/ffmpeg-filter-graph-intro/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年4月20日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/04/22/hardware-vs-software-video-encoding/" title="硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/04/19/ffmpeg-timestamps-pts-dts-timebase/" title="FFmpeg 时间戳体系入门：PTS、DTS、time_base 到底怎么理解">
+                        <span class="hidden-mobile">FFmpeg 时间戳体系入门：PTS、DTS、time_base 到底怎么理解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

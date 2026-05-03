@@ -1,0 +1,1287 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”只要开始做实时音视频，几乎很快就会接受一个现实： 丢包不是例外，而是常态。 尤其一旦进入这些环境，丢包几乎迟早要来：  Wi-Fi 抖动 4G &#x2F; 5G 波动 公网跨地区链路 弱网移动场景 多人会议并发 家庭网络被别的设备抢占  所以真正有价值的问题，从来不是：  系统能不能做到完全不丢包？  而更像是：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救">
+<meta property="og:url" content="https://breaker505.github.io/2026/05/01/nack-pli-fec-how-realtime-media-recovers-from-loss/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”只要开始做实时音视频，几乎很快就会接受一个现实： 丢包不是例外，而是常态。 尤其一旦进入这些环境，丢包几乎迟早要来：  Wi-Fi 抖动 4G &#x2F; 5G 波动 公网跨地区链路 弱网移动场景 多人会议并发 家庭网络被别的设备抢占  所以真正有价值的问题，从来不是：  系统能不能做到完全不丢包？  而更像是：">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-01T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.860Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="WebRTC">
+<meta property="article:tag" content="NACK">
+<meta property="article:tag" content="PLI">
+<meta property="article:tag" content="FEC">
+<meta property="article:tag" content="RTP">
+<meta property="article:tag" content="RTCP">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-01 12:00" pubdate>
+          2026年5月1日 中午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          12k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          98 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”"><a href="#前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”" class="headerlink" title="前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”"></a>前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”</h1><p>只要开始做实时音视频，几乎很快就会接受一个现实：</p>
+<p><strong>丢包不是例外，而是常态。</strong></p>
+<p>尤其一旦进入这些环境，丢包几乎迟早要来：</p>
+<ul>
+<li>Wi-Fi 抖动</li>
+<li>4G &#x2F; 5G 波动</li>
+<li>公网跨地区链路</li>
+<li>弱网移动场景</li>
+<li>多人会议并发</li>
+<li>家庭网络被别的设备抢占</li>
+</ul>
+<p>所以真正有价值的问题，从来不是：</p>
+<blockquote>
+<p>系统能不能做到完全不丢包？</p>
+</blockquote>
+<p>而更像是：</p>
+<blockquote>
+<p>一旦丢了，系统到底怎么尽量把体验救回来？</p>
+</blockquote>
+<p>这时候你就会碰到几组非常关键的机制：</p>
+<ul>
+<li>NACK</li>
+<li>PLI</li>
+<li>FEC</li>
+</ul>
+<p>很多文章会把它们分别解释一下：</p>
+<ul>
+<li>NACK 是重传请求</li>
+<li>PLI 是关键帧请求</li>
+<li>FEC 是前向纠错</li>
+</ul>
+<p>这些定义都对，但如果只停在这里，其实还是抓不到工程里的那条主线。</p>
+<p>因为真实系统里，这三样东西不是孤零零站着的，而是：</p>
+<p><strong>围绕“丢包之后怎么补救”这个核心问题，分别站在不同时间尺度、不同代价模型上的三种手段。</strong></p>
+<p>说白了就是：</p>
+<ul>
+<li>有的适合“赶紧补回来”</li>
+<li>有的适合“补不回来了，那就尽快重建参考链路”</li>
+<li>有的适合“别等丢了再说，提前带一点冗余过去”</li>
+</ul>
+<p>所以这篇文章的目标，不只是背定义，而是想把它们讲成一个真正的工程决策问题。</p>
+<p>重点讲清：</p>
+<ul>
+<li>为什么光有 jitter buffer 还不够</li>
+<li>NACK、PLI、FEC 各自到底在补什么洞</li>
+<li>它们为什么不能互相完全替代</li>
+<li>接收端怎么检测丢包、怎么发 NACK、什么时候该发 PLI</li>
+<li>发送端为什么要有重传缓存</li>
+<li>FEC 到底是在拿什么换什么</li>
+<li>如果你自己实现一套简化版丢包恢复链路，代码骨架应该怎么写</li>
+</ul>
+<p>而且这篇会继续按你强调的方式来：</p>
+<p><strong>核心代码示例会继续给。</strong></p>
+<p>我会放：</p>
+<ul>
+<li><strong>结构图</strong></li>
+<li><strong>时序图</strong></li>
+<li><strong>恢复流程图</strong></li>
+<li><strong>接收端丢包检测代码</strong></li>
+<li><strong>NACK 构造与发送代码</strong></li>
+<li><strong>发送端重传缓存代码</strong></li>
+<li><strong>PLI 触发逻辑代码</strong></li>
+<li><strong>一个简化版 FEC 恢复骨架</strong></li>
+</ul>
+<p>我希望这篇读完之后，你对“丢包恢复”不再只是记住三个名词，而是真能看到系统遇到坏包之后，是怎么一点点自救的。</p>
+<hr>
+<h1 id="一、先给一句最重要的话：丢包恢复不是单一技术，而是一组围绕时延、恢复概率和画面连续性做权衡的策略组合"><a href="#一、先给一句最重要的话：丢包恢复不是单一技术，而是一组围绕时延、恢复概率和画面连续性做权衡的策略组合" class="headerlink" title="一、先给一句最重要的话：丢包恢复不是单一技术，而是一组围绕时延、恢复概率和画面连续性做权衡的策略组合"></a>一、先给一句最重要的话：丢包恢复不是单一技术，而是一组围绕时延、恢复概率和画面连续性做权衡的策略组合</h1><p>如果让我先压一句最重要的话，我会这样说：</p>
+<p><strong>NACK、PLI、FEC 不是三种孤立功能，而是实时音视频系统围绕“时延预算、恢复成功率、画面连续性”做出来的一组补救策略组合。</strong></p>
+<p>这句话特别重要。</p>
+<p>因为只要你开始真正做系统，很快就会发现，丢包恢复从来不是一句“补回来”那么简单。</p>
+<p>你真正要面对的是这些互相打架的约束：</p>
+<ul>
+<li>我能不能来得及补</li>
+<li>补回来还有没有意义</li>
+<li>现在是只坏了几包，还是整条参考链已经断了</li>
+<li>我是该请求重传，还是该直接要关键帧</li>
+<li>我值不值得一开始就多发一点冗余</li>
+</ul>
+<p>这也是为什么真实系统不会只靠一种方法吃天下。</p>
+<p>它通常是多种手段一起上，只是侧重点不同。</p>
+<hr>
+<h1 id="二、先看总图：丢包恢复在整条实时链路里处于什么位置"><a href="#二、先看总图：丢包恢复在整条实时链路里处于什么位置" class="headerlink" title="二、先看总图：丢包恢复在整条实时链路里处于什么位置"></a>二、先看总图：丢包恢复在整条实时链路里处于什么位置</h1><p>先上总图。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[发送端编码] --&gt; B[RTP发送]
+    B --&gt; C[网络传输]
+    C --&gt; D[接收端发现丢包]
+    D --&gt; E1[NACK请求重传]
+    D --&gt; E2[PLI请求关键帧]
+    D --&gt; E3[FEC尝试恢复]
+
+    E1 --&gt; F[发送端重传缓存]
+    F --&gt; G[重发缺失包]
+    E2 --&gt; H[发送端尽快产生关键帧]
+    E3 --&gt; I[接收端局部恢复]
+
+    G --&gt; J[解码链路恢复]
+    H --&gt; J
+    I --&gt; J
+</code></pre>
+
+<p>这张图里最核心的一点是：</p>
+<p><strong>丢包恢复并不是只发生在接收端，也不是只发生在发送端，而是一整条链路的协同行为。</strong></p>
+<p>你可以先粗略理解成：</p>
+<ul>
+<li>接收端负责发现问题</li>
+<li>反馈机制负责发出求救</li>
+<li>发送端负责提供补救材料</li>
+<li>解码链路负责看现在还能不能继续活下去</li>
+</ul>
+<hr>
+<h1 id="三、为什么光有-jitter-buffer-还不够"><a href="#三、为什么光有-jitter-buffer-还不够" class="headerlink" title="三、为什么光有 jitter buffer 还不够"></a>三、为什么光有 jitter buffer 还不够</h1><p>很多人看完 jitter buffer，会下意识觉得：</p>
+<blockquote>
+<p>那我等一等、排一排，不就行了吗？</p>
+</blockquote>
+<p>但问题是，jitter buffer 解决的主要是：</p>
+<ul>
+<li>到得早晚不均</li>
+<li>顺序乱一点</li>
+<li>某些包只是稍微迟到</li>
+</ul>
+<p>它真正不擅长解决的是：</p>
+<p><strong>包彻底没了。</strong></p>
+<p>如果缺的包一直不来，jitter buffer 最终还是得面对：</p>
+<ul>
+<li>等太久，延迟爆炸</li>
+<li>不等，解码链路可能断掉</li>
+</ul>
+<p>也就是说，它更像“秩序修复器”，不是“凭空造包器”。</p>
+<p>所以一旦包真的缺失，就必须进入更主动的补救层：</p>
+<ul>
+<li>NACK</li>
+<li>PLI</li>
+<li>FEC</li>
+</ul>
+<hr>
+<h1 id="四、NACK-到底在解决什么问题"><a href="#四、NACK-到底在解决什么问题" class="headerlink" title="四、NACK 到底在解决什么问题"></a>四、NACK 到底在解决什么问题</h1><h2 id="4-1-NACK-的核心直觉"><a href="#4-1-NACK-的核心直觉" class="headerlink" title="4.1 NACK 的核心直觉"></a>4.1 NACK 的核心直觉</h2><p>NACK（Negative ACKnowledgement）你可以先把它理解成：</p>
+<p><strong>接收端发现某些包没收到，于是告诉发送端：这些包我缺了，你如果还来得及，就补给我。</strong></p>
+<p>它特别适合什么场景？</p>
+<ul>
+<li>丢的是少量包</li>
+<li>发送端手里还缓存着这些包</li>
+<li>当前往返时延没有大到“补回来也没意义”</li>
+</ul>
+<p>所以 NACK 的本质，是一种：</p>
+<p><strong>来得及的、针对性的事后补救。</strong></p>
+<h2 id="4-2-它为什么值钱"><a href="#4-2-它为什么值钱" class="headerlink" title="4.2 它为什么值钱"></a>4.2 它为什么值钱</h2><p>因为它很节省。</p>
+<p>相比一开始就多发很多冗余，NACK 的思路是：</p>
+<ul>
+<li>先正常发</li>
+<li>真丢了再补</li>
+</ul>
+<p>这在丢包不重、RTT 不夸张的场景里，通常性价比很高。</p>
+<hr>
+<h1 id="五、PLI-到底在解决什么问题"><a href="#五、PLI-到底在解决什么问题" class="headerlink" title="五、PLI 到底在解决什么问题"></a>五、PLI 到底在解决什么问题</h1><h2 id="5-1-PLI-不是补单个包，而是在说“参考链路可能已经坏了”"><a href="#5-1-PLI-不是补单个包，而是在说“参考链路可能已经坏了”" class="headerlink" title="5.1 PLI 不是补单个包，而是在说“参考链路可能已经坏了”"></a>5.1 PLI 不是补单个包，而是在说“参考链路可能已经坏了”</h2><p>PLI（Picture Loss Indication）不是在说：</p>
+<ul>
+<li>某一个 RTP 包丢了</li>
+</ul>
+<p>而更像是在说：</p>
+<p><strong>我这边的视频参考状态可能已经坏掉了，请你尽快发一个关键帧，让我重新建立解码基线。</strong></p>
+<p>这就和 NACK 很不一样。</p>
+<p>NACK 关心的是：</p>
+<ul>
+<li>某几个包能不能补回来</li>
+</ul>
+<p>PLI 关心的是：</p>
+<ul>
+<li>就算补几个包，也未必救得回来了，赶紧重开一局吧</li>
+</ul>
+<h2 id="5-2-它适合什么情况"><a href="#5-2-它适合什么情况" class="headerlink" title="5.2 它适合什么情况"></a>5.2 它适合什么情况</h2><p>比如：</p>
+<ul>
+<li>丢失的是关键参考数据</li>
+<li>解码器已经明显花屏 &#x2F; 无法继续正确参考</li>
+<li>NACK 来不及或者连续失败</li>
+<li>新加入的接收端需要尽快拿到完整可解码画面</li>
+</ul>
+<p>所以 PLI 更像是一种：</p>
+<p><strong>请求发送端主动刷新参考链路的恢复手段。</strong></p>
+<hr>
+<h1 id="六、FEC-到底在解决什么问题"><a href="#六、FEC-到底在解决什么问题" class="headerlink" title="六、FEC 到底在解决什么问题"></a>六、FEC 到底在解决什么问题</h1><h2 id="6-1-FEC-的核心直觉"><a href="#6-1-FEC-的核心直觉" class="headerlink" title="6.1 FEC 的核心直觉"></a>6.1 FEC 的核心直觉</h2><p>FEC（Forward Error Correction）可以理解成：</p>
+<p><strong>发送端在发送原始媒体数据时，顺手带上一些可用于恢复丢失数据的冗余信息。</strong></p>
+<p>它的思路和 NACK 完全不同。</p>
+<p>NACK 是：</p>
+<ul>
+<li>先丢了再说</li>
+<li>事后请求补发</li>
+</ul>
+<p>FEC 是：</p>
+<ul>
+<li>我先预判可能会丢</li>
+<li>所以提前带一些修复材料过去</li>
+</ul>
+<h2 id="6-2-它为什么值钱"><a href="#6-2-它为什么值钱" class="headerlink" title="6.2 它为什么值钱"></a>6.2 它为什么值钱</h2><p>因为它有一个特别大的优点：</p>
+<p><strong>不依赖往返重传时延。</strong></p>
+<p>也就是说，如果你在特别低延迟、RTT 又比较敏感的场景里，等 NACK 往返可能已经晚了。</p>
+<p>这时候 FEC 的提前冗余就会特别有用。</p>
+<h2 id="6-3-它的代价是什么"><a href="#6-3-它的代价是什么" class="headerlink" title="6.3 它的代价是什么"></a>6.3 它的代价是什么</h2><p>当然不是白来的。</p>
+<p>FEC 在拿这些东西换恢复能力：</p>
+<ul>
+<li>更多带宽开销</li>
+<li>更多打包和恢复复杂度</li>
+<li>冗余不是无限强，丢太多照样救不回来</li>
+</ul>
+<p>所以它不是银弹，而是一种：</p>
+<p><strong>用额外码率换更强实时恢复能力</strong> 的手段。</p>
+<hr>
+<h1 id="七、一张图看懂-NACK、PLI、FEC-三者的时间尺度差别"><a href="#七、一张图看懂-NACK、PLI、FEC-三者的时间尺度差别" class="headerlink" title="七、一张图看懂 NACK、PLI、FEC 三者的时间尺度差别"></a>七、一张图看懂 NACK、PLI、FEC 三者的时间尺度差别</h1><pre><code class=" mermaid">flowchart TD
+    A[包丢失] --&gt; B&#123;能否快速发现并且来得及补?&#125;
+    B -- 能 --&gt; C[NACK请求重传]
+    B -- 不能 --&gt; D&#123;参考链是否已损坏?&#125;
+    D -- 是 --&gt; E[PLI请求关键帧]
+    D -- 否 --&gt; F&#123;是否已有FEC冗余可恢复?&#125;
+    F -- 是 --&gt; G[FEC本地恢复]
+    F -- 否 --&gt; E
+</code></pre>
+
+<p>这张图不是绝对流程，但很适合建立直觉：</p>
+<ul>
+<li><strong>NACK</strong> 偏“快速补洞”</li>
+<li><strong>PLI</strong> 偏“重建参考基线”</li>
+<li><strong>FEC</strong> 偏“提前带保险”</li>
+</ul>
+<p>它们不是一个维度上的替代关系。</p>
+<hr>
+<h1 id="八、第一段核心代码：接收端怎么检测-RTP-丢包"><a href="#八、第一段核心代码：接收端怎么检测-RTP-丢包" class="headerlink" title="八、第一段核心代码：接收端怎么检测 RTP 丢包"></a>八、第一段核心代码：接收端怎么检测 RTP 丢包</h1><p>代码先上。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LossDetector</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">Result</span> &#123;<br>        std::vector&lt;<span class="hljs-type">uint16_t</span>&gt; missing_seq;<br>        <span class="hljs-type">bool</span> has_gap = <span class="hljs-literal">false</span>;<br>    &#125;;<br><br>    <span class="hljs-function">Result <span class="hljs-title">OnPacket</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> seq)</span> </span>&#123;<br>        Result res;<br><br>        <span class="hljs-keyword">if</span> (!initialized_) &#123;<br>            last_seq_ = seq;<br>            initialized_ = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">return</span> res;<br>        &#125;<br><br>        <span class="hljs-type">uint16_t</span> expected = <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">uint16_t</span>&gt;(last_seq_ + <span class="hljs-number">1</span>);<br>        <span class="hljs-keyword">if</span> (seq == expected) &#123;<br>            last_seq_ = seq;<br>            <span class="hljs-keyword">return</span> res;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (seq &gt; expected) &#123;<br>            res.has_gap = <span class="hljs-literal">true</span>;<br>            <span class="hljs-keyword">while</span> (expected &lt; seq) &#123;<br>                res.missing_seq.<span class="hljs-built_in">push_back</span>(expected);<br>                ++expected;<br>            &#125;<br>            last_seq_ = seq;<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-comment">// 乱序或重传到达，交给上层进一步判断</span><br>        &#125;<br><br>        <span class="hljs-keyword">return</span> res;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-type">bool</span> initialized_ = <span class="hljs-literal">false</span>;<br>    <span class="hljs-type">uint16_t</span> last_seq_ = <span class="hljs-number">0</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码的意义"><a href="#这段代码的意义" class="headerlink" title="这段代码的意义"></a>这段代码的意义</h2><p>它干的事很朴素，但特别关键：</p>
+<p><strong>通过 RTP sequence number 发现“中间少了谁”。</strong></p>
+<p>这就是很多恢复动作的起点。</p>
+<p>如果连“少了哪个包”都不知道，后面根本谈不上 NACK。</p>
+<hr>
+<h1 id="九、第二段核心代码：接收端怎么组织-NACK-请求"><a href="#九、第二段核心代码：接收端怎么组织-NACK-请求" class="headerlink" title="九、第二段核心代码：接收端怎么组织 NACK 请求"></a>九、第二段核心代码：接收端怎么组织 NACK 请求</h1><p>检测到丢包之后，下一步通常不是马上狂发反馈，而是先组织成更像样的请求。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">NackRequest</span> &#123;<br>    std::vector&lt;<span class="hljs-type">uint16_t</span>&gt; lost_seq;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">NackGenerator</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnMissingPackets</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;<span class="hljs-type">uint16_t</span>&gt;&amp; missing)</span> </span>&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">uint16_t</span> seq : missing) &#123;<br>            <span class="hljs-keyword">if</span> (nack_history_.<span class="hljs-built_in">count</span>(seq) == <span class="hljs-number">0</span>) &#123;<br>                nack_history_[seq] = <span class="hljs-number">0</span>;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function">std::optional&lt;NackRequest&gt; <span class="hljs-title">BuildRequest</span><span class="hljs-params">()</span> </span>&#123;<br>        NackRequest req;<br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span>&amp; [seq, retry_count] : nack_history_) &#123;<br>            <span class="hljs-keyword">if</span> (retry_count &gt;= max_retry_) <span class="hljs-keyword">continue</span>;<br>            req.lost_seq.<span class="hljs-built_in">push_back</span>(seq);<br>            ++retry_count;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (req.lost_seq.<span class="hljs-built_in">empty</span>()) &#123;<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> req;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnRecovered</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> seq)</span> </span>&#123;<br>        nack_history_.<span class="hljs-built_in">erase</span>(seq);<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::map&lt;<span class="hljs-type">uint16_t</span>, <span class="hljs-type">int</span>&gt; nack_history_;<br>    <span class="hljs-type">int</span> max_retry_ = <span class="hljs-number">3</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这里最该看什么"><a href="#这里最该看什么" class="headerlink" title="这里最该看什么"></a>这里最该看什么</h2><p>最该看的是这几个工程动作：</p>
+<ul>
+<li>丢包不是只记一次就完</li>
+<li>NACK 通常会有重试次数限制</li>
+<li>一旦补到了，要把它从等待恢复集合里移掉</li>
+</ul>
+<p>这就已经不是“发个请求”那么简单，而是一个小型恢复状态机了。</p>
+<hr>
+<h1 id="十、第三段核心代码：NACK-通过-RTCP-发送时，系统逻辑长什么样"><a href="#十、第三段核心代码：NACK-通过-RTCP-发送时，系统逻辑长什么样" class="headerlink" title="十、第三段核心代码：NACK 通过 RTCP 发送时，系统逻辑长什么样"></a>十、第三段核心代码：NACK 通过 RTCP 发送时，系统逻辑长什么样</h1><p>下面给一个简化版“接收端主循环”骨架。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VideoReceiver</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnRtpPacket</span><span class="hljs-params">(<span class="hljs-type">const</span> RtpPacket&amp; pkt)</span> </span>&#123;<br>        <span class="hljs-keyword">auto</span> loss_result = loss_detector_.<span class="hljs-built_in">OnPacket</span>(pkt.sequence_number);<br>        <span class="hljs-keyword">if</span> (loss_result.has_gap) &#123;<br>            nack_generator_.<span class="hljs-built_in">OnMissingPackets</span>(loss_result.missing_seq);<br>        &#125;<br><br>        jitter_buffer_.<span class="hljs-built_in">Push</span>(pkt);<br><br>        <span class="hljs-keyword">if</span> (pkt.is_retransmission) &#123;<br>            nack_generator_.<span class="hljs-built_in">OnRecovered</span>(pkt.sequence_number);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">PeriodicFeedback</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">auto</span> nack = nack_generator_.<span class="hljs-built_in">BuildRequest</span>();<br>        <span class="hljs-keyword">if</span> (nack.<span class="hljs-built_in">has_value</span>()) &#123;<br>            rtcp_sender_.<span class="hljs-built_in">SendNack</span>(nack-&gt;lost_seq);<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    LossDetector loss_detector_;<br>    NackGenerator nack_generator_;<br>    JitterBuffer jitter_buffer_;<br>    RtcpSender rtcp_sender_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码说明什么"><a href="#这段代码说明什么" class="headerlink" title="这段代码说明什么"></a>这段代码说明什么</h2><p>说明 NACK 不是独立在系统外面的。</p>
+<p>它通常会和这些模块一起工作：</p>
+<ul>
+<li>RTP 接收</li>
+<li>丢包检测</li>
+<li>jitter buffer</li>
+<li>RTCP 反馈发送</li>
+</ul>
+<p>也就是说，恢复动作是实时链路里的一等公民，不是补丁。</p>
+<hr>
+<h1 id="十一、第四段核心代码：发送端为什么必须有重传缓存"><a href="#十一、第四段核心代码：发送端为什么必须有重传缓存" class="headerlink" title="十一、第四段核心代码：发送端为什么必须有重传缓存"></a>十一、第四段核心代码：发送端为什么必须有重传缓存</h1><p>NACK 要想有意义，发送端不能“听到你缺包了，但我早删了”。</p>
+<p>所以发送端通常要保留一段时间的可重传历史。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">RetransmissionBuffer</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Store</span><span class="hljs-params">(<span class="hljs-type">const</span> RtpPacket&amp; pkt, <span class="hljs-type">uint64_t</span> now_ms)</span> </span>&#123;<br>        history_[pkt.sequence_number] = &#123;pkt, now_ms&#125;;<br>        <span class="hljs-built_in">Cleanup</span>(now_ms);<br>    &#125;<br><br>    <span class="hljs-function">std::optional&lt;RtpPacket&gt; <span class="hljs-title">Find</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> seq)</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">auto</span> it = history_.<span class="hljs-built_in">find</span>(seq);<br>        <span class="hljs-keyword">if</span> (it == history_.<span class="hljs-built_in">end</span>()) &#123;<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>        &#125;<br>        <span class="hljs-keyword">return</span> it-&gt;second.packet;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">Entry</span> &#123;<br>        RtpPacket packet;<br>        <span class="hljs-type">uint64_t</span> store_time_ms;<br>    &#125;;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">Cleanup</span><span class="hljs-params">(<span class="hljs-type">uint64_t</span> now_ms)</span> </span>&#123;<br>        <span class="hljs-type">const</span> <span class="hljs-type">uint64_t</span> kMaxAgeMs = <span class="hljs-number">1000</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">auto</span> it = history_.<span class="hljs-built_in">begin</span>(); it != history_.<span class="hljs-built_in">end</span>(); ) &#123;<br>            <span class="hljs-keyword">if</span> (now_ms - it-&gt;second.store_time_ms &gt; kMaxAgeMs) &#123;<br>                it = history_.<span class="hljs-built_in">erase</span>(it);<br>            &#125; <span class="hljs-keyword">else</span> &#123;<br>                ++it;<br>            &#125;<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::map&lt;<span class="hljs-type">uint16_t</span>, Entry&gt; history_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这里的关键工程含义"><a href="#这里的关键工程含义" class="headerlink" title="这里的关键工程含义"></a>这里的关键工程含义</h2><h3 id="为什么不能无限缓存"><a href="#为什么不能无限缓存" class="headerlink" title="为什么不能无限缓存"></a>为什么不能无限缓存</h3><p>因为：</p>
+<ul>
+<li>内存不是无限的</li>
+<li>太老的包即使补回去，也未必还有意义</li>
+<li>实时系统不值得为了极晚的恢复一直背历史包袱</li>
+</ul>
+<p>所以通常要有一个：</p>
+<p><strong>按时延预算决定的重传缓存窗口。</strong></p>
+<hr>
+<h1 id="十二、第五段核心代码：发送端收到-NACK-之后怎么重传"><a href="#十二、第五段核心代码：发送端收到-NACK-之后怎么重传" class="headerlink" title="十二、第五段核心代码：发送端收到 NACK 之后怎么重传"></a>十二、第五段核心代码：发送端收到 NACK 之后怎么重传</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">VideoSender</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnEncodedPacket</span><span class="hljs-params">(<span class="hljs-type">const</span> RtpPacket&amp; pkt, <span class="hljs-type">uint64_t</span> now_ms)</span> </span>&#123;<br>        retrans_buffer_.<span class="hljs-built_in">Store</span>(pkt, now_ms);<br>        <span class="hljs-built_in">SendRtp</span>(pkt);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnNackReceived</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;<span class="hljs-type">uint16_t</span>&gt;&amp; lost_seq)</span> </span>&#123;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">uint16_t</span> seq : lost_seq) &#123;<br>            <span class="hljs-keyword">auto</span> pkt = retrans_buffer_.<span class="hljs-built_in">Find</span>(seq);<br>            <span class="hljs-keyword">if</span> (!pkt.<span class="hljs-built_in">has_value</span>()) <span class="hljs-keyword">continue</span>;<br><br>            RtpPacket rtx = <span class="hljs-built_in">BuildRetransmissionPacket</span>(pkt.<span class="hljs-built_in">value</span>());<br>            <span class="hljs-built_in">SendRtp</span>(rtx);<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function">RtpPacket <span class="hljs-title">BuildRetransmissionPacket</span><span class="hljs-params">(<span class="hljs-type">const</span> RtpPacket&amp; original)</span> </span>&#123;<br>        RtpPacket rtx = original;<br>        rtx.is_retransmission = <span class="hljs-literal">true</span>;<br>        <span class="hljs-keyword">return</span> rtx;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    RetransmissionBuffer retrans_buffer_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码最关键的点"><a href="#这段代码最关键的点" class="headerlink" title="这段代码最关键的点"></a>这段代码最关键的点</h2><p>你要看到的是：</p>
+<p><strong>NACK 的价值完全建立在发送端“还留着旧包”且“还能快速再发一次”之上。</strong></p>
+<p>这也是为什么高 RTT 场景下，NACK 有时就会开始变得不划算。</p>
+<p>因为等你补回来，解码时机可能已经过了。</p>
+<hr>
+<h1 id="十三、第六段核心代码：什么时候该从-NACK-升级到-PLI"><a href="#十三、第六段核心代码：什么时候该从-NACK-升级到-PLI" class="headerlink" title="十三、第六段核心代码：什么时候该从 NACK 升级到 PLI"></a>十三、第六段核心代码：什么时候该从 NACK 升级到 PLI</h1><p>这是特别有工程味的一段。</p>
+<p>因为系统不可能永远执着于“再补一次试试”。</p>
+<p>如果参考链路已经坏了，继续 NACK 可能只是浪费时间。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">FrameRecoveryController</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnNackTimeout</span><span class="hljs-params">(<span class="hljs-type">uint16_t</span> seq)</span> </span>&#123;<br>        ++consecutive_failed_repairs_;<br>        <span class="hljs-keyword">if</span> (consecutive_failed_repairs_ &gt;= <span class="hljs-number">3</span>) &#123;<br>            need_pli_ = <span class="hljs-literal">true</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnDecoderReferenceBroken</span><span class="hljs-params">()</span> </span>&#123;<br>        need_pli_ = <span class="hljs-literal">true</span>;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnKeyFrameReceived</span><span class="hljs-params">()</span> </span>&#123;<br>        need_pli_ = <span class="hljs-literal">false</span>;<br>        consecutive_failed_repairs_ = <span class="hljs-number">0</span>;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-type">bool</span> <span class="hljs-title">ShouldSendPli</span><span class="hljs-params">()</span> <span class="hljs-type">const</span> </span>&#123;<br>        <span class="hljs-keyword">return</span> need_pli_;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-type">int</span> consecutive_failed_repairs_ = <span class="hljs-number">0</span>;<br>    <span class="hljs-type">bool</span> need_pli_ = <span class="hljs-literal">false</span>;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这里体现的工程判断"><a href="#这里体现的工程判断" class="headerlink" title="这里体现的工程判断"></a>这里体现的工程判断</h2><h3 id="什么情况适合发-PLI"><a href="#什么情况适合发-PLI" class="headerlink" title="什么情况适合发 PLI"></a>什么情况适合发 PLI</h3><ul>
+<li>某些关键包一直补不到</li>
+<li>解码器已经明确报告参考损坏</li>
+<li>花屏 &#x2F; 马赛克已经持续</li>
+<li>新用户刚加入但缺少可解码关键基线</li>
+</ul>
+<p>也就是说，PLI 更像一句：</p>
+<p><strong>别补零件了，直接给我一块新的底板。</strong></p>
+<hr>
+<h1 id="十四、第七段核心代码：PLI-发送与关键帧触发流程怎么组织"><a href="#十四、第七段核心代码：PLI-发送与关键帧触发流程怎么组织" class="headerlink" title="十四、第七段核心代码：PLI 发送与关键帧触发流程怎么组织"></a>十四、第七段核心代码：PLI 发送与关键帧触发流程怎么组织</h1><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">ReceiverControlLogic</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">PeriodicControl</span><span class="hljs-params">()</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (recovery_ctrl_.<span class="hljs-built_in">ShouldSendPli</span>()) &#123;<br>            rtcp_sender_.<span class="hljs-built_in">SendPli</span>();<br>        &#125;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    FrameRecoveryController recovery_ctrl_;<br>    RtcpSender rtcp_sender_;<br>&#125;;<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">SenderControlLogic</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">OnPliReceived</span><span class="hljs-params">()</span> </span>&#123;<br>        encoder_.<span class="hljs-built_in">RequestKeyFrame</span>();<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    VideoEncoder encoder_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码很短，但意义很大"><a href="#这段代码很短，但意义很大" class="headerlink" title="这段代码很短，但意义很大"></a>这段代码很短，但意义很大</h2><p>它说明：</p>
+<ul>
+<li>接收端不是自己生成关键帧</li>
+<li>它只能通过反馈告诉发送端：赶紧刷新参考链</li>
+<li>真正产生关键帧的是发送端编码器</li>
+</ul>
+<p>这就是控制面和媒体面的分工。</p>
+<hr>
+<h1 id="十五、第八段核心代码：FEC-的最小直觉实现骨架"><a href="#十五、第八段核心代码：FEC-的最小直觉实现骨架" class="headerlink" title="十五、第八段核心代码：FEC 的最小直觉实现骨架"></a>十五、第八段核心代码：FEC 的最小直觉实现骨架</h1><p>FEC 真要完整展开会很深，但这篇里我先给你一个<strong>最小直觉版</strong>，重点是让你理解它怎么工作。</p>
+<p>假设我们做一种非常简化的异或保护：</p>
+<ul>
+<li>每 4 个媒体包</li>
+<li>生成 1 个 parity 包</li>
+<li>如果恰好丢 1 个，可以用其他包 + parity 包恢复</li>
+</ul>
+<h2 id="15-1-发送端生成简化-FEC"><a href="#15-1-发送端生成简化-FEC" class="headerlink" title="15.1 发送端生成简化 FEC"></a>15.1 发送端生成简化 FEC</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">SimpleFecEncoder</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">std::optional&lt;RtpPacket&gt; <span class="hljs-title">AddMediaPacket</span><span class="hljs-params">(<span class="hljs-type">const</span> RtpPacket&amp; pkt)</span> </span>&#123;<br>        group_.<span class="hljs-built_in">push_back</span>(pkt);<br>        <span class="hljs-keyword">if</span> (group_.<span class="hljs-built_in">size</span>() &lt; <span class="hljs-number">4</span>) &#123;<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>        &#125;<br><br>        RtpPacket fec = <span class="hljs-built_in">BuildParityPacket</span>(group_);<br>        group_.<span class="hljs-built_in">clear</span>();<br>        <span class="hljs-keyword">return</span> fec;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    <span class="hljs-function">RtpPacket <span class="hljs-title">BuildParityPacket</span><span class="hljs-params">(<span class="hljs-type">const</span> std::vector&lt;RtpPacket&gt;&amp; group)</span> </span>&#123;<br>        RtpPacket parity;<br>        parity.is_fec = <span class="hljs-literal">true</span>;<br><br>        <span class="hljs-type">size_t</span> max_size = <span class="hljs-number">0</span>;<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt : group) &#123;<br>            max_size = std::<span class="hljs-built_in">max</span>(max_size, pkt.payload.<span class="hljs-built_in">size</span>());<br>        &#125;<br>        parity.payload.<span class="hljs-built_in">resize</span>(max_size, <span class="hljs-number">0</span>);<br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt : group) &#123;<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; pkt.payload.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>                parity.payload[i] ^= pkt.payload[i];<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> parity;<br>    &#125;<br><br><span class="hljs-keyword">private</span>:<br>    std::vector&lt;RtpPacket&gt; group_;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="15-2-接收端尝试恢复"><a href="#15-2-接收端尝试恢复" class="headerlink" title="15.2 接收端尝试恢复"></a>15.2 接收端尝试恢复</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">class</span> <span class="hljs-title class_">SimpleFecDecoder</span> &#123;<br><span class="hljs-keyword">public</span>:<br>    <span class="hljs-function">std::optional&lt;RtpPacket&gt; <span class="hljs-title">RecoverOneLost</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">        <span class="hljs-type">const</span> std::vector&lt;std::optional&lt;RtpPacket&gt;&gt;&amp; media_group,</span></span><br><span class="hljs-params"><span class="hljs-function">        <span class="hljs-type">const</span> RtpPacket&amp; fec_pkt)</span> </span>&#123;<br><br>        <span class="hljs-type">int</span> lost_index = <span class="hljs-number">-1</span>;<br>        <span class="hljs-type">int</span> lost_count = <span class="hljs-number">0</span>;<br>        <span class="hljs-type">size_t</span> max_size = fec_pkt.payload.<span class="hljs-built_in">size</span>();<br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">int</span>&gt;(media_group.<span class="hljs-built_in">size</span>()); ++i) &#123;<br>            <span class="hljs-keyword">if</span> (!media_group[i].<span class="hljs-built_in">has_value</span>()) &#123;<br>                lost_index = i;<br>                ++lost_count;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-keyword">if</span> (lost_count != <span class="hljs-number">1</span>) &#123;<br>            <span class="hljs-keyword">return</span> std::<span class="hljs-literal">nullopt</span>;<br>        &#125;<br><br>        RtpPacket recovered;<br>        recovered.payload = fec_pkt.payload;<br><br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt_opt : media_group) &#123;<br>            <span class="hljs-keyword">if</span> (!pkt_opt.<span class="hljs-built_in">has_value</span>()) <span class="hljs-keyword">continue</span>;<br>            <span class="hljs-type">const</span> <span class="hljs-keyword">auto</span>&amp; pkt = pkt_opt.<span class="hljs-built_in">value</span>();<br>            <span class="hljs-keyword">for</span> (<span class="hljs-type">size_t</span> i = <span class="hljs-number">0</span>; i &lt; pkt.payload.<span class="hljs-built_in">size</span>(); ++i) &#123;<br>                recovered.payload[i] ^= pkt.payload[i];<br>            &#125;<br>        &#125;<br>        <span class="hljs-keyword">return</span> recovered;<br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段-FEC-代码最该看懂什么"><a href="#这段-FEC-代码最该看懂什么" class="headerlink" title="这段 FEC 代码最该看懂什么"></a>这段 FEC 代码最该看懂什么</h2><p>不是异或细节本身，而是它背后的思路：</p>
+<ul>
+<li>冗余不是等丢了才要</li>
+<li>是在发送时提前埋进去</li>
+<li>这样接收端有机会不等重传就本地恢复</li>
+</ul>
+<p>当然真实 FEC 会复杂很多，但这个骨架已经足够把核心直觉立起来。</p>
+<hr>
+<h1 id="十六、一张时序图看懂-NACK、PLI、FEC-三种恢复路径的区别"><a href="#十六、一张时序图看懂-NACK、PLI、FEC-三种恢复路径的区别" class="headerlink" title="十六、一张时序图看懂 NACK、PLI、FEC 三种恢复路径的区别"></a>十六、一张时序图看懂 NACK、PLI、FEC 三种恢复路径的区别</h1><pre><code class=" mermaid">sequenceDiagram
+    participant S as Sender
+    participant N as Network
+    participant R as Receiver
+
+    S-&gt;&gt;N: media packets
+    S-&gt;&gt;N: optional FEC packets
+    N-&gt;&gt;R: packets with some loss
+
+    alt FEC can recover
+        R-&gt;&gt;R: local recovery from redundancy
+    else Small loss and still in time
+        R-&gt;&gt;S: RTCP NACK
+        S-&gt;&gt;R: retransmission packet
+    else Reference chain broken
+        R-&gt;&gt;S: RTCP PLI
+        S-&gt;&gt;R: next key frame
+    end
+</code></pre>
+
+<p>这张图可以帮你直接抓住三条恢复路径：</p>
+<ul>
+<li><strong>FEC</strong>：本地先救</li>
+<li><strong>NACK</strong>：请求补洞</li>
+<li><strong>PLI</strong>：请求重建基线</li>
+</ul>
+<hr>
+<h1 id="十七、为什么三者不能互相完全替代"><a href="#十七、为什么三者不能互相完全替代" class="headerlink" title="十七、为什么三者不能互相完全替代"></a>十七、为什么三者不能互相完全替代</h1><p>这个问题非常重要。</p>
+<h2 id="17-1-为什么不能只靠-NACK"><a href="#17-1-为什么不能只靠-NACK" class="headerlink" title="17.1 为什么不能只靠 NACK"></a>17.1 为什么不能只靠 NACK</h2><p>因为：</p>
+<ul>
+<li>RTT 大时补回来太慢</li>
+<li>连续丢包时补洞效率会变差</li>
+<li>某些关键参考一旦错过，后面即使补回来也未必赶得上解码时序</li>
+</ul>
+<h2 id="17-2-为什么不能只靠-PLI"><a href="#17-2-为什么不能只靠-PLI" class="headerlink" title="17.2 为什么不能只靠 PLI"></a>17.2 为什么不能只靠 PLI</h2><p>因为：</p>
+<ul>
+<li>关键帧通常更大</li>
+<li>频繁请求关键帧会显著拉高码率和瞬时压力</li>
+<li>小范围丢包不值得动不动就“重开一局”</li>
+</ul>
+<h2 id="17-3-为什么不能只靠-FEC"><a href="#17-3-为什么不能只靠-FEC" class="headerlink" title="17.3 为什么不能只靠 FEC"></a>17.3 为什么不能只靠 FEC</h2><p>因为：</p>
+<ul>
+<li>冗余要额外吃带宽</li>
+<li>冗余不是无限强</li>
+<li>丢包模式复杂时未必恢复得了</li>
+<li>对带宽本就紧张的场景，FEC 比例不能乱加</li>
+</ul>
+<p>所以真实系统常见的思路往往是：</p>
+<p><strong>FEC 抵挡一部分即时小损失，NACK 补可来得及的缺口，PLI 负责在参考链断了之后快速重建。</strong></p>
+<hr>
+<h1 id="十八、一个更像真实系统的恢复策略图"><a href="#十八、一个更像真实系统的恢复策略图" class="headerlink" title="十八、一个更像真实系统的恢复策略图"></a>十八、一个更像真实系统的恢复策略图</h1><pre><code class=" mermaid">flowchart TD
+    A[接收端发现丢包] --&gt; B&#123;丢包规模小且时延允许?&#125;
+    B -- 是 --&gt; C[发NACK请求重传]
+    B -- 否 --&gt; D&#123;FEC能本地恢复?&#125;
+    D -- 是 --&gt; E[FEC恢复]
+    D -- 否 --&gt; F&#123;参考链是否已损坏?&#125;
+    F -- 是 --&gt; G[发PLI请求关键帧]
+    F -- 否 --&gt; H[继续观察/局部跳过]
+</code></pre>
+
+<p>这张图不是某个标准规定，而是一个很实用的工程脑图。</p>
+<p>它提醒你：</p>
+<p><strong>恢复策略的核心不是“谁最高级”，而是“现在最划算的补救动作是什么”。</strong></p>
+<hr>
+<h1 id="十九、最后给一句更像工程师的话：丢包恢复不是追求“全部救回”，而是追求“在时延预算内把体验尽量救回来”"><a href="#十九、最后给一句更像工程师的话：丢包恢复不是追求“全部救回”，而是追求“在时延预算内把体验尽量救回来”" class="headerlink" title="十九、最后给一句更像工程师的话：丢包恢复不是追求“全部救回”，而是追求“在时延预算内把体验尽量救回来”"></a>十九、最后给一句更像工程师的话：丢包恢复不是追求“全部救回”，而是追求“在时延预算内把体验尽量救回来”</h1><p>写到这里，最想落下的一句话其实是：</p>
+<p><strong>实时音视频里的丢包恢复，不是追求每个包都完美拿回来，而是在有限时延预算内，把可交流体验尽量拉回来。</strong></p>
+<p>这是特别工程化的理解。</p>
+<p>因为如果你把目标错设成：</p>
+<ul>
+<li>每个丢包都必须补到</li>
+</ul>
+<p>那系统很容易走向：</p>
+<ul>
+<li>过度等待</li>
+<li>重传过多</li>
+<li>关键帧过频</li>
+<li>额外带宽被挤爆</li>
+<li>延迟越来越高</li>
+</ul>
+<p>而如果你把目标设成：</p>
+<ul>
+<li>小损失尽量本地修或快速补</li>
+<li>参考坏了尽快重建</li>
+<li>带宽紧张时别过度加冗余</li>
+<li>整体以体验连续性优先</li>
+</ul>
+<p>那这三种机制就会各自回到更合理的位置。</p>
+<p>所以真正成熟的实时系统，考虑的不是：</p>
+<ul>
+<li>“包有没有百分百救回”</li>
+</ul>
+<p>而是：</p>
+<ul>
+<li>“用户现在还能不能顺畅交流”</li>
+</ul>
+<p>这才是更像工程师的最终指标。</p>
+<hr>
+<h1 id="二十、总结"><a href="#二十、总结" class="headerlink" title="二十、总结"></a>二十、总结</h1><p>最后把这篇收成几句话。</p>
+<h2 id="1-NACK、PLI、FEC-是三种不同时间尺度和代价模型下的恢复手段"><a href="#1-NACK、PLI、FEC-是三种不同时间尺度和代价模型下的恢复手段" class="headerlink" title="1. NACK、PLI、FEC 是三种不同时间尺度和代价模型下的恢复手段"></a>1. NACK、PLI、FEC 是三种不同时间尺度和代价模型下的恢复手段</h2><ul>
+<li>NACK：适合快速补小洞</li>
+<li>PLI：适合重建已损坏的参考链</li>
+<li>FEC：适合提前带保险，减少对重传时延的依赖</li>
+</ul>
+<h2 id="2-丢包恢复不是某个点的工作，而是发送端、接收端、反馈控制和解码链路一起协同"><a href="#2-丢包恢复不是某个点的工作，而是发送端、接收端、反馈控制和解码链路一起协同" class="headerlink" title="2. 丢包恢复不是某个点的工作，而是发送端、接收端、反馈控制和解码链路一起协同"></a>2. 丢包恢复不是某个点的工作，而是发送端、接收端、反馈控制和解码链路一起协同</h2><p>这也是为什么它天然是系统问题。</p>
+<h2 id="3-核心代码最该看的是系统骨架"><a href="#3-核心代码最该看的是系统骨架" class="headerlink" title="3. 核心代码最该看的是系统骨架"></a>3. 核心代码最该看的是系统骨架</h2><p>包括：</p>
+<ul>
+<li>丢包检测</li>
+<li>NACK 生成</li>
+<li>重传缓存</li>
+<li>PLI 触发</li>
+<li>FEC 编码与恢复</li>
+</ul>
+<h2 id="4-三者不能互相完全替代"><a href="#4-三者不能互相完全替代" class="headerlink" title="4. 三者不能互相完全替代"></a>4. 三者不能互相完全替代</h2><p>真正成熟的系统通常是组合使用，而不是押宝单一机制。</p>
+<h2 id="5-最终目标不是把每个包都救回来，而是在时延预算内把体验尽量救回来"><a href="#5-最终目标不是把每个包都救回来，而是在时延预算内把体验尽量救回来" class="headerlink" title="5. 最终目标不是把每个包都救回来，而是在时延预算内把体验尽量救回来"></a>5. 最终目标不是把每个包都救回来，而是在时延预算内把体验尽量救回来</h2><p>这才是实时音视频里真正合理的恢复目标。</p>
+<p>如果你愿意，下一篇我建议直接接：</p>
+<p><strong>《关键帧为什么又贵又重要：I 帧、IDR、GOP 与实时视频恢复链路的真实关系》</strong></p>
+<p>这篇可以把你前面写过的 I&#x2F;P&#x2F;B、GOP、PLI、关键帧请求这些东西，再真正并成一条更强的工程主线，而且我也会继续放代码。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/WebRTC/" class="print-no-link">#WebRTC</a>
+      
+        <a href="/tags/NACK/" class="print-no-link">#NACK</a>
+      
+        <a href="/tags/PLI/" class="print-no-link">#PLI</a>
+      
+        <a href="/tags/FEC/" class="print-no-link">#FEC</a>
+      
+        <a href="/tags/RTP/" class="print-no-link">#RTP</a>
+      
+        <a href="/tags/RTCP/" class="print-no-link">#RTCP</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救</div>
+      <div>https://breaker505.github.io/2026/05/01/nack-pli-fec-how-realtime-media-recovers-from-loss/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月1日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/02/aac-from-pcm-to-compressed-audio-in-av-systems/" title="AAC 在音视频工程中的位置：从 PCM 到压缩音频的主线理解">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">AAC 在音视频工程中的位置：从 PCM 到压缩音频的主线理解</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/01/webrtc-bandwidth-estimation-and-congestion-control/" title="带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探">
+                        <span class="hidden-mobile">带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

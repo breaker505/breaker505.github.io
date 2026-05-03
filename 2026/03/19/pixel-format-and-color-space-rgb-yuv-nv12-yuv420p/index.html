@@ -1,0 +1,1297 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么像素格式和色彩空间总让人越学越乱只要开始接触音视频、Camera、FFmpeg、OpenCV、编码器或者渲染链路，几乎很快就会碰到这几个词：  RGB YUV NV12 YUV420P 色彩空间 像素格式  很多人最开始都会把它们混成一团。 典型表现是：  把 RGB &#x2F; YUV 当成“文件格式” 把 NV12 &#x2F; YUV420P 当成“色彩空间” 知道它们都和图像">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P">
+<meta property="og:url" content="https://breaker505.github.io/2026/03/19/pixel-format-and-color-space-rgb-yuv-nv12-yuv420p/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么像素格式和色彩空间总让人越学越乱只要开始接触音视频、Camera、FFmpeg、OpenCV、编码器或者渲染链路，几乎很快就会碰到这几个词：  RGB YUV NV12 YUV420P 色彩空间 像素格式  很多人最开始都会把它们混成一团。 典型表现是：  把 RGB &#x2F; YUV 当成“文件格式” 把 NV12 &#x2F; YUV420P 当成“色彩空间” 知道它们都和图像">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-19T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.769Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="图像处理">
+<meta property="article:tag" content="OpenCV">
+<meta property="article:tag" content="像素格式">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-03-19 08:00" pubdate>
+          2026年3月19日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          71 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么像素格式和色彩空间总让人越学越乱"><a href="#前言：为什么像素格式和色彩空间总让人越学越乱" class="headerlink" title="前言：为什么像素格式和色彩空间总让人越学越乱"></a>前言：为什么像素格式和色彩空间总让人越学越乱</h1><p>只要开始接触音视频、Camera、FFmpeg、OpenCV、编码器或者渲染链路，几乎很快就会碰到这几个词：</p>
+<ul>
+<li>RGB</li>
+<li>YUV</li>
+<li>NV12</li>
+<li>YUV420P</li>
+<li>色彩空间</li>
+<li>像素格式</li>
+</ul>
+<p>很多人最开始都会把它们混成一团。</p>
+<p>典型表现是：</p>
+<ul>
+<li>把 RGB &#x2F; YUV 当成“文件格式”</li>
+<li>把 NV12 &#x2F; YUV420P 当成“色彩空间”</li>
+<li>知道它们都和图像有关，但不知道差别到底在哪</li>
+<li>碰到 FFmpeg、OpenCV、编码器之间格式不匹配时，只能靠试</li>
+<li>明明图能显示出来，但颜色不对、画面发绿、发紫、偏灰，又说不清是哪层出了问题</li>
+</ul>
+<p>我觉得这里最容易乱的根本原因，不是你记性不好，而是很多资料一上来就把两个层次混着讲：</p>
+<ol>
+<li><strong>颜色怎么表达</strong></li>
+<li><strong>数据怎么存放</strong></li>
+</ol>
+<p>前者更接近“色彩空间”或颜色表示方式，后者更接近“像素格式”或内存布局方式。</p>
+<p>而工程里你真正会频繁碰到的问题，往往正是这两层交叉造成的。</p>
+<p>所以这篇文章的目标，就是先把这两个层次拆开，再把它们重新串起来。</p>
+<p>重点讲清下面这些问题：</p>
+<ul>
+<li>RGB 和 YUV 到底分别在表达什么</li>
+<li>为什么视频系统更偏爱 YUV</li>
+<li>NV12 和 YUV420P 到底是什么关系</li>
+<li>什么叫 planar，什么叫 packed</li>
+<li>为什么 FFmpeg、OpenCV、Camera、编码器总在格式上“打架”</li>
+<li>工程里该怎么判断当前数据到底是什么</li>
+</ul>
+<p>而且这篇我会尽量按工程思维来写，多放结构图、内存图和代码，不只停在概念层。</p>
+<hr>
+<h1 id="一、先给结论：RGB-YUV-解决的是“颜色表达”，NV12-YUV420P-解决的是“数据存放”"><a href="#一、先给结论：RGB-YUV-解决的是“颜色表达”，NV12-YUV420P-解决的是“数据存放”" class="headerlink" title="一、先给结论：RGB &#x2F; YUV 解决的是“颜色表达”，NV12 &#x2F; YUV420P 解决的是“数据存放”"></a>一、先给结论：RGB &#x2F; YUV 解决的是“颜色表达”，NV12 &#x2F; YUV420P 解决的是“数据存放”</h1><p>如果你现在只想先记住一句最重要的话，那就是：</p>
+<p><strong>RGB &#x2F; YUV 更像是在讲颜色信息怎么表达，而 NV12 &#x2F; YUV420P 更像是在讲这些数据在内存里怎么排。</strong></p>
+<p>这句话可以直接帮你把很多混乱先切开。</p>
+<p>也就是说：</p>
+<ul>
+<li><strong>RGB &#x2F; YUV</strong>，更偏“颜色模型 &#x2F; 颜色表示方式”</li>
+<li><strong>NV12 &#x2F; YUV420P</strong>，更偏“像素格式 &#x2F; 采样方式 &#x2F; 内存布局”</li>
+</ul>
+<p>当然工程里它们不会完全彼此独立，因为一旦你选择了某种颜色表示方式，后面通常会对应某种具体的像素格式。</p>
+<p>但先把这两层区分开，是理解后面全部内容的关键。</p>
+<hr>
+<h1 id="二、先看全局：一张图把几个概念的位置放清楚"><a href="#二、先看全局：一张图把几个概念的位置放清楚" class="headerlink" title="二、先看全局：一张图把几个概念的位置放清楚"></a>二、先看全局：一张图把几个概念的位置放清楚</h1><p>先上总图。</p>
+<pre><code class=" mermaid">flowchart TD
+    A[图像颜色信息] --&gt; B[颜色表示方式]
+    B --&gt; C1[RGB]
+    B --&gt; C2[YUV / YCbCr]
+
+    C2 --&gt; D[采样方式]
+    D --&gt; D1[4:4:4]
+    D --&gt; D2[4:2:2]
+    D --&gt; D3[4:2:0]
+
+    D3 --&gt; E[具体像素格式]
+    E --&gt; E1[YUV420P]
+    E --&gt; E2[NV12]
+    E --&gt; E3[NV21]
+
+    C1 --&gt; F[RGB像素格式]
+    F --&gt; F1[RGB24]
+    F --&gt; F2[BGR24]
+    F --&gt; F3[RGBA]
+</code></pre>
+
+<p>这张图最想表达的是：</p>
+<ol>
+<li>先有颜色信息要表达  </li>
+<li>然后有 RGB &#x2F; YUV 这类表达方式  </li>
+<li>如果走 YUV 路线，还会继续涉及采样方式  </li>
+<li>采样方式再进一步落成具体像素格式</li>
+</ol>
+<p>所以你以后再看到一个格式时，可以先问自己：</p>
+<blockquote>
+<p>它是在讲颜色怎么表示，还是在讲数据怎么存？</p>
+</blockquote>
+<p>这一步就能过滤掉很多混乱。</p>
+<hr>
+<h1 id="三、RGB-到底是什么，它为什么直观但不一定适合视频系统"><a href="#三、RGB-到底是什么，它为什么直观但不一定适合视频系统" class="headerlink" title="三、RGB 到底是什么，它为什么直观但不一定适合视频系统"></a>三、RGB 到底是什么，它为什么直观但不一定适合视频系统</h1><h2 id="3-1-RGB-的本质"><a href="#3-1-RGB-的本质" class="headerlink" title="3.1 RGB 的本质"></a>3.1 RGB 的本质</h2><p>RGB 是最直观的一种颜色表示方式。</p>
+<p>它的核心思想非常简单：</p>
+<p><strong>用红、绿、蓝三个通道的强度组合，表达一个像素的颜色。</strong></p>
+<p>比如一个像素可以表示成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs text">R = 255, G = 0, B = 0   -&gt; 红色<br>R = 0,   G = 255, B = 0 -&gt; 绿色<br>R = 0,   G = 0, B = 255 -&gt; 蓝色<br>R = 255, G = 255, B = 255 -&gt; 白色<br></code></pre></td></tr></table></figure>
+
+<p>从人类直觉上看，这很好理解。</p>
+<h2 id="3-2-RGB-为什么适合显示，却不总适合视频编码"><a href="#3-2-RGB-为什么适合显示，却不总适合视频编码" class="headerlink" title="3.2 RGB 为什么适合显示，却不总适合视频编码"></a>3.2 RGB 为什么适合显示，却不总适合视频编码</h2><p>因为 RGB 的优点是：</p>
+<ul>
+<li>直观</li>
+<li>适合显示设备理解</li>
+<li>很多图形接口和图像处理库天然支持</li>
+</ul>
+<p>但它的问题也很明显：</p>
+<ul>
+<li>数据量大</li>
+<li>不方便利用视觉冗余</li>
+<li>对视频压缩不够友好</li>
+</ul>
+<p>视频系统往往更关心：</p>
+<ul>
+<li>带宽</li>
+<li>存储</li>
+<li>压缩效率</li>
+<li>传输成本</li>
+</ul>
+<p>所以虽然显示端很喜欢 RGB，但编码和传输链路通常更偏爱 YUV。</p>
+<hr>
+<h1 id="四、YUV-到底是什么，它和-RGB-的根本差别在哪"><a href="#四、YUV-到底是什么，它和-RGB-的根本差别在哪" class="headerlink" title="四、YUV 到底是什么，它和 RGB 的根本差别在哪"></a>四、YUV 到底是什么，它和 RGB 的根本差别在哪</h1><h2 id="4-1-YUV-的核心思想"><a href="#4-1-YUV-的核心思想" class="headerlink" title="4.1 YUV 的核心思想"></a>4.1 YUV 的核心思想</h2><p>YUV 的直觉理解可以先抓住一句话：</p>
+<p><strong>它把亮度信息和色度信息拆开了。</strong></p>
+<p>通常可以粗略理解成：</p>
+<ul>
+<li><strong>Y</strong>：亮度信息</li>
+<li><strong>U &#x2F; V</strong>：色度信息</li>
+</ul>
+<p>在更严格的数字视频语境里，很多时候更准确的说法其实是 <strong>YCbCr</strong>，但工程沟通里大家经常仍然习惯说 YUV。为了不把文章讲得太绕，这里我们先沿用工程上更常见的叫法。</p>
+<h2 id="4-2-为什么把亮度和色度拆开很重要"><a href="#4-2-为什么把亮度和色度拆开很重要" class="headerlink" title="4.2 为什么把亮度和色度拆开很重要"></a>4.2 为什么把亮度和色度拆开很重要</h2><p>因为人眼对亮度变化更敏感，对色彩细节没那么敏感。</p>
+<p>这意味着：</p>
+<ul>
+<li>亮度信息要尽量保住</li>
+<li>色度信息可以适当降低采样精度</li>
+</ul>
+<p>一旦接受这个前提，系统就可以大幅减少数据量，而主观视觉效果又不至于差太多。</p>
+<p>这也是 YUV 在视频系统里特别重要的根本原因。</p>
+<h2 id="4-3-RGB-和-YUV-的角色差异"><a href="#4-3-RGB-和-YUV-的角色差异" class="headerlink" title="4.3 RGB 和 YUV 的角色差异"></a>4.3 RGB 和 YUV 的角色差异</h2><p>你可以先这样粗暴记：</p>
+<ul>
+<li><strong>RGB 更像显示友好格式</strong></li>
+<li><strong>YUV 更像压缩友好格式</strong></li>
+</ul>
+<p>这不是绝对规则，但对大多数视频工程场景来说非常有帮助。</p>
+<hr>
+<h1 id="五、一张图看懂-RGB-和-YUV-的角色差别"><a href="#五、一张图看懂-RGB-和-YUV-的角色差别" class="headerlink" title="五、一张图看懂 RGB 和 YUV 的角色差别"></a>五、一张图看懂 RGB 和 YUV 的角色差别</h1><pre><code class=" mermaid">flowchart LR
+    A[原始图像内容] --&gt; B1[RGB 路线]
+    A --&gt; B2[YUV 路线]
+
+    B1 --&gt; C1[更直观]
+    B1 --&gt; C2[更适合显示/图形系统]
+    B1 --&gt; C3[数据量相对大]
+
+    B2 --&gt; D1[亮度与色度分离]
+    B2 --&gt; D2[更适合压缩]
+    B2 --&gt; D3[更适合视频编码链路]
+</code></pre>
+
+<p>这张图虽然简单，但可以帮你建立一个很稳的直觉：</p>
+<p><strong>RGB 更偏显示侧，YUV 更偏视频侧。</strong></p>
+<p>后面你看 Camera、编码器、FFmpeg、播放器时，很多格式选择就会更容易理解。</p>
+<hr>
+<h1 id="六、为什么视频系统更偏爱-YUV，而不是-RGB"><a href="#六、为什么视频系统更偏爱-YUV，而不是-RGB" class="headerlink" title="六、为什么视频系统更偏爱 YUV，而不是 RGB"></a>六、为什么视频系统更偏爱 YUV，而不是 RGB</h1><p>这个问题很重要，因为它关系到后面所有具体格式的存在意义。</p>
+<h2 id="6-1-核心原因：YUV-更适合做色度降采样"><a href="#6-1-核心原因：YUV-更适合做色度降采样" class="headerlink" title="6.1 核心原因：YUV 更适合做色度降采样"></a>6.1 核心原因：YUV 更适合做色度降采样</h2><p>YUV 最大的工程价值之一，就是它允许：</p>
+<p><strong>在不明显伤害主观视觉的情况下，减少色度数据量。</strong></p>
+<p>这就是后面你经常看到的：</p>
+<ul>
+<li>4:4:4</li>
+<li>4:2:2</li>
+<li>4:2:0</li>
+</ul>
+<p>这些采样方式的来源。</p>
+<h2 id="6-2-亮度保得更多，色度省一点"><a href="#6-2-亮度保得更多，色度省一点" class="headerlink" title="6.2 亮度保得更多，色度省一点"></a>6.2 亮度保得更多，色度省一点</h2><p>因为人眼更关心亮度细节，所以系统通常会尽量保留 Y，而对 U&#x2F;V 做降采样。</p>
+<p>这会带来两个直接好处：</p>
+<ul>
+<li>数据量下降</li>
+<li>压缩效率更高</li>
+</ul>
+<h2 id="6-3-工程上的连锁影响"><a href="#6-3-工程上的连锁影响" class="headerlink" title="6.3 工程上的连锁影响"></a>6.3 工程上的连锁影响</h2><p>一旦视频链路主要走 YUV 路线，后面很多模块都会围绕它来设计：</p>
+<ul>
+<li>Camera 输出</li>
+<li>编码器输入</li>
+<li>FFmpeg frame 格式</li>
+<li>硬件编解码器支持</li>
+<li>显示前色彩转换</li>
+</ul>
+<p>这也是为什么很多时候你在系统里看到的是 NV12、YUV420P，而不是 RGB24。</p>
+<hr>
+<h1 id="七、4-4-4、4-2-2、4-2-0-到底在表达什么"><a href="#七、4-4-4、4-2-2、4-2-0-到底在表达什么" class="headerlink" title="七、4:4:4、4:2:2、4:2:0 到底在表达什么"></a>七、4:4:4、4:2:2、4:2:0 到底在表达什么</h1><p>这一块是很多人最容易发晕的地方。</p>
+<p>我们先不讲特别学院派的定义，先抓工程直觉。</p>
+<h2 id="7-1-它们本质上在讲什么"><a href="#7-1-它们本质上在讲什么" class="headerlink" title="7.1 它们本质上在讲什么"></a>7.1 它们本质上在讲什么</h2><p>它们描述的是：</p>
+<p><strong>亮度和色度分别采样得有多密。</strong></p>
+<p>你可以把它理解成：</p>
+<ul>
+<li>Y 通常采得更完整</li>
+<li>U&#x2F;V 视情况采得更稀疏</li>
+</ul>
+<h2 id="7-2-为什么会这样设计"><a href="#7-2-为什么会这样设计" class="headerlink" title="7.2 为什么会这样设计"></a>7.2 为什么会这样设计</h2><p>因为色度对人眼没那么敏感，所以系统可以少存一点 U&#x2F;V，换更低的数据量。</p>
+<h2 id="7-3-一张示意图先建立直觉"><a href="#7-3-一张示意图先建立直觉" class="headerlink" title="7.3 一张示意图先建立直觉"></a>7.3 一张示意图先建立直觉</h2><pre><code class=" mermaid">flowchart TD
+    A[4个像素块] --&gt; B1[4:4:4]
+    A --&gt; B2[4:2:2]
+    A --&gt; B3[4:2:0]
+
+    B1 --&gt; C1[Y完整 + U完整 + V完整]
+    B2 --&gt; C2[Y完整 + U横向减半 + V横向减半]
+    B3 --&gt; C3[Y完整 + U/V横纵都减采样]
+</code></pre>
+
+<p>这张图先不用追特别细的数学定义，你只要先记住：</p>
+<p><strong>从 4:4:4 到 4:2:0，色度信息是在逐步减少的。</strong></p>
+<p>而 4:2:0 正是视频系统里最常见的一种方案。</p>
+<hr>
+<h1 id="八、YUV420P-和-NV12-到底是什么关系"><a href="#八、YUV420P-和-NV12-到底是什么关系" class="headerlink" title="八、YUV420P 和 NV12 到底是什么关系"></a>八、YUV420P 和 NV12 到底是什么关系</h1><p>终于进入最容易在工程里出问题的地方了。</p>
+<p>很多人知道它们都很常见，也知道它们都和 YUV420 有关，但说不清差别。</p>
+<p>一句话先说结论：</p>
+<p><strong>YUV420P 和 NV12 都属于 4:2:0 路线，但它们主要差在内存布局。</strong></p>
+<p>也就是说：</p>
+<ul>
+<li>它们都在表达类似的采样思想</li>
+<li>但它们存数据的方式不一样</li>
+</ul>
+<p>这就是“像素格式”层真正开始起作用的地方。</p>
+<hr>
+<h1 id="九、YUV420P-的内存布局到底长什么样"><a href="#九、YUV420P-的内存布局到底长什么样" class="headerlink" title="九、YUV420P 的内存布局到底长什么样"></a>九、YUV420P 的内存布局到底长什么样</h1><p>YUV420P 也常被理解成一种 <strong>planar</strong> 格式。</p>
+<p>所谓 planar，就是：</p>
+<p><strong>不同分量分开放。</strong></p>
+<p>它的典型布局是：</p>
+<ul>
+<li>先放一整块 Y 平面</li>
+<li>再放一整块 U 平面</li>
+<li>最后放一整块 V 平面</li>
+</ul>
+<h2 id="9-1-结构示意图"><a href="#9-1-结构示意图" class="headerlink" title="9.1 结构示意图"></a>9.1 结构示意图</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs text">Y Y Y Y Y Y Y Y ...   &lt;- Y plane<br>U U U U ...           &lt;- U plane<br>V V V V ...           &lt;- V plane<br></code></pre></td></tr></table></figure>
+
+<h2 id="9-2-更直观一点的二维理解"><a href="#9-2-更直观一点的二维理解" class="headerlink" title="9.2 更直观一点的二维理解"></a>9.2 更直观一点的二维理解</h2><p>假设一张 4x4 图像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs text">Y plane (4x4)<br>Y00 Y01 Y02 Y03<br>Y10 Y11 Y12 Y13<br>Y20 Y21 Y22 Y23<br>Y30 Y31 Y32 Y33<br><br>U plane (2x2)<br>U00 U01<br>U10 U11<br><br>V plane (2x2)<br>V00 V01<br>V10 V11<br></code></pre></td></tr></table></figure>
+
+<p>因为是 4:2:0，所以 U 和 V 的分辨率会比 Y 更低。</p>
+<h2 id="9-3-YUV420P-的特点"><a href="#9-3-YUV420P-的特点" class="headerlink" title="9.3 YUV420P 的特点"></a>9.3 YUV420P 的特点</h2><ul>
+<li>结构清楚</li>
+<li>每个平面分开，处理时比较直观</li>
+<li>FFmpeg 里非常常见</li>
+<li>很多软件处理链路更容易直接操作</li>
+</ul>
+<hr>
+<h1 id="十、NV12-的内存布局到底长什么样"><a href="#十、NV12-的内存布局到底长什么样" class="headerlink" title="十、NV12 的内存布局到底长什么样"></a>十、NV12 的内存布局到底长什么样</h1><p>NV12 也是 4:2:0，但它不是 Y、U、V 三个平面完全分开，而是：</p>
+<ul>
+<li>先是一整块 Y 平面</li>
+<li>然后是交错存放的 UV 平面</li>
+</ul>
+<h2 id="10-1-结构示意图"><a href="#10-1-结构示意图" class="headerlink" title="10.1 结构示意图"></a>10.1 结构示意图</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">Y Y Y Y Y Y Y Y ...   &lt;- Y plane<br>U V U V U V U V ...   &lt;- interleaved UV plane<br></code></pre></td></tr></table></figure>
+
+<h2 id="10-2-二维理解"><a href="#10-2-二维理解" class="headerlink" title="10.2 二维理解"></a>10.2 二维理解</h2><p>还是用 4x4 图像举例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs text">Y plane (4x4)<br>Y00 Y01 Y02 Y03<br>Y10 Y11 Y12 Y13<br>Y20 Y21 Y22 Y23<br>Y30 Y31 Y32 Y33<br><br>UV plane (2x2 pairs)<br>U00 V00  U01 V01<br>U10 V10  U11 V11<br></code></pre></td></tr></table></figure>
+
+<p>注意这里不是单独的 U 平面和 V 平面，而是 UV 交错排在一起。</p>
+<h2 id="10-3-NV12-的特点"><a href="#10-3-NV12-的特点" class="headerlink" title="10.3 NV12 的特点"></a>10.3 NV12 的特点</h2><ul>
+<li>也是 4:2:0</li>
+<li>数据量和 YUV420P 同量级</li>
+<li>更适合很多硬件编解码和图像处理路径</li>
+<li>在 Camera &#x2F; 硬件视频链路里特别常见</li>
+</ul>
+<hr>
+<h1 id="十一、YUV420P-和-NV12-一张图看清楚差别"><a href="#十一、YUV420P-和-NV12-一张图看清楚差别" class="headerlink" title="十一、YUV420P 和 NV12 一张图看清楚差别"></a>十一、YUV420P 和 NV12 一张图看清楚差别</h1><pre><code class=" mermaid">flowchart LR
+    A[YUV420 采样思想] --&gt; B1[YUV420P]
+    A --&gt; B2[NV12]
+
+    B1 --&gt; C1[Y plane]
+    B1 --&gt; C2[U plane]
+    B1 --&gt; C3[V plane]
+
+    B2 --&gt; D1[Y plane]
+    B2 --&gt; D2[UV interleaved plane]
+</code></pre>
+
+<p>所以你以后再看到这两个格式时，最稳的理解应该是：</p>
+<ul>
+<li><strong>共同点</strong>：都属于 YUV420 路线</li>
+<li><strong>关键差别</strong>：内存布局不同</li>
+</ul>
+<p>这就是工程里很多“格式兼容”问题的根源之一。</p>
+<hr>
+<h1 id="十二、planar-和-packed-到底怎么理解"><a href="#十二、planar-和-packed-到底怎么理解" class="headerlink" title="十二、planar 和 packed 到底怎么理解"></a>十二、planar 和 packed 到底怎么理解</h1><p>这两个词在图像和视频处理中非常高频。</p>
+<h2 id="12-1-planar-是什么"><a href="#12-1-planar-是什么" class="headerlink" title="12.1 planar 是什么"></a>12.1 planar 是什么</h2><p>planar 的意思是：</p>
+<p><strong>不同通道 &#x2F; 分量分开放。</strong></p>
+<p>例如：</p>
+<ul>
+<li>Y 一整块</li>
+<li>U 一整块</li>
+<li>V 一整块</li>
+</ul>
+<p>YUV420P 就是典型的 planar 风格。</p>
+<h2 id="12-2-packed-是什么"><a href="#12-2-packed-是什么" class="headerlink" title="12.2 packed 是什么"></a>12.2 packed 是什么</h2><p>packed 的意思是：</p>
+<p><strong>同一个像素相关的数据尽量挨着放。</strong></p>
+<p>比如 RGB24 通常可以理解成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">R G B  R G B  R G B  ...<br></code></pre></td></tr></table></figure>
+
+<p>每个像素的三个分量放在一起。</p>
+<h2 id="12-3-NV12-算什么"><a href="#12-3-NV12-算什么" class="headerlink" title="12.3 NV12 算什么"></a>12.3 NV12 算什么</h2><p>NV12 介于两者之间，常被理解成一种半平面（semi-planar）结构：</p>
+<ul>
+<li>Y 单独一个 plane</li>
+<li>UV 交错作为另一个 plane</li>
+</ul>
+<p>所以它既不是像 RGB24 那种完全 packed，也不是像 YUV420P 那种三平面完全拆开。</p>
+<hr>
+<h1 id="十三、为什么-FFmpeg、OpenCV、Camera、编码器经常在像素格式上“打架”"><a href="#十三、为什么-FFmpeg、OpenCV、Camera、编码器经常在像素格式上“打架”" class="headerlink" title="十三、为什么 FFmpeg、OpenCV、Camera、编码器经常在像素格式上“打架”"></a>十三、为什么 FFmpeg、OpenCV、Camera、编码器经常在像素格式上“打架”</h1><p>这部分非常工程。</p>
+<p>因为你真正踩坑的地方，不在概念，而在模块对格式的要求经常不一致。</p>
+<h2 id="13-1-一个典型链路可能长这样"><a href="#13-1-一个典型链路可能长这样" class="headerlink" title="13.1 一个典型链路可能长这样"></a>13.1 一个典型链路可能长这样</h2><pre><code class=" mermaid">flowchart LR
+    A[Camera 输出 NV12] --&gt; B[OpenCV 处理 BGR]
+    B --&gt; C[FFmpeg 编码器要求 YUV420P]
+    C --&gt; D[显示链路可能又要 RGB / RGBA]
+</code></pre>
+
+<p>你会发现，一条链路里不同模块喜欢的数据格式可能完全不同。</p>
+<h2 id="13-2-为什么会这样"><a href="#13-2-为什么会这样" class="headerlink" title="13.2 为什么会这样"></a>13.2 为什么会这样</h2><p>因为每个模块的目标不一样：</p>
+<ul>
+<li>Camera &#x2F; 硬件链路更看重采集效率和硬件兼容</li>
+<li>OpenCV 更偏图像处理与算法接口友好</li>
+<li>编码器更偏压缩友好</li>
+<li>显示链路更偏渲染友好</li>
+</ul>
+<p>所以它们并不会天然统一成同一个格式。</p>
+<h2 id="13-3-这类问题的典型表现"><a href="#13-3-这类问题的典型表现" class="headerlink" title="13.3 这类问题的典型表现"></a>13.3 这类问题的典型表现</h2><ul>
+<li>颜色不对</li>
+<li>画面偏绿 &#x2F; 偏紫</li>
+<li>编码器初始化失败</li>
+<li>图能看但质量不对</li>
+<li>性能突然很差，因为中间做了太多转换</li>
+</ul>
+<p>所以工程里一定要有一个习惯：</p>
+<p><strong>每过一个模块，都明确当前数据格式是什么。</strong></p>
+<p>这句话看起来朴素，但非常有用。</p>
+<hr>
+<h1 id="十四、一段-FFmpeg-代码，怎么看-frame-的像素格式"><a href="#十四、一段-FFmpeg-代码，怎么看-frame-的像素格式" class="headerlink" title="十四、一段 FFmpeg 代码，怎么看 frame 的像素格式"></a>十四、一段 FFmpeg 代码，怎么看 frame 的像素格式</h1><p>先给一段非常实用的代码。</p>
+<h2 id="14-1-打印-AVFrame-的像素格式"><a href="#14-1-打印-AVFrame-的像素格式" class="headerlink" title="14.1 打印 AVFrame 的像素格式"></a>14.1 打印 <code>AVFrame</code> 的像素格式</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;libavutil/pixdesc.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;libavutil/pixfmt.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;libavutil/frame.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><br><span class="hljs-type">void</span> <span class="hljs-title function_">print_frame_pixfmt</span><span class="hljs-params">(<span class="hljs-type">const</span> AVFrame *frame)</span> &#123;<br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> *name = av_get_pix_fmt_name((<span class="hljs-keyword">enum</span> AVPixelFormat)frame-&gt;format);<br>    <span class="hljs-keyword">if</span> (name) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;frame format: %s\n&quot;</span>, name);<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;frame format: unknown (%d)\n&quot;</span>, frame-&gt;format);<br>    &#125;<br><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;width=%d, height=%d\n&quot;</span>, frame-&gt;width, frame-&gt;height);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;linesize: [%d, %d, %d, %d]\n&quot;</span>,<br>           frame-&gt;linesize[<span class="hljs-number">0</span>], frame-&gt;linesize[<span class="hljs-number">1</span>],<br>           frame-&gt;linesize[<span class="hljs-number">2</span>], frame-&gt;linesize[<span class="hljs-number">3</span>]);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>这段代码的意义不只是打印一个字符串，而是在提醒你：</p>
+<p><strong>frame 不只是“有图像”，它还有格式语义。</strong></p>
+<p>而这个格式语义，决定了你后面该怎么访问数据、怎么转换、能不能直接送编码器。</p>
+<hr>
+<h1 id="十五、一段-FFmpeg-代码，怎么做像素格式转换"><a href="#十五、一段-FFmpeg-代码，怎么做像素格式转换" class="headerlink" title="十五、一段 FFmpeg 代码，怎么做像素格式转换"></a>十五、一段 FFmpeg 代码，怎么做像素格式转换</h1><p>很多时候你拿到的 frame 格式，不是编码器或后处理模块想要的格式，这时就得转。</p>
+<p>FFmpeg 里最常见的是用 <code>libswscale</code>。</p>
+<h2 id="15-1-从一种格式转到另一种格式"><a href="#15-1-从一种格式转到另一种格式" class="headerlink" title="15.1 从一种格式转到另一种格式"></a>15.1 从一种格式转到另一种格式</h2><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;libswscale/swscale.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;libavutil/imgutils.h&gt;</span></span><br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SwsContext</span> *<span class="hljs-title">sws</span> =</span> sws_getContext(<br>    src_w, src_h, AV_PIX_FMT_NV12,<br>    dst_w, dst_h, AV_PIX_FMT_YUV420P,<br>    SWS_BILINEAR, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>, <span class="hljs-literal">NULL</span>);<br><br>AVFrame *dst = av_frame_alloc();<br>dst-&gt;format = AV_PIX_FMT_YUV420P;<br>dst-&gt;width  = dst_w;<br>dst-&gt;height = dst_h;<br>av_frame_get_buffer(dst, <span class="hljs-number">32</span>);<br><br>sws_scale(sws,<br>          (<span class="hljs-type">const</span> <span class="hljs-type">uint8_t</span> * <span class="hljs-type">const</span> *)src-&gt;data,<br>          src-&gt;linesize,<br>          <span class="hljs-number">0</span>,<br>          src_h,<br>          dst-&gt;data,<br>          dst-&gt;linesize);<br></code></pre></td></tr></table></figure>
+
+<p>这段代码非常有代表性，因为它体现了工程里一个高频现实：</p>
+<blockquote>
+<p>模块之间经常需要做格式桥接。</p>
+</blockquote>
+<p>而格式桥接的成本，不只是代码复杂度，还包括：</p>
+<ul>
+<li>CPU 开销</li>
+<li>内存带宽</li>
+<li>延迟</li>
+<li>额外 copy</li>
+</ul>
+<p>所以格式转换并不是“无害小动作”，它会直接影响性能。</p>
+<hr>
+<h1 id="十六、一段-OpenCV-代码，怎么把-YUV-数据转成-BGR-处理"><a href="#十六、一段-OpenCV-代码，怎么把-YUV-数据转成-BGR-处理" class="headerlink" title="十六、一段 OpenCV 代码，怎么把 YUV 数据转成 BGR 处理"></a>十六、一段 OpenCV 代码，怎么把 YUV 数据转成 BGR 处理</h1><p>如果你做算法或图像处理，OpenCV 这层很常见。</p>
+<h2 id="16-1-NV12-转-BGR"><a href="#16-1-NV12-转-BGR" class="headerlink" title="16.1 NV12 转 BGR"></a>16.1 NV12 转 BGR</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;opencv2/opencv.hpp&gt;</span></span><br><br><span class="hljs-type">int</span> width = <span class="hljs-number">1920</span>;<br><span class="hljs-type">int</span> height = <span class="hljs-number">1080</span>;<br><br><span class="hljs-comment">// 假设 nv12_data 指向连续的 NV12 数据缓冲区</span><br><span class="hljs-function">cv::Mat <span class="hljs-title">nv12</span><span class="hljs-params">(height * <span class="hljs-number">3</span> / <span class="hljs-number">2</span>, width, CV_8UC1, nv12_data)</span></span>;<br>cv::Mat bgr;<br>cv::<span class="hljs-built_in">cvtColor</span>(nv12, bgr, cv::COLOR_YUV2BGR_NV12);<br></code></pre></td></tr></table></figure>
+
+<h2 id="16-2-YUV420P-转-BGR"><a href="#16-2-YUV420P-转-BGR" class="headerlink" title="16.2 YUV420P 转 BGR"></a>16.2 YUV420P 转 BGR</h2><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function">cv::Mat <span class="hljs-title">yuv420p</span><span class="hljs-params">(height * <span class="hljs-number">3</span> / <span class="hljs-number">2</span>, width, CV_8UC1, yuv420p_data)</span></span>;<br>cv::Mat bgr;<br>cv::<span class="hljs-built_in">cvtColor</span>(yuv420p, bgr, cv::COLOR_YUV2BGR_I420);<br></code></pre></td></tr></table></figure>
+
+<p>这两段代码非常适合帮助建立一个现实认识：</p>
+<p><strong>同样看起来都是“YUV420”，OpenCV 转换入口也不一样，因为布局不一样。</strong></p>
+<p>这正好对应我们前面讲的：</p>
+<ul>
+<li>YUV420P 和 NV12 的采样思想接近</li>
+<li>但内存布局不同</li>
+</ul>
+<hr>
+<h1 id="十七、一张时序图看懂一帧图像在系统里为什么总要来回转格式"><a href="#十七、一张时序图看懂一帧图像在系统里为什么总要来回转格式" class="headerlink" title="十七、一张时序图看懂一帧图像在系统里为什么总要来回转格式"></a>十七、一张时序图看懂一帧图像在系统里为什么总要来回转格式</h1><p>这个现象在工程里特别常见。</p>
+<pre><code class=" mermaid">sequenceDiagram
+    participant Cam as Camera
+    participant ISP as ISP/Preprocess
+    participant Algo as OpenCV/AI
+    participant Enc as Encoder
+    participant Disp as Display
+
+    Cam-&gt;&gt;ISP: 输出 NV12 / Raw
+    ISP-&gt;&gt;Algo: 转成 BGR/RGB 便于算法处理
+    Algo-&gt;&gt;Enc: 处理后转回 YUV420/NV12
+    Enc-&gt;&gt;Disp: 解码后可能再转 RGB/RGBA 显示
+</code></pre>
+
+<p>这张时序图说明了一个很重要的工程事实：</p>
+<p><strong>很多系统不是只转换一次格式，而是在不同目标之间不断桥接。</strong></p>
+<p>而你真正要做的，不只是“把它转成功”，更要思考：</p>
+<ul>
+<li>有没有必要每次都转</li>
+<li>哪一步可以少转一次</li>
+<li>能不能走硬件路径</li>
+<li>能不能减少 copy</li>
+</ul>
+<p>这就是格式问题为什么会升级成性能问题。</p>
+<hr>
+<h1 id="十八、工程里最常见的几个坑"><a href="#十八、工程里最常见的几个坑" class="headerlink" title="十八、工程里最常见的几个坑"></a>十八、工程里最常见的几个坑</h1><p>这一块你后面大概率会频繁遇到。</p>
+<h2 id="18-1-把颜色模型和像素格式混了"><a href="#18-1-把颜色模型和像素格式混了" class="headerlink" title="18.1 把颜色模型和像素格式混了"></a>18.1 把颜色模型和像素格式混了</h2><p>比如：</p>
+<ul>
+<li>说 NV12 是一种色彩空间</li>
+<li>说 YUV420P 是一种颜色模型</li>
+</ul>
+<p>更稳的说法应该是：</p>
+<ul>
+<li>YUV 更偏颜色表示方式</li>
+<li>NV12 &#x2F; YUV420P 更偏具体像素格式和内存布局</li>
+</ul>
+<h2 id="18-2-忽略-linesize-stride"><a href="#18-2-忽略-linesize-stride" class="headerlink" title="18.2 忽略 linesize &#x2F; stride"></a>18.2 忽略 linesize &#x2F; stride</h2><p>很多人访问图像数据时直接按 <code>width * bytes_per_pixel</code> 走，结果图像错乱。</p>
+<p>因为真实内存布局里，经常存在对齐和 stride。</p>
+<p>所以工程里读 frame 数据时，一定不能忘：</p>
+<ul>
+<li><code>data[]</code></li>
+<li><code>linesize[]</code></li>
+</ul>
+<h2 id="18-3-以为“YUV420-都一样”"><a href="#18-3-以为“YUV420-都一样”" class="headerlink" title="18.3 以为“YUV420 都一样”"></a>18.3 以为“YUV420 都一样”</h2><p>不是。</p>
+<p>哪怕都叫 4:2:0，布局不同就足以让整个处理逻辑完全不同。</p>
+<h2 id="18-4-模块一多，格式语义丢了"><a href="#18-4-模块一多，格式语义丢了" class="headerlink" title="18.4 模块一多，格式语义丢了"></a>18.4 模块一多，格式语义丢了</h2><p>比如：</p>
+<ul>
+<li>Camera 给的是 NV12</li>
+<li>OpenCV 里变成 BGR</li>
+<li>编码器要 YUV420P</li>
+<li>最后显示要 RGB</li>
+</ul>
+<p>如果中间没人维护清楚“当前格式是什么”，问题迟早会出现。</p>
+<hr>
+<h1 id="十九、面试里怎么讲这件事，才不会显得很散"><a href="#十九、面试里怎么讲这件事，才不会显得很散" class="headerlink" title="十九、面试里怎么讲这件事，才不会显得很散"></a>十九、面试里怎么讲这件事，才不会显得很散</h1><p>如果面试官问你：</p>
+<blockquote>
+<p>RGB、YUV、NV12、YUV420P 你怎么理解？</p>
+</blockquote>
+<p>不建议一上来就背定义。</p>
+<p>更好的讲法应该是：</p>
+<h2 id="19-1-先分层"><a href="#19-1-先分层" class="headerlink" title="19.1 先分层"></a>19.1 先分层</h2><p>RGB 和 YUV 更偏颜色信息怎么表达，NV12 和 YUV420P 则是基于 YUV 采样思想的具体像素格式和内存布局。</p>
+<h2 id="19-2-再讲核心差别"><a href="#19-2-再讲核心差别" class="headerlink" title="19.2 再讲核心差别"></a>19.2 再讲核心差别</h2><p>RGB 更直观、偏显示友好；YUV 把亮度和色度分开，更适合视频压缩和传输。NV12 和 YUV420P 都属于 4:2:0 路线，但 YUV420P 是 Y&#x2F;U&#x2F;V 三平面分开，NV12 是 Y 平面加 UV 交错平面。</p>
+<h2 id="19-3-最后讲工程意义"><a href="#19-3-最后讲工程意义" class="headerlink" title="19.3 最后讲工程意义"></a>19.3 最后讲工程意义</h2><p>工程里这些格式差异会直接影响：</p>
+<ul>
+<li>Camera 输出</li>
+<li>OpenCV 处理</li>
+<li>FFmpeg 编码输入</li>
+<li>显示渲染链路</li>
+<li>性能和 copy 次数</li>
+</ul>
+<p>如果你能按这个顺序讲，回答会明显更像工程师，而不是只会背几个术语。</p>
+<hr>
+<h1 id="总结：理解像素格式和色彩空间，本质上是在建立图像数据的“阅读能力”"><a href="#总结：理解像素格式和色彩空间，本质上是在建立图像数据的“阅读能力”" class="headerlink" title="总结：理解像素格式和色彩空间，本质上是在建立图像数据的“阅读能力”"></a>总结：理解像素格式和色彩空间，本质上是在建立图像数据的“阅读能力”</h1><p>回到这篇文章最开始的问题：</p>
+<p><strong>RGB、YUV、NV12、YUV420P 到底该怎么系统理解？</strong></p>
+<p>我觉得最稳的主线是这样：</p>
+<ol>
+<li><strong>RGB &#x2F; YUV</strong> 先看作颜色表达方式  </li>
+<li><strong>4:4:4 &#x2F; 4:2:2 &#x2F; 4:2:0</strong> 再看作采样方式  </li>
+<li><strong>NV12 &#x2F; YUV420P</strong> 再落到具体像素格式和内存布局  </li>
+<li>工程里再进一步关注：当前数据在哪一层、当前模块希望吃什么格式、格式转换代价有多大</li>
+</ol>
+<p>如果把这条主线立住，后面很多原本容易混的东西都会突然顺起来：</p>
+<ul>
+<li>为什么 Camera 喜欢 NV12</li>
+<li>为什么编码器常见 YUV420 路线</li>
+<li>为什么 OpenCV 喜欢 BGR</li>
+<li>为什么显示前常常要转 RGB</li>
+<li>为什么格式转换会成为性能瓶颈</li>
+</ul>
+<p>所以我觉得，理解这部分内容的真正价值，不只是为了记住几个格式名字，而是为了建立一种能力：</p>
+<p><strong>看到一份图像数据时，知道它是怎么表达颜色的，又是怎么在内存里排布的。</strong></p>
+<p>这其实就是图像系统最基础的“阅读能力”。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="print-no-link">#图像处理</a>
+      
+        <a href="/tags/OpenCV/" class="print-no-link">#OpenCV</a>
+      
+        <a href="/tags/%E5%83%8F%E7%B4%A0%E6%A0%BC%E5%BC%8F/" class="print-no-link">#像素格式</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P</div>
+      <div>https://breaker505.github.io/2026/03/19/pixel-format-and-color-space-rgb-yuv-nv12-yuv420p/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年3月19日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/03/22/container-vs-bitstream-mp4-flv-ts-and-elementary-stream/" title="什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/03/16/why-video-systems-prefer-yuv/" title="为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍">
+                        <span class="hidden-mobile">为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

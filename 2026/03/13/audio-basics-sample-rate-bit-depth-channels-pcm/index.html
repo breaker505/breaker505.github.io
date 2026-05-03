@@ -1,0 +1,1230 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾做音视频的人，通常都会有一种很常见的体验：  视频那边的东西很容易“看见” 音频这边的东西却总有点“听说过，但脑子里没画面”  比如很多人对视频会比较容易形成直觉：  分辨率就是 1920x1080 帧率就是 25fps、30fps H.264&#x2F;H.265 是视频编码 I 帧、P 帧、B 帧是预测结构  这些东西相对">
+<meta property="og:type" content="article">
+<meta property="og:title" content="音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解">
+<meta property="og:url" content="https://breaker505.github.io/2026/03/13/audio-basics-sample-rate-bit-depth-channels-pcm/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾做音视频的人，通常都会有一种很常见的体验：  视频那边的东西很容易“看见” 音频这边的东西却总有点“听说过，但脑子里没画面”  比如很多人对视频会比较容易形成直觉：  分辨率就是 1920x1080 帧率就是 25fps、30fps H.264&#x2F;H.265 是视频编码 I 帧、P 帧、B 帧是预测结构  这些东西相对">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-13T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.759Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="音频">
+<meta property="article:tag" content="PCM">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="采样率">
+<meta property="article:tag" content="位宽">
+<meta property="article:tag" content="声道">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-03-13 08:00" pubdate>
+          2026年3月13日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          58 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾"><a href="#前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾" class="headerlink" title="前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾"></a>前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾</h1><p>做音视频的人，通常都会有一种很常见的体验：</p>
+<ul>
+<li>视频那边的东西很容易“看见”</li>
+<li>音频这边的东西却总有点“听说过，但脑子里没画面”</li>
+</ul>
+<p>比如很多人对视频会比较容易形成直觉：</p>
+<ul>
+<li>分辨率就是 1920x1080</li>
+<li>帧率就是 25fps、30fps</li>
+<li>H.264&#x2F;H.265 是视频编码</li>
+<li>I 帧、P 帧、B 帧是预测结构</li>
+</ul>
+<p>这些东西相对容易建立图像感。</p>
+<p>但一到音频，很多人就开始有点飘：</p>
+<ul>
+<li>44.1kHz 和 48kHz 到底差在哪</li>
+<li>16bit、24bit 到底在描述什么</li>
+<li>单声道、双声道、5.1 声道到底是“几路数据”还是“几个喇叭”</li>
+<li>PCM 为什么总被当成音频世界的地基</li>
+<li>AAC、Opus、MP3 到底是怎么从 PCM 变出来的</li>
+</ul>
+<p>最常见的问题不是完全没听过，而是：</p>
+<p><strong>这些词你都见过，但它们在系统里到底怎么串起来，脑子里并没有一个稳定的模型。</strong></p>
+<p>所以这篇文章的目标，就是把音频最底层那几块地基先打牢。</p>
+<p>重点讲清：</p>
+<ul>
+<li>什么是音频采样</li>
+<li>采样率到底在描述什么</li>
+<li>位宽到底在描述什么</li>
+<li>声道数到底在描述什么</li>
+<li>PCM 为什么几乎是理解音频系统的起点</li>
+<li>这些参数在程序里和数据流里到底怎么体现</li>
+</ul>
+<p>而且这篇继续按你强调的方式来，我会放上：</p>
+<ul>
+<li><strong>核心关键代码示例</strong></li>
+<li><strong>结构图</strong></li>
+<li><strong>流程图</strong></li>
+<li><strong>时序图</strong></li>
+</ul>
+<p>我希望这篇读完之后，你不只是能背“采样率、位宽、声道数”几个定义，而是真能把它们看成一套有结构的数据表达方式。这样后面再去看 AAC、音频播放、音画同步、WebRTC 音频链路，就会顺很多。</p>
+<hr>
+<h1 id="一、先给一句最重要的话：音频系统的核心，不是在处理“声音”这个抽象概念，而是在处理“随时间变化的一串采样数据”"><a href="#一、先给一句最重要的话：音频系统的核心，不是在处理“声音”这个抽象概念，而是在处理“随时间变化的一串采样数据”" class="headerlink" title="一、先给一句最重要的话：音频系统的核心，不是在处理“声音”这个抽象概念，而是在处理“随时间变化的一串采样数据”"></a>一、先给一句最重要的话：音频系统的核心，不是在处理“声音”这个抽象概念，而是在处理“随时间变化的一串采样数据”</h1><p>如果让我先给一句最重要的话，我会这样说：</p>
+<p><strong>音频系统真正处理的，不是“声音”这个抽象东西，而是把声音离散化之后得到的一串按时间排列的采样数据。</strong></p>
+<p>这句话特别重要。</p>
+<p>因为它直接把“耳朵里的连续声音”翻译成了“程序里的数据对象”。</p>
+<p>也就是说，从系统视角看，声音不是一团玄学空气震动，而是：</p>
+<ul>
+<li>在某些时刻取一个样</li>
+<li>每个样本有一个数值大小</li>
+<li>如果有多个声道，就有多路并行样本</li>
+<li>这些样本按时间顺序排起来</li>
+<li>然后再送去存储、播放、编码、传输</li>
+</ul>
+<p>这就是音频工程的地基。</p>
+<hr>
+<h1 id="二、先看总图：现实声音是怎么一步步变成程序里的-PCM-数据的"><a href="#二、先看总图：现实声音是怎么一步步变成程序里的-PCM-数据的" class="headerlink" title="二、先看总图：现实声音是怎么一步步变成程序里的 PCM 数据的"></a>二、先看总图：现实声音是怎么一步步变成程序里的 PCM 数据的</h1><p>先上总图。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[现实中的连续声音波形] --&gt; B[模数转换 ADC]
+    B --&gt; C[按固定时间间隔采样]
+    C --&gt; D[每个采样点量化成整数幅值]
+    D --&gt; E[得到PCM样本序列]
+    E --&gt; F[播放/编码/传输/处理]
+</code></pre>
+
+<p>这张图其实已经把音频系统最核心的主线说出来了：</p>
+<ul>
+<li>现实声音是连续变化的</li>
+<li>计算机不直接处理“连续”</li>
+<li>所以要把它离散化</li>
+<li>离散化之后形成 PCM 数据</li>
+</ul>
+<p>也就是说，PCM 不是某种“高级格式”，而更像：</p>
+<p><strong>数字音频世界里最基础的原始表达。</strong></p>
+<hr>
+<h1 id="三、什么是采样，为什么音频必须先采样"><a href="#三、什么是采样，为什么音频必须先采样" class="headerlink" title="三、什么是采样，为什么音频必须先采样"></a>三、什么是采样，为什么音频必须先采样</h1><h2 id="3-1-采样的本质"><a href="#3-1-采样的本质" class="headerlink" title="3.1 采样的本质"></a>3.1 采样的本质</h2><p>采样你可以先理解成：</p>
+<p><strong>每隔固定一小段时间，去测一次当前声音波形的瞬时幅值。</strong></p>
+<p>比如想象你在看一条连续变化的曲线，如果你不可能把整条连续曲线完整搬进计算机，那你最自然的办法就是：</p>
+<ul>
+<li>每隔一小段时间取一个点</li>
+<li>把这些点记下来</li>
+<li>用这些点近似表示整条曲线</li>
+</ul>
+<p>音频采样本质上就是这件事。</p>
+<h2 id="3-2-为什么必须采样"><a href="#3-2-为什么必须采样" class="headerlink" title="3.2 为什么必须采样"></a>3.2 为什么必须采样</h2><p>因为数字系统天然擅长处理的是：</p>
+<ul>
+<li>离散的数据</li>
+<li>有限精度的数值</li>
+<li>一条一条排列的样本序列</li>
+</ul>
+<p>而现实声音本质上是连续时间、连续幅值变化的。</p>
+<p>所以中间一定需要一个翻译过程。</p>
+<p>这个翻译过程的第一步，就是采样。</p>
+<hr>
+<h1 id="四、采样率到底是什么，它为什么这么重要"><a href="#四、采样率到底是什么，它为什么这么重要" class="headerlink" title="四、采样率到底是什么，它为什么这么重要"></a>四、采样率到底是什么，它为什么这么重要</h1><h2 id="4-1-采样率的定义"><a href="#4-1-采样率的定义" class="headerlink" title="4.1 采样率的定义"></a>4.1 采样率的定义</h2><p>采样率（sample rate）说白了就是：</p>
+<p><strong>每秒钟采多少个样本。</strong></p>
+<p>比如：</p>
+<ul>
+<li>8000 Hz：每秒采 8000 次</li>
+<li>16000 Hz：每秒采 16000 次</li>
+<li>44100 Hz：每秒采 44100 次</li>
+<li>48000 Hz：每秒采 48000 次</li>
+</ul>
+<p>所以采样率回答的是：</p>
+<p><strong>时间维度上，采样点有多密。</strong></p>
+<h2 id="4-2-采样率高意味着什么"><a href="#4-2-采样率高意味着什么" class="headerlink" title="4.2 采样率高意味着什么"></a>4.2 采样率高意味着什么</h2><p>采样率越高，通常意味着：</p>
+<ul>
+<li>时间分辨率更细</li>
+<li>能表示的频率范围更高</li>
+<li>数据量也会更大</li>
+</ul>
+<p>也就是说，它不是单纯“越高越高级”，而是：</p>
+<p><strong>更细的时间刻度，换来更多数据量和更强表示能力。</strong></p>
+<h2 id="4-3-常见采样率为什么总是这些值"><a href="#4-3-常见采样率为什么总是这些值" class="headerlink" title="4.3 常见采样率为什么总是这些值"></a>4.3 常见采样率为什么总是这些值</h2><p>最常见你会见到：</p>
+<ul>
+<li>8kHz，电话语音等低带宽场景</li>
+<li>16kHz，很多语音识别 &#x2F; 实时语音场景</li>
+<li>44.1kHz，传统音乐音频常见</li>
+<li>48kHz，音视频工程、专业音频、视频系统里很常见</li>
+</ul>
+<p>所以采样率不只是一个“音质参数”，它还常常和：</p>
+<ul>
+<li>业务场景</li>
+<li>带宽预算</li>
+<li>处理链兼容性</li>
+</ul>
+<p>绑在一起。</p>
+<hr>
+<h1 id="五、位宽到底是什么，它为什么不是“文件大小位数”那么简单"><a href="#五、位宽到底是什么，它为什么不是“文件大小位数”那么简单" class="headerlink" title="五、位宽到底是什么，它为什么不是“文件大小位数”那么简单"></a>五、位宽到底是什么，它为什么不是“文件大小位数”那么简单</h1><h2 id="5-1-位宽的定义"><a href="#5-1-位宽的定义" class="headerlink" title="5.1 位宽的定义"></a>5.1 位宽的定义</h2><p>位宽（bit depth）描述的是：</p>
+<p><strong>每个采样点用多少比特来表示幅值大小。</strong></p>
+<p>比如：</p>
+<ul>
+<li>8bit</li>
+<li>16bit</li>
+<li>24bit</li>
+<li>32bit</li>
+</ul>
+<p>注意，它不是“每秒多少 bit”，那是码率语境。</p>
+<p>它说的是：</p>
+<p><strong>单个样本本身有多精细。</strong></p>
+<h2 id="5-2-位宽高意味着什么"><a href="#5-2-位宽高意味着什么" class="headerlink" title="5.2 位宽高意味着什么"></a>5.2 位宽高意味着什么</h2><p>位宽越高，通常意味着：</p>
+<ul>
+<li>每个样本可表示的幅值级别更多</li>
+<li>动态范围更大</li>
+<li>小信号和大信号之间的刻画更细</li>
+<li>数据量也会增加</li>
+</ul>
+<p>也就是说，采样率决定“时间上采得多密”，位宽决定“每个点量得多细”。</p>
+<p>这两个维度千万别混。</p>
+<h2 id="5-3-一个很实用的直觉"><a href="#5-3-一个很实用的直觉" class="headerlink" title="5.3 一个很实用的直觉"></a>5.3 一个很实用的直觉</h2><p>你可以先把它理解成：</p>
+<ul>
+<li><strong>采样率</strong>：横轴切多密</li>
+<li><strong>位宽</strong>：纵轴量多细</li>
+</ul>
+<p>这句话特别值钱。</p>
+<hr>
+<h1 id="六、声道数到底是什么，它为什么不是“几个喇叭”这么简单"><a href="#六、声道数到底是什么，它为什么不是“几个喇叭”这么简单" class="headerlink" title="六、声道数到底是什么，它为什么不是“几个喇叭”这么简单"></a>六、声道数到底是什么，它为什么不是“几个喇叭”这么简单</h1><h2 id="6-1-声道数的本质"><a href="#6-1-声道数的本质" class="headerlink" title="6.1 声道数的本质"></a>6.1 声道数的本质</h2><p>声道数（channels）描述的是：</p>
+<p><strong>同一时刻并行存在的音频数据路数。</strong></p>
+<p>最常见的是：</p>
+<ul>
+<li>1 声道，单声道（mono）</li>
+<li>2 声道，双声道（stereo）</li>
+</ul>
+<p>所以从数据角度看，声道数更像：</p>
+<p><strong>每个采样时刻，是一组值，还是多组并行值。</strong></p>
+<h2 id="6-2-为什么不能简单理解成“几个喇叭”"><a href="#6-2-为什么不能简单理解成“几个喇叭”" class="headerlink" title="6.2 为什么不能简单理解成“几个喇叭”"></a>6.2 为什么不能简单理解成“几个喇叭”</h2><p>因为扬声器数量是播放系统的物理实现，而声道数是音频数据的组织方式。</p>
+<p>两者相关，但不是同一层概念。</p>
+<p>比如双声道的本质是：</p>
+<ul>
+<li>左声道一条采样序列</li>
+<li>右声道一条采样序列</li>
+</ul>
+<p>系统里更像是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">L0 R0 L1 R1 L2 R2 ...<br></code></pre></td></tr></table></figure>
+
+<p>或者以 planar 方式存放成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">L: L0 L1 L2 ...<br>R: R0 R1 R2 ...<br></code></pre></td></tr></table></figure>
+
+<p>这就已经是程序和内存布局问题了，不再只是“两个喇叭”那么简单。</p>
+<hr>
+<h1 id="七、PCM-到底是什么，为什么它是音频世界的地基"><a href="#七、PCM-到底是什么，为什么它是音频世界的地基" class="headerlink" title="七、PCM 到底是什么，为什么它是音频世界的地基"></a>七、PCM 到底是什么，为什么它是音频世界的地基</h1><h2 id="7-1-PCM-的本质"><a href="#7-1-PCM-的本质" class="headerlink" title="7.1 PCM 的本质"></a>7.1 PCM 的本质</h2><p>PCM（Pulse Code Modulation）你可以先把它理解成：</p>
+<p><strong>经过采样和量化之后得到的一串原始数字音频样本。</strong></p>
+<p>对工程师来说，更直白一点就是：</p>
+<p><strong>没有再做压缩编码的原始数字音频数据。</strong></p>
+<p>比如常见 PCM 数据可能就是：</p>
+<ul>
+<li>16-bit little-endian signed integer</li>
+<li>48kHz</li>
+<li>stereo</li>
+</ul>
+<p>这三个条件一起，基本就把一个 PCM 流的核心形态描述得差不多了。</p>
+<h2 id="7-2-为什么-PCM-是地基"><a href="#7-2-为什么-PCM-是地基" class="headerlink" title="7.2 为什么 PCM 是地基"></a>7.2 为什么 PCM 是地基</h2><p>因为后面很多音频处理，都是围绕 PCM 展开的：</p>
+<ul>
+<li>播放器最终通常要喂设备 PCM</li>
+<li>AAC &#x2F; MP3 &#x2F; Opus 编码器通常吃 PCM</li>
+<li>音频算法处理常常也在 PCM 层做</li>
+<li>混音、重采样、增益调整，本质上也是在样本层处理</li>
+</ul>
+<p>所以你可以把 PCM 理解成：</p>
+<p><strong>数字音频系统里最基础的“原始工作形态”。</strong></p>
+<hr>
+<h1 id="八、一张图看懂采样率、位宽、声道数分别在描述哪一维"><a href="#八、一张图看懂采样率、位宽、声道数分别在描述哪一维" class="headerlink" title="八、一张图看懂采样率、位宽、声道数分别在描述哪一维"></a>八、一张图看懂采样率、位宽、声道数分别在描述哪一维</h1><pre><code class=" mermaid">flowchart TD
+    A[音频数据] --&gt; B[采样率]
+    A --&gt; C[位宽]
+    A --&gt; D[声道数]
+
+    B --&gt; B1[每秒采多少次]
+    C --&gt; C1[每个样本有多精细]
+    D --&gt; D1[同一时刻有几路并行数据]
+</code></pre>
+
+<p>这张图其实就是音频参数最核心的“三板斧”。</p>
+<p>以后你看到任何 PCM 格式描述，几乎都可以先从这三项去拆。</p>
+<hr>
+<h1 id="九、第一段核心代码：怎么根据采样率、位宽、声道数算-PCM-数据量"><a href="#九、第一段核心代码：怎么根据采样率、位宽、声道数算-PCM-数据量" class="headerlink" title="九、第一段核心代码：怎么根据采样率、位宽、声道数算 PCM 数据量"></a>九、第一段核心代码：怎么根据采样率、位宽、声道数算 PCM 数据量</h1><p>这一段特别实用，因为它能一下把抽象参数落回工程量级。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">PcmFormat</span> &#123;<br>    <span class="hljs-type">int</span> sample_rate;       <span class="hljs-comment">// e.g. 48000</span><br>    <span class="hljs-type">int</span> bits_per_sample;   <span class="hljs-comment">// e.g. 16</span><br>    <span class="hljs-type">int</span> channels;          <span class="hljs-comment">// e.g. 2</span><br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">BytesPerSample</span><span class="hljs-params">(<span class="hljs-type">const</span> PcmFormat&amp; fmt)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> fmt.bits_per_sample / <span class="hljs-number">8</span>;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">BytesPerFrame</span><span class="hljs-params">(<span class="hljs-type">const</span> PcmFormat&amp; fmt)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">BytesPerSample</span>(fmt) * fmt.channels;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">double</span> <span class="hljs-title">BytesPerSecond</span><span class="hljs-params">(<span class="hljs-type">const</span> PcmFormat&amp; fmt)</span> </span>&#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">double</span>&gt;(fmt.sample_rate) * <span class="hljs-built_in">BytesPerFrame</span>(fmt);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>比如：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs cpp">PcmFormat fmt&#123;<span class="hljs-number">48000</span>, <span class="hljs-number">16</span>, <span class="hljs-number">2</span>&#125;;<br><span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;bytes/sec = %.0f\n&quot;</span>, <span class="hljs-built_in">BytesPerSecond</span>(fmt));<br></code></pre></td></tr></table></figure>
+
+<p>输出大约就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">192000<br></code></pre></td></tr></table></figure>
+
+<p>也就是：</p>
+<ul>
+<li>48kHz</li>
+<li>16bit</li>
+<li>双声道</li>
+</ul>
+<p>每秒大约需要 192000 字节。</p>
+<h2 id="这段代码最值钱的地方"><a href="#这段代码最值钱的地方" class="headerlink" title="这段代码最值钱的地方"></a>这段代码最值钱的地方</h2><p>它让你一下子看到：</p>
+<p>采样率、位宽、声道数不是抽象参数，它们直接决定：</p>
+<p><strong>数据吞吐量。</strong></p>
+<p>这对：</p>
+<ul>
+<li>缓冲区设计</li>
+<li>音频采集</li>
+<li>播放回调</li>
+<li>网络带宽预估</li>
+<li>编码前数据量分析</li>
+</ul>
+<p>都非常关键。</p>
+<hr>
+<h1 id="十、第二段核心代码：PCM-缓冲区里的“一个-frame”到底是什么"><a href="#十、第二段核心代码：PCM-缓冲区里的“一个-frame”到底是什么" class="headerlink" title="十、第二段核心代码：PCM 缓冲区里的“一个 frame”到底是什么"></a>十、第二段核心代码：PCM 缓冲区里的“一个 frame”到底是什么</h1><p>音频里常说一个 frame，很多人容易跟视频的一帧画面搞混。</p>
+<p>这里给个最小代码例子。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">Stereo16Sample</span> &#123;<br>    <span class="hljs-type">int16_t</span> left;<br>    <span class="hljs-type">int16_t</span> right;<br>&#125;;<br><br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">PrintFirstFrames</span><span class="hljs-params">(<span class="hljs-type">const</span> Stereo16Sample* data, <span class="hljs-type">int</span> frame_count)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; frame_count; ++i) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;frame %d: L=%d R=%d\n&quot;</span>, i, data[i].left, data[i].right);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这里的-frame-是什么意思"><a href="#这里的-frame-是什么意思" class="headerlink" title="这里的 frame 是什么意思"></a>这里的 frame 是什么意思</h2><p>在音频 PCM 语境里，一个 frame 常常表示：</p>
+<p><strong>同一采样时刻下所有声道样本的集合。</strong></p>
+<p>比如双声道 16bit 下：</p>
+<ul>
+<li>一个音频 frame &#x3D; 一个 left 样本 + 一个 right 样本</li>
+</ul>
+<p>所以：</p>
+<ul>
+<li>sample 往往更强调单个声道上的一个采样值</li>
+<li>frame 往往更强调同一时刻所有声道的组合</li>
+</ul>
+<p>这个概念非常实用，后面看音频 API 时经常会碰到。</p>
+<hr>
+<h1 id="十一、第三段核心代码：交错存储和分离存储为什么是音频工程里的高频问题"><a href="#十一、第三段核心代码：交错存储和分离存储为什么是音频工程里的高频问题" class="headerlink" title="十一、第三段核心代码：交错存储和分离存储为什么是音频工程里的高频问题"></a>十一、第三段核心代码：交错存储和分离存储为什么是音频工程里的高频问题</h1><p>这块很工程。</p>
+<h2 id="11-1-interleaved（交错）"><a href="#11-1-interleaved（交错）" class="headerlink" title="11.1 interleaved（交错）"></a>11.1 interleaved（交错）</h2><p>双声道交错存储通常像这样：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">L0 R0 L1 R1 L2 R2 ...<br></code></pre></td></tr></table></figure>
+
+<p>代码里可以这样访问：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">PrintInterleavedStereo</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">int16_t</span>* data, <span class="hljs-type">int</span> frame_count)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; frame_count; ++i) &#123;<br>        <span class="hljs-type">int16_t</span> left  = data[i * <span class="hljs-number">2</span> + <span class="hljs-number">0</span>];<br>        <span class="hljs-type">int16_t</span> right = data[i * <span class="hljs-number">2</span> + <span class="hljs-number">1</span>];<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;frame %d: L=%d R=%d\n&quot;</span>, i, left, right);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="11-2-planar（分离）"><a href="#11-2-planar（分离）" class="headerlink" title="11.2 planar（分离）"></a>11.2 planar（分离）</h2><p>planar 存储更像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">L: L0 L1 L2 ...<br>R: R0 R1 R2 ...<br></code></pre></td></tr></table></figure>
+
+<p>代码里可能像这样：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">PrintPlanarStereo</span><span class="hljs-params">(<span class="hljs-type">const</span> <span class="hljs-type">int16_t</span>* left,</span></span><br><span class="hljs-params"><span class="hljs-function">                       <span class="hljs-type">const</span> <span class="hljs-type">int16_t</span>* right,</span></span><br><span class="hljs-params"><span class="hljs-function">                       <span class="hljs-type">int</span> frame_count)</span> </span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; frame_count; ++i) &#123;<br>        <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;frame %d: L=%d R=%d\n&quot;</span>, i, left[i], right[i]);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码说明什么"><a href="#这段代码说明什么" class="headerlink" title="这段代码说明什么"></a>这段代码说明什么</h2><p>它说明“声道数”这个概念一旦进了程序，不只是一个数字，而会直接影响：</p>
+<ul>
+<li>内存布局</li>
+<li>API 调用方式</li>
+<li>算法处理方式</li>
+<li>缓冲区拷贝逻辑</li>
+</ul>
+<p>这就是为什么音频工程里，数据格式描述必须写完整。</p>
+<hr>
+<h1 id="十二、第四段核心代码：一个最小-PCM-生成示例，帮你真正看见“音频样本序列”是什么"><a href="#十二、第四段核心代码：一个最小-PCM-生成示例，帮你真正看见“音频样本序列”是什么" class="headerlink" title="十二、第四段核心代码：一个最小 PCM 生成示例，帮你真正看见“音频样本序列”是什么"></a>十二、第四段核心代码：一个最小 PCM 生成示例，帮你真正看见“音频样本序列”是什么</h1><p>我们可以直接生成一个最小正弦波 PCM 数据。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cmath&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;cstdint&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;vector&gt;</span></span><br><br><span class="hljs-function">std::vector&lt;<span class="hljs-type">int16_t</span>&gt; <span class="hljs-title">GenerateSineWave</span><span class="hljs-params">(<span class="hljs-type">int</span> sample_rate,</span></span><br><span class="hljs-params"><span class="hljs-function">                                      <span class="hljs-type">double</span> frequency,</span></span><br><span class="hljs-params"><span class="hljs-function">                                      <span class="hljs-type">double</span> duration_sec,</span></span><br><span class="hljs-params"><span class="hljs-function">                                      <span class="hljs-type">double</span> amplitude = <span class="hljs-number">0.8</span>)</span> </span>&#123;<br>    <span class="hljs-type">int</span> total_samples = <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">int</span>&gt;(sample_rate * duration_sec);<br>    <span class="hljs-function">std::vector&lt;<span class="hljs-type">int16_t</span>&gt; <span class="hljs-title">pcm</span><span class="hljs-params">(total_samples)</span></span>;<br><br>    <span class="hljs-type">const</span> <span class="hljs-type">double</span> two_pi = <span class="hljs-number">6.283185307179586</span>;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> n = <span class="hljs-number">0</span>; n &lt; total_samples; ++n) &#123;<br>        <span class="hljs-type">double</span> t = <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">double</span>&gt;(n) / sample_rate;<br>        <span class="hljs-type">double</span> value = amplitude * std::<span class="hljs-built_in">sin</span>(two_pi * frequency * t);<br>        pcm[n] = <span class="hljs-built_in">static_cast</span>&lt;<span class="hljs-type">int16_t</span>&gt;(value * <span class="hljs-number">32767.0</span>);<br>    &#125;<br>    <span class="hljs-keyword">return</span> pcm;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="这段代码特别值钱"><a href="#这段代码特别值钱" class="headerlink" title="这段代码特别值钱"></a>这段代码特别值钱</h2><p>因为它会让你一下看到：</p>
+<p>所谓 PCM，本质上真的就是：</p>
+<p><strong>一串按时间顺序排列的数字样本。</strong></p>
+<p>后面 AAC、Opus、MP3 这些编码器，吃进去的很多时候就是这类样本数据。</p>
+<hr>
+<h1 id="十三、一张流程图看懂-PCM-在音频系统里的位置"><a href="#十三、一张流程图看懂-PCM-在音频系统里的位置" class="headerlink" title="十三、一张流程图看懂 PCM 在音频系统里的位置"></a>十三、一张流程图看懂 PCM 在音频系统里的位置</h1><pre><code class=" mermaid">flowchart TD
+    A[Mic / 文件 / 网络输入] --&gt; B[得到PCM样本]
+    B --&gt; C1[直接播放]
+    B --&gt; C2[做增益/混音/重采样]
+    B --&gt; C3[送AAC/Opus编码器]
+    B --&gt; C4[做音频分析/算法处理]
+</code></pre>
+
+<p>这张图想表达的是：</p>
+<p><strong>PCM 不是终点，而是数字音频处理的起点。</strong></p>
+<p>很多系统动作都建立在 PCM 之上。</p>
+<hr>
+<h1 id="十四、一张时序图看懂音频采集回调里系统到底在交付什么"><a href="#十四、一张时序图看懂音频采集回调里系统到底在交付什么" class="headerlink" title="十四、一张时序图看懂音频采集回调里系统到底在交付什么"></a>十四、一张时序图看懂音频采集回调里系统到底在交付什么</h1><pre><code class=" mermaid">sequenceDiagram
+    participant Mic as Audio Device
+    participant Driver as Driver/OS
+    participant App as Audio App
+
+    Mic-&gt;&gt;Driver: 连续采集模拟声音
+    Driver-&gt;&gt;Driver: ADC + 形成PCM缓冲
+    loop periodic callback
+        Driver-&gt;&gt;App: 一段PCM samples
+        App-&gt;&gt;App: 播放 / 编码 / 处理
+    end
+</code></pre>
+
+<p>这张图特别适合理解：</p>
+<p>音频系统通常不是“一次给你一整首歌”，而是：</p>
+<p><strong>周期性地交付一小段 PCM 缓冲。</strong></p>
+<p>这点对理解：</p>
+<ul>
+<li>低延迟音频</li>
+<li>回调大小</li>
+<li>缓冲设计</li>
+<li>音视频同步</li>
+</ul>
+<p>都很重要。</p>
+<hr>
+<h1 id="十五、工程里最容易混掉的-4-个问题"><a href="#十五、工程里最容易混掉的-4-个问题" class="headerlink" title="十五、工程里最容易混掉的 4 个问题"></a>十五、工程里最容易混掉的 4 个问题</h1><h2 id="问题-1：采样率是不是越高越好"><a href="#问题-1：采样率是不是越高越好" class="headerlink" title="问题 1：采样率是不是越高越好"></a>问题 1：采样率是不是越高越好</h2><p>不一定。</p>
+<p>更高采样率意味着：</p>
+<ul>
+<li>更多数据量</li>
+<li>更高处理成本</li>
+<li>还要看业务是否真的需要</li>
+</ul>
+<p>所以它永远是 trade-off，不是越大越神。</p>
+<h2 id="问题-2：位宽和码率是不是一回事"><a href="#问题-2：位宽和码率是不是一回事" class="headerlink" title="问题 2：位宽和码率是不是一回事"></a>问题 2：位宽和码率是不是一回事</h2><p>不是。</p>
+<ul>
+<li>位宽：单个样本用多少 bit 表示</li>
+<li>码率：单位时间总共有多少 bit 流过</li>
+</ul>
+<p>两者完全不是一个维度。</p>
+<h2 id="问题-3：双声道是不是就等于两个喇叭"><a href="#问题-3：双声道是不是就等于两个喇叭" class="headerlink" title="问题 3：双声道是不是就等于两个喇叭"></a>问题 3：双声道是不是就等于两个喇叭</h2><p>不完全是。</p>
+<p>双声道本质是两路并行音频数据，至于最后怎么映射到扬声器，是播放系统的事。</p>
+<h2 id="问题-4：PCM-是不是编码格式"><a href="#问题-4：PCM-是不是编码格式" class="headerlink" title="问题 4：PCM 是不是编码格式"></a>问题 4：PCM 是不是编码格式</h2><p>更准确说，它不是“压缩编码格式”，而是原始数字音频表示方式。</p>
+<p>它通常更接近音频世界里的“原材料”。</p>
+<hr>
+<h1 id="十六、最后给一句更像工程师的话：别把音频参数当成抽象名词，它们本质上是在定义你的样本数据结构"><a href="#十六、最后给一句更像工程师的话：别把音频参数当成抽象名词，它们本质上是在定义你的样本数据结构" class="headerlink" title="十六、最后给一句更像工程师的话：别把音频参数当成抽象名词，它们本质上是在定义你的样本数据结构"></a>十六、最后给一句更像工程师的话：别把音频参数当成抽象名词，它们本质上是在定义你的样本数据结构</h1><p>写到这里，最想落下的一句话其实是：</p>
+<p><strong>采样率、位宽、声道数，本质上不是几个需要死记硬背的音频术语，而是在定义你的 PCM 数据到底长什么样。</strong></p>
+<p>这句话特别值钱。</p>
+<p>因为很多人学音频时最大的问题，就是把这些词学成了标签，而不是结构。</p>
+<p>但如果你把它们看成：</p>
+<ul>
+<li>时间维度怎么取样</li>
+<li>幅值维度怎么量化</li>
+<li>并行通道怎么组织</li>
+</ul>
+<p>那你对音频数据的理解就会一下变得很工程、很稳定。</p>
+<p>后面再去看：</p>
+<ul>
+<li>AAC</li>
+<li>Opus</li>
+<li>重采样</li>
+<li>音频设备回调</li>
+<li>音视频同步</li>
+<li>WebRTC 音频处理</li>
+</ul>
+<p>就会顺得多。</p>
+<hr>
+<h1 id="十七、总结"><a href="#十七、总结" class="headerlink" title="十七、总结"></a>十七、总结</h1><p>最后把这篇收成几句话。</p>
+<h2 id="1-音频系统处理的核心对象，是按时间排列的采样数据"><a href="#1-音频系统处理的核心对象，是按时间排列的采样数据" class="headerlink" title="1. 音频系统处理的核心对象，是按时间排列的采样数据"></a>1. 音频系统处理的核心对象，是按时间排列的采样数据</h2><p>这是数字音频世界最根本的视角。</p>
+<h2 id="2-采样率决定时间上采得多密，位宽决定每个样本量得多细，声道数决定同一时刻有几路并行数据"><a href="#2-采样率决定时间上采得多密，位宽决定每个样本量得多细，声道数决定同一时刻有几路并行数据" class="headerlink" title="2. 采样率决定时间上采得多密，位宽决定每个样本量得多细，声道数决定同一时刻有几路并行数据"></a>2. 采样率决定时间上采得多密，位宽决定每个样本量得多细，声道数决定同一时刻有几路并行数据</h2><p>这三件事构成了 PCM 结构的核心描述。</p>
+<h2 id="3-PCM-是数字音频处理的基础工作形态"><a href="#3-PCM-是数字音频处理的基础工作形态" class="headerlink" title="3. PCM 是数字音频处理的基础工作形态"></a>3. PCM 是数字音频处理的基础工作形态</h2><p>播放、算法处理、压缩编码，很多都建立在 PCM 之上。</p>
+<h2 id="4-真正需要记住的不是名词，而是数据结构感"><a href="#4-真正需要记住的不是名词，而是数据结构感" class="headerlink" title="4. 真正需要记住的不是名词，而是数据结构感"></a>4. 真正需要记住的不是名词，而是数据结构感</h2><p>也就是：</p>
+<ul>
+<li>每秒多少样本</li>
+<li>每个样本多少 bit</li>
+<li>每个时刻有几路样本</li>
+</ul>
+<h2 id="5-一旦这层地基稳了，后面再看-AAC、音频编码、音频同步、WebRTC-音频链路就会顺很多"><a href="#5-一旦这层地基稳了，后面再看-AAC、音频编码、音频同步、WebRTC-音频链路就会顺很多" class="headerlink" title="5. 一旦这层地基稳了，后面再看 AAC、音频编码、音频同步、WebRTC 音频链路就会顺很多"></a>5. 一旦这层地基稳了，后面再看 AAC、音频编码、音频同步、WebRTC 音频链路就会顺很多</h2><p>如果你愿意，我下一篇建议直接接：</p>
+<p><strong>《AAC 在音视频工程中的位置：从 PCM 到压缩音频的主线理解》</strong></p>
+<p>这篇会刚好把今天这篇 PCM 地基接上去，而且我也会继续按这个规格放代码和图。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E9%9F%B3%E9%A2%91/" class="print-no-link">#音频</a>
+      
+        <a href="/tags/PCM/" class="print-no-link">#PCM</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/%E9%87%87%E6%A0%B7%E7%8E%87/" class="print-no-link">#采样率</a>
+      
+        <a href="/tags/%E4%BD%8D%E5%AE%BD/" class="print-no-link">#位宽</a>
+      
+        <a href="/tags/%E5%A3%B0%E9%81%93/" class="print-no-link">#声道</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解</div>
+      <div>https://breaker505.github.io/2026/03/13/audio-basics-sample-rate-bit-depth-channels-pcm/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年3月13日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/03/16/why-video-systems-prefer-yuv/" title="为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/03/10/audio-video-series-roadmap/" title="音视频工程长期写作总纲：我的知识体系骨架与专栏线路图">
+                        <span class="hidden-mobile">音视频工程长期写作总纲：我的知识体系骨架与专栏线路图</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

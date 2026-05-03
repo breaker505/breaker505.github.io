@@ -1,0 +1,1189 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="一、先从一个问题开始：原始视频为什么这么大如果你直接看一帧没有压缩的视频图像，它的数据量其实是很夸张的。 假设一段 1080p 视频：  分辨率：1920 × 1080 帧率：30fps 像素格式按 RGB 24bit 算  一帧图像的数据量大约是： 11920 × 1080 × 3 ≈ 6 MB  30fps 的话，1 秒就是： 16 MB × 30 ≈ 180 MB&#x2F;s  一秒钟原始视频数据可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="H.264&#x2F;H.265 核心原理：从基础世界观到编解码流程与码流结构">
+<meta property="og:url" content="https://breaker505.github.io/2026/03/26/h264-h265-core-principles/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="一、先从一个问题开始：原始视频为什么这么大如果你直接看一帧没有压缩的视频图像，它的数据量其实是很夸张的。 假设一段 1080p 视频：  分辨率：1920 × 1080 帧率：30fps 像素格式按 RGB 24bit 算  一帧图像的数据量大约是： 11920 × 1080 × 3 ≈ 6 MB  30fps 的话，1 秒就是： 16 MB × 30 ≈ 180 MB&#x2F;s  一秒钟原始视频数据可">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-26T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.778Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="H.264">
+<meta property="article:tag" content="H.265">
+<meta property="article:tag" content="视频编码">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>H.264/H.265 核心原理：从基础世界观到编解码流程与码流结构 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="H.264/H.265 核心原理：从基础世界观到编解码流程与码流结构"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-03-26 08:00" pubdate>
+          2026年3月26日 早上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          72 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">H.264/H.265 核心原理：从基础世界观到编解码流程与码流结构</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一、先从一个问题开始：原始视频为什么这么大"><a href="#一、先从一个问题开始：原始视频为什么这么大" class="headerlink" title="一、先从一个问题开始：原始视频为什么这么大"></a>一、先从一个问题开始：原始视频为什么这么大</h2><p>如果你直接看一帧没有压缩的视频图像，它的数据量其实是很夸张的。</p>
+<p>假设一段 1080p 视频：</p>
+<ul>
+<li>分辨率：1920 × 1080</li>
+<li>帧率：30fps</li>
+<li>像素格式按 RGB 24bit 算</li>
+</ul>
+<p>一帧图像的数据量大约是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">1920 × 1080 × 3 ≈ 6 MB<br></code></pre></td></tr></table></figure>
+
+<p>30fps 的话，1 秒就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">6 MB × 30 ≈ 180 MB/s<br></code></pre></td></tr></table></figure>
+
+<p>一秒钟原始视频数据可能是上百 MB。这还只是 1080p，如果分辨率更高、帧率更高，数据量会继续往上冲。</p>
+<p>如果不做压缩，立刻会遇到几个现实问题：</p>
+<ul>
+<li>存储空间扛不住</li>
+<li>网络带宽扛不住</li>
+<li>传输延迟扛不住</li>
+<li>终端解码和处理成本也很高</li>
+</ul>
+<p>因此，视频编码本质上不是”锦上添花”，而是让视频在真实世界里可存、可传、可播放。</p>
+<h3 id="视频压缩到底在压什么"><a href="#视频压缩到底在压什么" class="headerlink" title="视频压缩到底在压什么"></a>视频压缩到底在压什么</h3><p>压缩不是无中生有地把数据缩小，而是尽量去掉那些”没必要重复表达”的信息。视频编码能压得动，主要靠利用三类冗余。</p>
+<p><strong>空间冗余</strong>：同一帧图像里，相邻像素往往很相似。比如一大片蓝天、一堵墙、一张脸的大面积肤色区域，像素值通常不会毫无规律地乱跳。编码器不需要把每个像素都当成完全独立的信息来存。</p>
+<p><strong>时间冗余</strong>：视频不是一堆完全无关的图片。相邻两帧之间大量内容其实是连续的。编码器不需要每一帧都完整重写一遍，而是可以记录哪些区域和上一帧差不多、哪些区域发生了位移、哪些地方真正有变化。</p>
+<p><strong>视觉冗余</strong>：人眼对亮度更敏感，对色度细节和某些高频细节的容忍度更高。编码器可以在人没那么容易察觉的地方做更激进的压缩。</p>
+<p>一句话：在尽量不明显影响主观观感的前提下，去掉空间、时间和视觉上的重复信息。</p>
+<hr>
+<h2 id="二、什么是-H-264，什么是-H-265"><a href="#二、什么是-H-264，什么是-H-265" class="headerlink" title="二、什么是 H.264，什么是 H.265"></a>二、什么是 H.264，什么是 H.265</h2><p>H.264（AVC, Advanced Video Coding）和 H.265（HEVC, High Efficiency Video Coding）都是视频压缩标准——两套规则，规定视频应该怎样被压缩、压缩后的码流应该怎样组织、解码器应该怎样还原图像。</p>
+<h3 id="2-1-两者关系"><a href="#2-1-两者关系" class="headerlink" title="2.1 两者关系"></a>2.1 两者关系</h3><p>它们是前后代关系，不是互斥关系。</p>
+<ul>
+<li><strong>H.264</strong>：更成熟、更兼容、更普及。长期占据直播、点播、视频会议、监控、移动端播放、网页视频等大量场景。</li>
+<li><strong>H.265</strong>：压缩更强，但复杂度更高、生态更挑环境。核心目标就是比 H.264 更高压缩效率——相近画质下码率更低，或相近码率下画质更好。</li>
+</ul>
+<p>真实的工程问题不是”哪个先进”，而是在这个具体场景里哪个更合适。</p>
+<h3 id="2-2-核心区别"><a href="#2-2-核心区别" class="headerlink" title="2.2 核心区别"></a>2.2 核心区别</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>H.264</th>
+<th>H.265</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>压缩效率</td>
+<td>基准</td>
+<td>通常再省 30%-50% 码率</td>
+</tr>
+<tr>
+<td>编码复杂度</td>
+<td>相对低，实现成熟</td>
+<td>更高，更吃算力</td>
+</tr>
+<tr>
+<td>解码复杂度</td>
+<td>低，硬件支持广泛</td>
+<td>更高，终端要求高</td>
+</tr>
+<tr>
+<td>兼容性</td>
+<td>极广，生态完备</td>
+<td>较复杂，链路需要验证</td>
+</tr>
+<tr>
+<td>典型场景</td>
+<td>低延迟直播、兼容性优先</td>
+<td>4K、带宽紧张、存储成本敏感</td>
+</tr>
+</tbody></table>
+<p>H.265 的优势不是白赚的，它用更复杂的计算（更灵活的分块、更复杂的预测机制）换来了更高的压缩率。</p>
+<h3 id="2-3-为什么今天两者并存"><a href="#2-3-为什么今天两者并存" class="headerlink" title="2.3 为什么今天两者并存"></a>2.3 为什么今天两者并存</h3><p>兼容性永远是大问题。视频系统往往是一条链路：编码端→传输→服务器→播放器→终端设备→硬件解码能力。只要链路里有一段对 H.265 支持没那么稳，整个系统就会倾向保守。</p>
+<p>其次，硬件支持和算力成本：H.265 编码和解码都更复杂，终端设备、芯片平台、硬件编解码器支持不足时，功耗高、延迟高、播放不稳定。</p>
+<p>最后，场景需求不一样。有些场景非常在意”码率能不能再低一点”（存储密集型监控、4K 分发、带宽紧张链路），有些场景更在乎稳定、兼容、低延迟、实现简单。</p>
+<hr>
+<h2 id="三、编解码必须掌握的基础概念"><a href="#三、编解码必须掌握的基础概念" class="headerlink" title="三、编解码必须掌握的基础概念"></a>三、编解码必须掌握的基础概念</h2><h3 id="3-1-帧、分辨率、帧率"><a href="#3-1-帧、分辨率、帧率" class="headerlink" title="3.1 帧、分辨率、帧率"></a>3.1 帧、分辨率、帧率</h3><p>视频本质上是一系列连续播放的图像。每一张就是一帧。</p>
+<p>分辨率描述一帧图像有多少像素（如 1280×720、1920×1080、3840×2160）。分辨率越高，单帧数据量通常越大。</p>
+<p>帧率表示每秒播放多少帧（如 24fps、30fps、60fps）。帧率越高画面越流畅，但单位时间内处理和传输的数据也越多。</p>
+<h3 id="3-2-为什么编码前会从-RGB-走向-YUV"><a href="#3-2-为什么编码前会从-RGB-走向-YUV" class="headerlink" title="3.2 为什么编码前会从 RGB 走向 YUV"></a>3.2 为什么编码前会从 RGB 走向 YUV</h3><p>RGB 很直观，适合显示。但视频编码里更常见的是 YUV。</p>
+<p>YUV 可以粗略理解成：</p>
+<ul>
+<li><strong>Y</strong>：亮度</li>
+<li><strong>U &#x2F; V</strong>：色度</li>
+</ul>
+<p>人眼对亮度更敏感，对色度没那么敏感。所以编码器可以对色度做更强的压缩，而不明显影响主观观感。</p>
+<p><strong>4:2:0、4:2:2、4:4:4</strong> 描述的是色度采样方式。最常见的是 <strong>4:2:0</strong>——色度分量被更稀疏地采样，减少数据量。FFmpeg 里经常看到的 <code>yuv420p</code>，就是一种非常主流、兼顾压缩效率和兼容性的像素格式。</p>
+<h3 id="3-3-GOP-和-I-P-B-帧"><a href="#3-3-GOP-和-I-P-B-帧" class="headerlink" title="3.3 GOP 和 I&#x2F;P&#x2F;B 帧"></a>3.3 GOP 和 I&#x2F;P&#x2F;B 帧</h3><p>GOP（Group of Pictures）是一组图像的组织结构。比如一段序列可能长这样：<code>I B B P B B P B B P</code>。帧与帧之间存在参考关系，GOP 结构会影响码率、画质、随机访问能力和延迟。</p>
+<ul>
+<li><strong>I 帧</strong>：可近似理解为关键帧，更多依赖帧内信息，可以相对独立解码。</li>
+<li><strong>P 帧</strong>：参考前面的帧，只记录变化部分，更多利用时间冗余。</li>
+<li><strong>B 帧</strong>：可参考前后帧，能进一步提高压缩效率，但会让编码和解码链路更复杂，也带来时序和缓存上的额外处理。</li>
+</ul>
+<h3 id="3-4-码率、画质、延迟"><a href="#3-4-码率、画质、延迟" class="headerlink" title="3.4 码率、画质、延迟"></a>3.4 码率、画质、延迟</h3><p>码率描述单位时间内编码器输出了多少数据。码率越高，画质更容易保住，但带宽和存储成本也更高。</p>
+<p>画质是主观感受和客观指标共同作用的结果。编码器的目标就是在有限码率下尽量保住画质。</p>
+<p>在实时场景里，延迟往往和 B 帧有无、GOP 长度、编码器缓存、码控策略、网络传输一起被权衡。这三者本来就是强绑定的。</p>
+<h3 id="3-5-Profile-与-Level"><a href="#3-5-Profile-与-Level" class="headerlink" title="3.5 Profile 与 Level"></a>3.5 Profile 与 Level</h3><p><strong>Profile（档次）</strong> 定义了编码器支持哪些编码工具集。不同 Profile 对应不同的压缩能力和复杂度：</p>
+<ul>
+<li><strong>Baseline Profile</strong>：支持 I&#x2F;P 帧、CAVLC，不支持 B 帧和 CABAC。复杂度最低，常用于低延迟、低算力的场景（视频会议、移动端）。</li>
+<li><strong>Main Profile</strong>：支持 I&#x2F;P&#x2F;B 帧、CABAC、加权预测等。是 H.264 的主流档次，广泛用于广播和消费级视频。</li>
+<li><strong>High Profile</strong>：在 Main 基础上增加了 8×8 变换、自定义量化矩阵、编码器更灵活的量化控制。压缩效率更高，是高清视频和蓝光的主流选择。</li>
+</ul>
+<p>H.265 的档次体系更复杂——引入了 Main、Main 10（支持 10bit 色深）、Main Still Picture 等档次，编码单元更多、灵活性更强。</p>
+<p><strong>Level（级别）</strong> 规定了分辨率、帧率、码率的上限。比如 Level 4.0 通常对应 1080p@30fps、最大码率约 20Mbps；Level 5.1 对应 4K@30fps。解码器通过解析 SPS 中的 Profile 和 Level 字段，可以判断自己是否有能力解码该码流——这是兼容性匹配的核心机制。</p>
+<h3 id="3-6-率失真优化（RDO）"><a href="#3-6-率失真优化（RDO）" class="headerlink" title="3.6 率失真优化（RDO）"></a>3.6 率失真优化（RDO）</h3><p>率失真优化是编码器在宏块或编码单元级别做决策的核心工具。编码器在”压缩更狠（更低码率）”和”画质更好（更低失真）”之间做权衡，目标函数通常是：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">J</span> = D + λ × R<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>D</strong>（Distortion，失真）</li>
+<li><strong>R</strong>（Rate，所需比特数）</li>
+<li><strong>λ</strong>（拉格朗日乘子，编码器根据当前编码策略自动调整）</li>
+</ul>
+<p>比如在帧内预测时，编码器会尝试多种预测模式，计算每种模式的 RD cost（失真+码率×λ），选择 cost 最小的那一种。量化时同样：QP 越大，λ 越大，编码器倾向更激进的压缩。</p>
+<p>所以 RDO 不是某一个固定的模块，而是贯穿编码器决策过程的思维方式——每个选择都不是孤立的，而是码率和失真的联合优化。</p>
+<h3 id="3-7-码率控制模式（CBR-VBR-CRF）"><a href="#3-7-码率控制模式（CBR-VBR-CRF）" class="headerlink" title="3.7 码率控制模式（CBR &#x2F; VBR &#x2F; CRF）"></a>3.7 码率控制模式（CBR &#x2F; VBR &#x2F; CRF）</h3><p>编码器怎么决定最终输出多大的码流？这就是码率控制策略的事。</p>
+<p><strong>CBR（Constant Bit Rate，恒定码率）</strong>：编码器尽量保持输出码率稳定在设定值附近。适合带宽严格受限的传输链路（如传统的视频会议、IPTV），但在场景复杂度剧烈变化时画质会波动。</p>
+<p><strong>VBR（Variable Bit Rate，可变码率）</strong>：允许码率在设定范围内波动。简单场景用较少比特，复杂场景用更多比特。画质更稳定，适合存储和点播场景。</p>
+<p><strong>CRF（Constant Rate Factor，恒定质量因子）</strong>：用户设定一个质量目标值（如 FFmpeg 中的 <code>-crf 23</code>，范围 0-51，越低质量越好）。编码器自动调整 QP 来维持恒定的主观质量，不直接控制最终码率大小。适合对”最终文件多大”不敏感、但对”每一帧看起来都差不多好”有要求的场景。</p>
+<p>工程中常见搭配：直播场景常用 CBR 或带缓冲控制的 VBR，点播场景偏好 VBR 或 CRF。</p>
+<hr>
+<h2 id="四、编解码流程概览"><a href="#四、编解码流程概览" class="headerlink" title="四、编解码流程概览"></a>四、编解码流程概览</h2><p>编码器的总任务可以压缩成一句话：尽量减少视频里的冗余信息，把原始帧变成更小的压缩码流。</p>
+<p>拆成具体的步骤：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[原始视频帧] --&gt; B[分块]
+    B --&gt; C[帧内 / 帧间预测]
+    C --&gt; D[得到残差]
+    D --&gt; E[变换]
+    E --&gt; F[量化]
+    F --&gt; G[熵编码]
+    G --&gt; H[压缩码流输出]
+</code></pre>
+
+<p>解码器大体上是编码的逆过程：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[压缩码流] --&gt; B[熵解码]
+    B --&gt; C[反量化]
+    C --&gt; D[反变换]
+    D --&gt; E[重建预测块]
+    E --&gt; F[输出图像帧]
+    F --&gt; G[作为后续参考帧]
+</code></pre>
+
+<hr>
+<h2 id="五、分块机制"><a href="#五、分块机制" class="headerlink" title="五、分块机制"></a>五、分块机制</h2><p>如果直接把一整帧图像当成一个整体去处理，计算和建模都非常困难。所以视频编码首先会把图像分成更小的块，再逐块处理。</p>
+<h3 id="5-1-H-264-的宏块"><a href="#5-1-H-264-的宏块" class="headerlink" title="5.1 H.264 的宏块"></a>5.1 H.264 的宏块</h3><p>H.264 里一个非常经典的单位就是宏块（Macroblock），常见大小是 16×16。编码器围绕这个粒度做预测、变换、编码。当然 H.264 里也有更细粒度的子分块，但先把”宏块是主要基本处理单元”记住就够了。</p>
+<h3 id="5-2-H-265-的-CTU-CU-PU-TU"><a href="#5-2-H-265-的-CTU-CU-PU-TU" class="headerlink" title="5.2 H.265 的 CTU &#x2F; CU &#x2F; PU &#x2F; TU"></a>5.2 H.265 的 CTU &#x2F; CU &#x2F; PU &#x2F; TU</h3><p>H.265 的分块设计更灵活，引入了层次结构：</p>
+<ul>
+<li><strong>CTU（Coding Tree Unit）</strong>：编码树单元，可以看成更大的根块</li>
+<li><strong>CU（Coding Unit）</strong>：编码单元，可以递归划分</li>
+<li><strong>PU（Prediction Unit）</strong>：预测单元，决定预测方式</li>
+<li><strong>TU（Transform Unit）</strong>：变换单元，决定变换粒度</li>
+</ul>
+<p>核心理解不在这四个缩写的罗列，而在于：<strong>H.265 允许编码器按更灵活、更自适应的方式去切图像块</strong>。平坦区域适合大块表示，边缘复杂区域适合细分成小块。这也是 H.265 压缩效率更高的重要来源之一。</p>
+<hr>
+<h2 id="六、帧内预测：利用空间冗余"><a href="#六、帧内预测：利用空间冗余" class="headerlink" title="六、帧内预测：利用空间冗余"></a>六、帧内预测：利用空间冗余</h2><p>帧内预测的核心思想：不直接把这块像素原封不动写出去，而是先猜它大概长什么样，再只记录”猜得不准的差异”。</p>
+<p>编码器会根据左边、上边、邻近已经编码好的区域，预测当前块大概应该长什么样。然后真正要编码的就是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">实际值 - 预测值 = 残差<br></code></pre></td></tr></table></figure>
+
+<p>如果预测得好，残差就小，后面压起来就更容易。</p>
+<p>不同的”猜法”就是不同的预测模式：</p>
+<ul>
+<li>有些模式偏水平延展</li>
+<li>有些偏垂直延展</li>
+<li>有些偏斜向延展</li>
+<li>有些做更复杂的平滑估计</li>
+</ul>
+<p>本质就是：编码器在尝试不同方向和方式，找到最适合当前块纹理结构的预测方式。</p>
+<hr>
+<h2 id="七、帧间预测：利用时间冗余"><a href="#七、帧间预测：利用时间冗余" class="headerlink" title="七、帧间预测：利用时间冗余"></a>七、帧间预测：利用时间冗余</h2><p>帧内预测在同一帧里找相似性，帧间预测在不同帧之间找相似性。</p>
+<h3 id="7-1-运动估计与运动补偿"><a href="#7-1-运动估计与运动补偿" class="headerlink" title="7.1 运动估计与运动补偿"></a>7.1 运动估计与运动补偿</h3><p><strong>运动估计（Motion Estimation）</strong>：编码器尝试找当前块在参考帧里最像哪一块。</p>
+<p><strong>运动补偿（Motion Compensation）</strong>：用这个”最像的块”作为预测结果，再编码真实块和预测块之间的差异。</p>
+<pre><code class=" mermaid">flowchart LR
+    A[当前块] --&gt; B[在参考帧中搜索]
+    B --&gt; C[最佳匹配块]
+    C --&gt; D[运动矢量 MV]
+    D --&gt; E[预测块]
+</code></pre>
+
+<p>可以简单理解为：先去前后帧里找相似块，再用位移 + 残差来表示当前块。</p>
+<h3 id="7-2-I-帧、P-帧、B-帧的预测方式"><a href="#7-2-I-帧、P-帧、B-帧的预测方式" class="headerlink" title="7.2 I 帧、P 帧、B 帧的预测方式"></a>7.2 I 帧、P 帧、B 帧的预测方式</h3><table>
+<thead>
+<tr>
+<th>帧类型</th>
+<th>依赖关系</th>
+<th>特点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>I 帧</td>
+<td>不依赖其他帧，只做帧内预测</td>
+<td>独立性最强，压缩率较低</td>
+</tr>
+<tr>
+<td>P 帧</td>
+<td>参考之前的参考帧</td>
+<td>只保存相对过去的变化</td>
+</tr>
+<tr>
+<td>B 帧</td>
+<td>可参考前后参考帧</td>
+<td>压缩率更高，但时序更复杂</td>
+</tr>
+</tbody></table>
+<p><strong>I 帧</strong>不做帧间预测，只看当前帧内部已编码过的邻近像素块来预测。一个区域如果是平滑渐变或明显边缘延续，周围像素就能给出相当好的估计。</p>
+<p><strong>P 帧</strong>会去历史参考帧里搜索——当前块能不能在过去的某一帧里找到一个非常像的块？如果能，只需要记录运动矢量 MV（从哪一帧、哪个位置偏移过来）和残差。</p>
+<p><strong>B 帧</strong>可以同时参考前后参考帧（准确地说，B 帧可以参考前向和后向参考图像）。好处是压缩率更高，代价是编码逻辑更复杂、参考关系更复杂、缓存更多、延迟更高。所以低延迟场景常常会尽量少用甚至不用 B 帧。</p>
+<hr>
+<h2 id="八、残差、变换与量化"><a href="#八、残差、变换与量化" class="headerlink" title="八、残差、变换与量化"></a>八、残差、变换与量化</h2><p>不管帧内还是帧间预测，都会产生残差（residual）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">真实块 - 预测块<br></code></pre></td></tr></table></figure>
+
+<h3 id="8-1-为什么要做变换"><a href="#8-1-为什么要做变换" class="headerlink" title="8.1 为什么要做变换"></a>8.1 为什么要做变换</h3><p>变换的目标是把空间域里的残差转换到更适合压缩的表示形式——把”像素差异”换一种表达方式，让它更容易出现大量接近 0 的值和更集中的能量分布，这样后面量化和熵编码就更容易奏效。</p>
+<p>H.264 使用整数变换（工程化的 DCT 思想），变换后低频能量更集中，高频分量更容易变小。而高频细节在视觉上并不重要，给量化留下发力的空间。</p>
+<h3 id="8-2-量化是有损压缩的核心来源"><a href="#8-2-量化是有损压缩的核心来源" class="headerlink" title="8.2 量化是有损压缩的核心来源"></a>8.2 量化是有损压缩的核心来源</h3><p>量化是对某些值做更粗粒度处理，丢掉一部分细节精度，换取更高压缩率。这是经典的 trade-off：</p>
+<ul>
+<li>量化更狠 → 文件更小，画质更差</li>
+<li>量化更轻 → 文件更大，画质更好</li>
+</ul>
+<p><strong>QP（Quantization Parameter）</strong>是控制量化强度的核心参数。QP 越大，压缩越狠，失真越大；QP 越小，画质越好，码率越高。</p>
+<h3 id="8-3-率失真优化如何指导量化决策"><a href="#8-3-率失真优化如何指导量化决策" class="headerlink" title="8.3 率失真优化如何指导量化决策"></a>8.3 率失真优化如何指导量化决策</h3><p>RDO 在量化阶段的体现是：编码器不会简单地对所有块都用同一个 QP，而是在不同编码模式下计算 RD cost，选择失真和码率加权后的最优解。码率控制策略（CBR&#x2F;VBR&#x2F;CRF）则是在更高层次协调 QP 的分配，确保整体输出满足带宽或质量要求。</p>
+<hr>
+<h2 id="九、熵编码"><a href="#九、熵编码" class="headerlink" title="九、熵编码"></a>九、熵编码</h2><p>经过预测、变换、量化之后，数据里通常已经有很多 0，也出现了明显的统计规律。熵编码继续压干统计冗余。</p>
+<p>它不负责理解图像语义，而是用更短的比特表示更常见的信息，用更长的比特表示更少见的信息。</p>
+<p>H.264 里两种主流熵编码：</p>
+<ul>
+<li><strong>CAVLC</strong>：更简单</li>
+<li><strong>CABAC</strong>：压缩效率通常更高，但复杂度也更高</li>
+</ul>
+<p>H.265 更偏向用 CABAC，所以能进一步压榨码率。</p>
+<hr>
+<h2 id="十、环路滤波"><a href="#十、环路滤波" class="headerlink" title="十、环路滤波"></a>十、环路滤波</h2><p>由于分块编码和量化，图像边界上可能出现明显的块状痕迹（块效应）。如果直接把这种”粗糙重建结果”拿去当参考帧，后续预测效果也会受影响。</p>
+<p>所以编码器在重建图像上做后处理：</p>
+<ul>
+<li><strong>去块滤波（Deblocking Filter）</strong>：在 H.264 和 H.265 中都存在</li>
+<li><strong>SAO（Sample Adaptive Offset）</strong>：H.265 里更常见</li>
+</ul>
+<p>这一步不是”可有可无的美颜”，而是编码闭环的一部分——改善重建图像质量，让后续参考帧更稳定。</p>
+<hr>
+<h2 id="十一、解码流程"><a href="#十一、解码流程" class="headerlink" title="十一、解码流程"></a>十一、解码流程</h2><p>解码器不是”把文件直接显示出来”，而是沿着编码的反方向把画面一步步恢复出来：</p>
+<pre><code class=" mermaid">flowchart LR
+    A[H.264 码流] --&gt; B[解析 NALU]
+    B --&gt; C[熵解码]
+    C --&gt; D[反量化]
+    D --&gt; E[反变换]
+    E --&gt; F[残差]
+    F --&gt; G[预测与运动补偿]
+    G --&gt; H[重建帧]
+    H --&gt; I[去块滤波]
+    I --&gt; J[输出 YUV]
+</code></pre>
+
+<p>解码器做的事：</p>
+<ol>
+<li>解析 NALU，识别出 SPS、PPS、Slice 等，建立解码上下文</li>
+<li>熵解码，还原量化后的系数、运动信息、模式信息</li>
+<li>反量化与反变换，恢复残差块</li>
+<li>帧内预测或运动补偿恢复重建块：<code>预测块 + 残差块 = 重建块</code></li>
+<li>去块滤波后输出重建帧</li>
+</ol>
+<p>量化已经丢了信息，所以解码器恢复的是”重建图像”，不是原始无损图像。</p>
+<hr>
+<h2 id="十二、码流结构：压缩结果最终长什么样"><a href="#十二、码流结构：压缩结果最终长什么样" class="headerlink" title="十二、码流结构：压缩结果最终长什么样"></a>十二、码流结构：压缩结果最终长什么样</h2><h3 id="12-1-NALU-是什么"><a href="#12-1-NALU-是什么" class="headerlink" title="12.1 NALU 是什么"></a>12.1 NALU 是什么</h3><p>NALU（Network Abstraction Layer Unit）是视频码流中的基本组织单元。压缩结果不是一整坨没有边界的二进制，而是被切分成一个个有类型、有边界意义的数据单元。</p>
+<p>为什么需要 NAL 层？因为编码器产生的信息还要被传输、存储、解封装、交给解码器识别，需要一种统一组织方式把不同类型的信息块区分开。</p>
+<h3 id="12-2-SPS-PPS-VPS"><a href="#12-2-SPS-PPS-VPS" class="headerlink" title="12.2 SPS &#x2F; PPS &#x2F; VPS"></a>12.2 SPS &#x2F; PPS &#x2F; VPS</h3><ul>
+<li><strong>SPS（Sequence Parameter Set）</strong>：序列级参数集，包含分辨率、编码级别、Profile&#x2F;Level 等对整个视频序列都很关键的全局解码参数。</li>
+<li><strong>PPS（Picture Parameter Set）</strong>：图像级参数集，补充更具体的编码控制信息。</li>
+<li><strong>VPS（Video Parameter Set）</strong>：H.265 里更常出现的高层视频参数集。</li>
+</ul>
+<p>解码器如果不知道这些参数，就无法正确解释后面的码流。很多花屏、解码失败、播放器打不开的问题，最后都可能和参数集缺失或不一致有关。</p>
+<h3 id="12-3-Annex-B-与-AVCC"><a href="#12-3-Annex-B-与-AVCC" class="headerlink" title="12.3 Annex B 与 AVCC"></a>12.3 Annex B 与 AVCC</h3><p><strong>Annex B</strong>：用起始码分隔 NALU。典型标记：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs text">00 00 00 01<br>00 00 01<br></code></pre></td></tr></table></figure>
+
+<p><strong>AVCC</strong>：不用起始码，而是用长度字段描述后面这个 NALU 有多长。</p>
+<p>为什么区分这两种？因为不同封装格式、播放器、解封装器、FFmpeg 模块，对输入码流的期望可能不同。有时候问题不是编码标准不一样，而是码流组织格式不一样——这就是工程里常见”Annex B 转 AVCC”和”AVCC 转 Annex B”的来源。</p>
+<h3 id="12-4-裸流与封装格式"><a href="#12-4-裸流与封装格式" class="headerlink" title="12.4 裸流与封装格式"></a>12.4 裸流与封装格式</h3><p>初学者特别容易把这两层混在一起。</p>
+<ul>
+<li><strong>码流层</strong>：裸 H.264、裸 H.265。关心 NALU 怎么组织、参数集在哪里、码流边界怎么表示。</li>
+<li><strong>容器&#x2F;封装层</strong>：MP4、FLV、TS、MKV。关心音视频流怎么一起装、时间戳怎么管理、元数据怎么组织。</li>
+</ul>
+<pre><code class=" mermaid">flowchart LR
+    A[原始 YUV 帧] --&gt; B[H264 编码器]
+    B --&gt; C[H264 码流]
+    C --&gt; D[MP4 / FLV / MKV 容器]
+</code></pre>
+
+<p>H.264 的最终输出是比特流，不是 MP4 文件。MP4 是封装格式。</p>
+<hr>
+<h2 id="十三、为什么编码器一定要缓存历史帧"><a href="#十三、为什么编码器一定要缓存历史帧" class="headerlink" title="十三、为什么编码器一定要缓存历史帧"></a>十三、为什么编码器一定要缓存历史帧</h2><p>P 帧和 B 帧不是独立存在的，必须依赖参考图像。没有缓存，预测就无从谈起。</p>
+<p>关键理解：<strong>编码器缓存的不是原始输入帧，而是重建帧。解码器缓存的也是重建帧。</strong></p>
+<p>为什么？因为编码器和解码器后面做预测时，必须看到完全一致的参考图像。如果编码器拿原始图做参考、解码器拿重建图做参考，两边预测结果会逐步漂移，最终完全对不上。</p>
+<p>所以编码器内部有一条本地重建路径：</p>
+<pre><code class=" mermaid">flowchart TD
+    A[原始帧] --&gt; B[预测]
+    B --&gt; C[残差]
+    C --&gt; D[变换与量化]
+    D --&gt; E[熵编码]
+    D --&gt; F[反量化和反变换]
+    F --&gt; G[加回预测]
+    G --&gt; H[重建帧]
+    H --&gt; I[参考缓存]
+</code></pre>
+
+<p>这条路径说明：编码器一边生成输出码流，一边在本地”模拟解码”。模拟出来的重建帧进入参考缓存，之后的 P&#x2F;B 帧预测都基于这些重建帧进行。<strong>编码器内部其实也有一个小型解码环</strong>。</p>
+<h3 id="13-1-帧的依赖关系"><a href="#13-1-帧的依赖关系" class="headerlink" title="13.1 帧的依赖关系"></a>13.1 帧的依赖关系</h3><ul>
+<li><strong>I 帧</strong>：相对独立，编码后重建帧进入参考缓存，供后续 P&#x2F;B 帧使用</li>
+<li><strong>P 帧</strong>：从参考缓存中找历史帧做运动估计，记录 MV + 残差</li>
+<li><strong>B 帧</strong>：可以同时参考前后参考帧，参考管理更复杂，编码顺序和显示顺序可能不同</li>
+</ul>
+<h3 id="13-2-IDR-帧——缓存重置"><a href="#13-2-IDR-帧——缓存重置" class="headerlink" title="13.2 IDR 帧——缓存重置"></a>13.2 IDR 帧——缓存重置</h3><p>IDR 帧是 I 帧的一种特殊类型。它的意义是：从这个点开始，后续参考关系不再依赖它之前的画面。解码器可以安全丢弃旧参考缓存，丢包、误码、漂移不容易继续向后扩散。</p>
+<p><strong>IDR 帧会让参考链路重新开始，相当于一次缓存重置。</strong> 这也是播放器 seek、直播恢复、丢包后重新对齐时非常关键的点。</p>
+<h3 id="13-3-GOP-中的帧关系"><a href="#13-3-GOP-中的帧关系" class="headerlink" title="13.3 GOP 中的帧关系"></a>13.3 GOP 中的帧关系</h3><p>一个典型的 GOP 结构：</p>
+<pre><code class=" mermaid">flowchart LR
+    A[IDR] --&gt; B[B]
+    B --&gt; C[B]
+    C --&gt; D[P]
+    D --&gt; E[B]
+    E --&gt; F[B]
+    F --&gt; G[P]
+    G --&gt; H[下一个 IDR]
+</code></pre>
+
+<p>从显示顺序看：<code>I → B → B → P → B → B → P → IDR</code></p>
+<p>但编码顺序往往需要重排序——因为 B 帧需要前后参考都准备好才能编码&#x2F;解码。所以要区分<strong>显示顺序</strong>和<strong>编码顺序&#x2F;传输顺序</strong>，这也是 B 帧比 P 帧更复杂的核心原因之一。</p>
+<hr>
+<h2 id="十四、把整条链路收在一起"><a href="#十四、把整条链路收在一起" class="headerlink" title="十四、把整条链路收在一起"></a>十四、把整条链路收在一起</h2><pre><code class=" mermaid">flowchart TD
+    A[原始 YUV 帧] --&gt; B[切成宏块/块]
+    B --&gt; C[判断帧类型]
+    C --&gt; D[帧内预测]
+    C --&gt; E[帧间预测]
+    D --&gt; F[残差]
+    E --&gt; F[残差]
+    F --&gt; G[变换]
+    G --&gt; H[量化]
+    H --&gt; I[熵编码]
+    I --&gt; J[NALU 码流输出]
+    H --&gt; K[反量化]
+    K --&gt; L[反变换]
+    L --&gt; M[重建帧]
+    M --&gt; N[参考缓存]
+    N --&gt; E
+</code></pre>
+
+<p>这张图把两条线放在了一起：</p>
+<ul>
+<li><strong>上面</strong>是输出码流的主压缩链：分块→预测→残差→变换→量化→熵编码→NALU</li>
+<li><strong>下面</strong>是编码器内部本地重建并写入参考缓存的链：量化结果→反量化→反变换→重建→参考缓存</li>
+</ul>
+<p>H.264&#x2F;H.265 的核心，不只是”把视频压小”，而是通过分块、预测、变换、量化、熵编码和码流组织，构建出一套既能高效压缩、又能稳定解码的完整体系。</p>
+<p>如果压缩成一版面试答案：</p>
+<ol>
+<li><strong>编码主线</strong>：原始 YUV 帧按块划分，根据帧类型做帧内或帧间预测→只编残差→变换、量化、熵编码→打包为 NALU 比特流</li>
+<li><strong>解码主线</strong>：解析 NALU→熵解码→反量化→反变换→恢复残差→预测&#x2F;运动补偿重建→滤波输出</li>
+<li><strong>缓存主线</strong>：P&#x2F;B 帧必须依赖参考图像，编解码器两端都缓存重建帧；IDR 帧重启参考链；RDO 贯穿每个决策点的率失真权衡</li>
+</ol>
+<p>H.264 不是”把每一帧单独压成更小的图片”，而是把一串连续画面之间的关系编码进了码流里。真正理解了这一点，I&#x2F;P&#x2F;B 帧、GOP、运动估计、参考帧缓存、IDR 刷新、Profile&#x2F;Level、RDO 和码率控制这些概念就会自然连起来。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/H-264/" class="print-no-link">#H.264</a>
+      
+        <a href="/tags/H-265/" class="print-no-link">#H.265</a>
+      
+        <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/" class="print-no-link">#视频编码</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>H.264/H.265 核心原理：从基础世界观到编解码流程与码流结构</div>
+      <div>https://breaker505.github.io/2026/03/26/h264-h265-core-principles/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年3月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/03/29/i-p-b-frames-gop-and-video-prediction/" title="一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/03/22/container-vs-bitstream-mp4-flv-ts-and-elementary-stream/" title="什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了">
+                        <span class="hidden-mobile">什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  <script>
+  Fluid.utils.createScript('https://lib.baomitu.com/mermaid/8.14.0/mermaid.min.js', function() {
+    mermaid.initialize({"theme":"default"});
+
+    Fluid.utils.listenDOMLoaded(function() {
+      Fluid.events.registerRefreshCallback(function() {
+        if ('mermaid' in window) {
+          mermaid.init();
+        }
+      });
+    });
+  });
+</script>
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

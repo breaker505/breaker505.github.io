@@ -1,0 +1,1056 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="鱼跃厂长">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  
+    <meta name="description" content="很多人在学习 LangChain 或 LangGraph 时，最容易混淆的就是这几个概念：  Chain 是什么？ LCEL 是什么？ LangGraph 又是什么？ Workflow 和它们到底是什么关系？  表面上看，它们都像是在“搭 Agent”，但实际上分工并不一样。理解这几个概念的边界，才能真正知道一个 Agent 系统到底是怎么跑起来的。 这篇文章想做的事情很简单：先把 Chain、L">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一文讲清 Chain、LCEL、LangGraph 和 Workflow 的关系">
+<meta property="og:url" content="https://breaker505.github.io/2026/05/03/chain-lcel-langgraph-workflow/index.html">
+<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:description" content="很多人在学习 LangChain 或 LangGraph 时，最容易混淆的就是这几个概念：  Chain 是什么？ LCEL 是什么？ LangGraph 又是什么？ Workflow 和它们到底是什么关系？  表面上看，它们都像是在“搭 Agent”，但实际上分工并不一样。理解这几个概念的边界，才能真正知道一个 Agent 系统到底是怎么跑起来的。 这篇文章想做的事情很简单：先把 Chain、L">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-03T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-03T07:55:50.876Z">
+<meta property="article:author" content="鱼跃厂长">
+<meta property="article:tag" content="LangChain">
+<meta property="article:tag" content="LangGraph">
+<meta property="article:tag" content="LCEL">
+<meta property="article:tag" content="Workflow">
+<meta property="article:tag" content="Agent">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>一文讲清 Chain、LCEL、LangGraph 和 Workflow 的关系 - 鱼跃厂长</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>鱼跃厂长</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="一文讲清 Chain、LCEL、LangGraph 和 Workflow 的关系"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-03 10:00" pubdate>
+          2026年5月3日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          25 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">一文讲清 Chain、LCEL、LangGraph 和 Workflow 的关系</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>很多人在学习 LangChain 或 LangGraph 时，最容易混淆的就是这几个概念：</p>
+<ul>
+<li>Chain 是什么？</li>
+<li>LCEL 是什么？</li>
+<li>LangGraph 又是什么？</li>
+<li>Workflow 和它们到底是什么关系？</li>
+</ul>
+<p>表面上看，它们都像是在“搭 Agent”，但实际上分工并不一样。理解这几个概念的边界，才能真正知道一个 Agent 系统到底是怎么跑起来的。</p>
+<p>这篇文章想做的事情很简单：先把 <strong>Chain、LCEL、LangGraph、Workflow</strong> 分别讲清楚，再把它们之间的关系串起来。</p>
+<h2 id="一、Chain：完整的端到端调用链"><a href="#一、Chain：完整的端到端调用链" class="headerlink" title="一、Chain：完整的端到端调用链"></a>一、Chain：完整的端到端调用链</h2><p>最基础的概念其实是 <strong>Chain</strong>。</p>
+<p>所谓 Chain，本质上就是一次完整的端到端输入输出流程。也就是：用户给输入，系统经过一系列处理，最后产出结果。</p>
+<p>一个典型的 Chain 可以长这样：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">输入 → RAG 检索 → 拼提示词 → LLM（带工具） → 解析输出<br></code></pre></td></tr></table></figure>
+
+<p>简单一点时，也可能只是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">输入 → Prompt → LLM → 输出<br></code></pre></td></tr></table></figure>
+
+<p>如果再复杂一些，Chain 里还可以继续塞进：</p>
+<ul>
+<li>知识库检索</li>
+<li>工具调用</li>
+<li>输出解析</li>
+<li>后处理逻辑</li>
+</ul>
+<p>所以你可以把 Chain 理解成：</p>
+<blockquote>
+<p><strong>把多个处理步骤串起来，形成一个完整调用过程。</strong></p>
+</blockquote>
+<p>Chain 关注的核心问题是：</p>
+<blockquote>
+<p><strong>从输入到输出，这条链路怎么走完？</strong></p>
+</blockquote>
+<hr>
+<h2 id="二、LCEL：组织组件流水线的表达方式"><a href="#二、LCEL：组织组件流水线的表达方式" class="headerlink" title="二、LCEL：组织组件流水线的表达方式"></a>二、LCEL：组织组件流水线的表达方式</h2><p><strong>LCEL</strong> 可以理解为 LangChain 里一种专门写“链”的方式。</p>
+<p>它最核心的特点就是：<strong>把组件像管道一样串起来。</strong></p>
+<p>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">prompt | llm | parser<br></code></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">retriever | prompt | llm | tool<br></code></pre></td></tr></table></figure>
+
+<p>这种写法非常直观，所以很多人会把 LCEL 理解成“新版写 Chain 的方式”。这个理解不算错，但还可以更准确一点：</p>
+<blockquote>
+<p><strong>LCEL 是一种声明式的链式表达语言，用来组织组件流水线。</strong></p>
+</blockquote>
+<p>它特别适合做这些事情：</p>
+<ul>
+<li>Prompt 模板拼接</li>
+<li>模型调用</li>
+<li>输出解析</li>
+<li>简单工具接入</li>
+<li>线性的数据流处理</li>
+</ul>
+<p>所以 LCEL 的强项在于：</p>
+<ul>
+<li>写起来简洁</li>
+<li>组件复用方便</li>
+<li>非常适合标准化、线性的处理流程</li>
+</ul>
+<p>如果要压缩成一句话：</p>
+<blockquote>
+<p><strong>LCEL &#x3D; 组件级别的流水线编排工具。</strong></p>
+</blockquote>
+<hr>
+<h2 id="三、LangGraph：面向-Agent-的流程编排器"><a href="#三、LangGraph：面向-Agent-的流程编排器" class="headerlink" title="三、LangGraph：面向 Agent 的流程编排器"></a>三、LangGraph：面向 Agent 的流程编排器</h2><p>如果说 LCEL 擅长的是“线性流水线”，那么 <strong>LangGraph</strong> 擅长的就是“复杂流程控制”。</p>
+<p>一个真实 Agent 往往不是一次 <code>prompt | llm</code> 就能结束的，它常常需要：</p>
+<ul>
+<li>先思考一下</li>
+<li>判断当前结果对不对</li>
+<li>不对就回退重试</li>
+<li>再调用工具</li>
+<li>拿到工具结果后继续推理</li>
+<li>必要时暂停，等待用户输入</li>
+<li>保存中间状态</li>
+<li>甚至让多个角色协作完成任务</li>
+</ul>
+<p>这些都不是简单的线性链路，而是一个<strong>带状态、带分支、可能循环的执行图</strong>。</p>
+<p>这正是 LangGraph 要解决的问题。</p>
+<h3 id="LangGraph-可以理解为："><a href="#LangGraph-可以理解为：" class="headerlink" title="LangGraph 可以理解为："></a>LangGraph 可以理解为：</h3><blockquote>
+<p><strong>一个专门为 Agent 设计的流程编排器。</strong></p>
+</blockquote>
+<p>它的核心能力一般包括：</p>
+<ul>
+<li><strong>State</strong>：保存执行过程中的状态和记忆</li>
+<li><strong>Node</strong>：定义每一个步骤</li>
+<li><strong>Edge</strong>：定义步骤之间怎么流转</li>
+<li><strong>Conditional Edge</strong>：根据条件决定下一步走哪里</li>
+<li><strong>Loop</strong>：支持反复思考、反复调用</li>
+<li><strong>Human-in-the-loop</strong>：支持中途暂停，等待用户介入</li>
+</ul>
+<p>所以，LangGraph 更适合解决这类问题：</p>
+<ul>
+<li>多步推理</li>
+<li>反思与重试</li>
+<li>工具循环调用</li>
+<li>多智能体协作</li>
+<li>长流程状态管理</li>
+<li>可恢复执行</li>
+</ul>
+<hr>
+<h2 id="四、LCEL-和-LangGraph-到底是什么关系"><a href="#四、LCEL-和-LangGraph-到底是什么关系" class="headerlink" title="四、LCEL 和 LangGraph 到底是什么关系"></a>四、LCEL 和 LangGraph 到底是什么关系</h2><p>很多人最困惑的就是这里。</p>
+<p>一句话讲清楚：</p>
+<blockquote>
+<p><strong>LCEL 是组件流水线，LangGraph 是流程编排器。</strong><br><strong>LangGraph 可以调用 LCEL，而 LCEL 往往只是 LangGraph 图中的一个节点。</strong></p>
+</blockquote>
+<p>也就是说，两者不是竞争关系，而是上下层关系。</p>
+<p>你可以这样理解：</p>
+<ul>
+<li><strong>LCEL</strong> 负责把某一个具体步骤做好<br>例如“把 prompt、llm、parser 串成一个处理单元”</li>
+<li><strong>LangGraph</strong> 负责决定整个流程怎么走<br>例如“先检索，再推理，不行就调用工具，失败就重试，成功就结束”</li>
+</ul>
+<p>所以：</p>
+<ul>
+<li><strong>LCEL 解决的是单步处理</strong></li>
+<li><strong>LangGraph 解决的是多步流程控制</strong></li>
+</ul>
+<p>你甚至可以把 LangGraph 中的某个 Node，直接写成一个 LCEL Chain。</p>
+<p>例如：</p>
+<ul>
+<li>节点 A：检索知识库</li>
+<li>节点 B：调用一个 LCEL 链做总结</li>
+<li>节点 C：判断是否需要继续调用工具</li>
+<li>节点 D：输出最终答案</li>
+</ul>
+<p>这时候，LCEL 就是 LangGraph 图中的一个可复用处理单元。</p>
+<hr>
+<h2 id="五、LangGraph-到底解决了什么问题"><a href="#五、LangGraph-到底解决了什么问题" class="headerlink" title="五、LangGraph 到底解决了什么问题"></a>五、LangGraph 到底解决了什么问题</h2><p>如果只用 LCEL，你能做的通常是：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">输入 → 处理 → 输出<br></code></pre></td></tr></table></figure>
+
+<p>这类流程本质上是<strong>线性的</strong>。</p>
+<p>但真实 Agent 往往不是这样的，它更像：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">输入 → 思考 → 判断 → 调用工具 → 再思考 → 再判断 → 输出<br></code></pre></td></tr></table></figure>
+
+<p>甚至可能还要：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs text">输入 → 角色A分析 → 角色B补充 → 角色C审核 → 不通过则重来 → 输出<br></code></pre></td></tr></table></figure>
+
+<p>这时候问题已经不再是“怎么把几个组件串起来”，而是：</p>
+<ul>
+<li>下一步到底该走哪条路？</li>
+<li>什么时候该循环？</li>
+<li>什么时候该结束？</li>
+<li>中间状态要怎么保存？</li>
+<li>出错之后怎么恢复？</li>
+<li>用户中途插话怎么办？</li>
+</ul>
+<p>这些问题，LCEL 本身并不擅长处理，而 LangGraph 从设计上就是为这些需求准备的。</p>
+<p>所以可以总结为：</p>
+<h3 id="LCEL-更擅长处理"><a href="#LCEL-更擅长处理" class="headerlink" title="LCEL 更擅长处理"></a>LCEL 更擅长处理</h3><ul>
+<li>线性流程</li>
+<li>固定步骤</li>
+<li>明确输入输出</li>
+</ul>
+<h3 id="LangGraph-更适合处理"><a href="#LangGraph-更适合处理" class="headerlink" title="LangGraph 更适合处理"></a>LangGraph 更适合处理</h3><ul>
+<li>非线性流程</li>
+<li>条件分支</li>
+<li>循环反思</li>
+<li>多角色协作</li>
+<li>中断与恢复</li>
+<li>持久状态</li>
+</ul>
+<hr>
+<h2 id="六、Workflow-才是决定-Agent-水平的关键"><a href="#六、Workflow-才是决定-Agent-水平的关键" class="headerlink" title="六、Workflow 才是决定 Agent 水平的关键"></a>六、Workflow 才是决定 Agent 水平的关键</h2><p>这里还有一个非常容易被忽略的点：</p>
+<blockquote>
+<p><strong>真正决定 Agent 是否聪明、是否稳定的，不是框架本身，而是你写的 Workflow。</strong></p>
+</blockquote>
+<p>很多人以为用了 LangGraph，Agent 就自动变聪明了。其实不是。</p>
+<p>LangGraph 只是一个框架，它提供的是基础能力：</p>
+<ul>
+<li>State：让你存状态</li>
+<li>Node：让你拆步骤</li>
+<li>Edge：让你连接流程</li>
+</ul>
+<p>但它<strong>不会替你设计业务逻辑</strong>。</p>
+<p>比如下面这些关键问题，框架都不会替你决定：</p>
+<ul>
+<li>什么时候查知识库？</li>
+<li>什么时候调用工具？</li>
+<li>什么时候让模型先规划再执行？</li>
+<li>什么时候进入多轮迭代？</li>
+<li>什么时候结束？</li>
+<li>出错了怎么兜底？</li>
+<li>结果质量不好时要不要重试？</li>
+<li>不同任务类型该走哪条路径？</li>
+</ul>
+<p>这些，统统都属于 <strong>Workflow 设计</strong>。</p>
+<p>也就是说：</p>
+<blockquote>
+<p><strong>框架只提供能力，Workflow 才提供智能。</strong></p>
+</blockquote>
+<p>一个 Agent 做得稳不稳定、聪不聪明，核心不在于你用了 LCEL 还是 LangGraph，而在于你有没有把流程设计好。</p>
+<hr>
+<h2 id="七、一句话总结四者关系"><a href="#七、一句话总结四者关系" class="headerlink" title="七、一句话总结四者关系"></a>七、一句话总结四者关系</h2><p>最后用最简单的话收一下。</p>
+<h3 id="Chain"><a href="#Chain" class="headerlink" title="Chain"></a>Chain</h3><p>是一次完整的端到端调用链。</p>
+<h3 id="LCEL"><a href="#LCEL" class="headerlink" title="LCEL"></a>LCEL</h3><p>是写 Chain 的一种组件流水线方式，适合线性流程。</p>
+<h3 id="LangGraph"><a href="#LangGraph" class="headerlink" title="LangGraph"></a>LangGraph</h3><p>是流程编排器，适合带状态、分支、循环和多智能体的复杂 Agent。</p>
+<h3 id="Workflow"><a href="#Workflow" class="headerlink" title="Workflow"></a>Workflow</h3><p>是你自己设计的业务执行逻辑，决定 Agent 到底聪不聪明、稳不稳定。</p>
+<hr>
+<h2 id="八、一个最直观的理解方式"><a href="#八、一个最直观的理解方式" class="headerlink" title="八、一个最直观的理解方式"></a>八、一个最直观的理解方式</h2><p>你可以把它们类比成“做菜”：</p>
+<ul>
+<li><strong>Chain</strong>：做出一道菜的完整过程</li>
+<li><strong>LCEL</strong>：把“切菜 → 下锅 → 调味”串成流水线</li>
+<li><strong>LangGraph</strong>：决定先做哪道菜、失败要不要重做、下一步做什么</li>
+<li><strong>Workflow</strong>：整套厨房作业流程设计，决定这家餐厅水平高不高</li>
+</ul>
+<p>所以真正的关系是：</p>
+<blockquote>
+<p><strong>Chain 是结果形态，LCEL 是线性组装方式，LangGraph 是流程控制框架，Workflow 是你自己设计的核心逻辑。</strong></p>
+</blockquote>
+<hr>
+<h2 id="九、适合放在文末的结论"><a href="#九、适合放在文末的结论" class="headerlink" title="九、适合放在文末的结论"></a>九、适合放在文末的结论</h2><p>如果你的任务只是：</p>
+<ul>
+<li>Prompt</li>
+<li>调模型</li>
+<li>拿结果</li>
+</ul>
+<p>那 LCEL 往往就够了。</p>
+<p>但如果你的任务开始出现下面这些需求：</p>
+<ul>
+<li>多轮思考</li>
+<li>工具反复调用</li>
+<li>条件分支</li>
+<li>中间状态保存</li>
+<li>多角色协作</li>
+<li>人工介入</li>
+</ul>
+<p>那你就已经进入了 LangGraph 的适用范围。</p>
+<p>不过无论你用不用 LangGraph，最终决定 Agent 上限的，始终不是框架，而是你设计出来的 <strong>Workflow</strong>。</p>
+<p>真正把这些关系理顺之后，你会发现：Agent 系统里最重要的不是“选哪个词”，而是能不能把“组件、流程、状态、业务逻辑”放回同一张图里理解。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Agent/" class="category-chain-item">Agent</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/LangChain/" class="print-no-link">#LangChain</a>
+      
+        <a href="/tags/LangGraph/" class="print-no-link">#LangGraph</a>
+      
+        <a href="/tags/LCEL/" class="print-no-link">#LCEL</a>
+      
+        <a href="/tags/Workflow/" class="print-no-link">#Workflow</a>
+      
+        <a href="/tags/Agent/" class="print-no-link">#Agent</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>一文讲清 Chain、LCEL、LangGraph 和 Workflow 的关系</div>
+      <div>https://breaker505.github.io/2026/05/03/chain-lcel-langgraph-workflow/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>鱼跃厂长</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2026/05/03/vlm-intro-from-video-to-understanding/" title="从视频链路到 VLM，视觉语言模型怎么真正看懂画面">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">从视频链路到 VLM，视觉语言模型怎么真正看懂画面</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/03/how-to-learn-agent-development/" title="如何快速掌握 Agent 开发：从概念理解到企业级架构落地">
+                        <span class="hidden-mobile">如何快速掌握 Agent 开发：从概念理解到企业级架构落地</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 鱼跃厂长</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

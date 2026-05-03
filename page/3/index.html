@@ -336,15 +336,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/why-video-systems-prefer-yuv/" target="_self">
-          为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍
+        <a href="/2026/04/07/sps-pps-vps-annexb-avcc-relationships/" target="_self">
+          SPS、PPS、VPS、Annex B、AVCC 到底是什么关系
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/why-video-systems-prefer-yuv/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/07/sps-pps-vps-annexb-avcc-relationships/" target="_self">
         <div>
-          前言：为什么很多图像系统最后都会绕回 YUV如果你前面已经接触过：  Camera FFmpeg 编码器 播放器 OpenCV 硬件编解码  那你大概率已经发现一个现象： 虽然 RGB 看起来最直观，但真正的视频系统里，经常一路绕着绕着，最后还是会回到 YUV。 典型场景包括：  Camera 输出 NV12 编码器要求 YUV420 FFmpeg 解码后给你 YUV420P 硬件编解码器更喜欢
+          前言：为什么很多人学了 H.264&#x2F;H.265，还是一碰码流组织就发虚如果你已经开始接触 H.264 &#x2F; H.265，很快就会碰到下面这些词：  SPS PPS VPS NALU Annex B AVCC extradata  很多人第一次看时都会有一种很强的混乱感。 因为这些词表面上都和“码流”有关，但它们又不在同一个层次：  有的是参数集 有的是码流组织方式 有的是容器里常
         </div>
       </a>
 
@@ -352,8 +352,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:17" pubdate>
-              2026-04-18
+            <time datetime="2026-04-07 08:00" pubdate>
+              2026-04-07
             </time>
           </div>
         
@@ -383,17 +383,17 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
-            
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
             
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
-              <a href="/tags/Camera/">#Camera</a>
+              <a href="/tags/%E7%A0%81%E6%B5%81/">#码流</a>
             
-              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
+              <a href="/tags/H264/">#H264</a>
+            
+              <a href="/tags/H265/">#H265</a>
             
           </div>
         
@@ -407,15 +407,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/pixel-format-and-color-space-rgb-yuv-nv12-yuv420p/" target="_self">
-          从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P
+        <a href="/2026/04/04/h265-hevc/" target="_self">
+          H.265 HEVC 入门，从 H.264 升级到更高压缩率
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/pixel-format-and-color-space-rgb-yuv-nv12-yuv420p/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/04/h265-hevc/" target="_self">
         <div>
-          前言：为什么像素格式和色彩空间总让人越学越乱只要开始接触音视频、Camera、FFmpeg、OpenCV、编码器或者渲染链路，几乎很快就会碰到这几个词：  RGB YUV NV12 YUV420P 色彩空间 像素格式  很多人最开始都会把它们混成一团。 典型表现是：  把 RGB &#x2F; YUV 当成“文件格式” 把 NV12 &#x2F; YUV420P 当成“色彩空间” 知道它们都和图像
+          前言如果说 H.264 是现代视频编码最经典的一代标准，那 H.265，也就是 HEVC，可以直接理解成它的全面升级版。 它没有推翻 H.264 的核心世界观，反而是在原有框架上做了一次系统级增强：  I &#x2F; P &#x2F; B 帧还在 GOP 结构还在 帧内预测、帧间预测还在 参考帧缓存还在 NALU 码流组织还在 IDR 刷新机制还在  所以学习 H.265 最轻松的方法，不是把它
         </div>
       </a>
 
@@ -423,8 +423,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:08" pubdate>
-              2026-04-18
+            <time datetime="2026-04-04 08:00" pubdate>
+              2026-04-04
             </time>
           </div>
         
@@ -454,9 +454,362 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/H-264/">#H.264</a>
+            
+              <a href="/tags/H-265/">#H.265</a>
+            
+              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+            
+              <a href="/tags/HEVC/">#HEVC</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%9F%BA%E7%A1%80/">#工程基础</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/01/h264-h265-in-ffmpeg/" target="_self">
+          从 AVPacket 到 AVFrame，H.264/H.265 在 FFmpeg 中是如何承上启下的
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/01/h264-h265-in-ffmpeg/" target="_self">
+        <div>
+          前言：为什么只懂 H.264&#x2F;H.265 还不够很多人学视频编码时，容易停在“标准知识”这一层。 比如知道：  H.264 和 H.265 是主流视频编码标准 I &#x2F; P &#x2F; B 帧分别是什么 SPS &#x2F; PPS &#x2F; VPS 是参数集 Annex B 和 AVCC 是两种常见码流组织方式  这些知识当然重要，但如果你真正做工程，只懂这些还远远不够。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-01 08:00" pubdate>
+              2026-04-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
             
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/H-264/">#H.264</a>
+            
+              <a href="/tags/H-265/">#H.265</a>
+            
+              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/03/29/i-p-b-frames-gop-and-video-prediction/" target="_self">
+          一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/29/i-p-b-frames-gop-and-video-prediction/" target="_self">
+        <div>
+          前言：为什么很多人背过 I &#x2F; P &#x2F; B 帧，还是不理解视频编码只要开始学 H.264 &#x2F; H.265，几乎一定会碰到这些词：  I 帧 P 帧 B 帧 GOP 参考帧 预测结构  很多人对它们并不陌生，甚至在面试前也背过很多次。 但真正一问：  为什么要分 I &#x2F; P &#x2F; B 帧 B 帧到底“厉害”在哪 GOP 为什么不是越长越好 为什么 B
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-03-29 08:00" pubdate>
+              2026-03-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+            
+              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
+            
+              <a href="/tags/H264/">#H264</a>
+            
+              <a href="/tags/H265/">#H265</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/03/26/h264-h265-core-principles/" target="_self">
+          H.264/H.265 核心原理：从基础世界观到编解码流程与码流结构
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/26/h264-h265-core-principles/" target="_self">
+        <div>
+          一、先从一个问题开始：原始视频为什么这么大如果你直接看一帧没有压缩的视频图像，它的数据量其实是很夸张的。 假设一段 1080p 视频：  分辨率：1920 × 1080 帧率：30fps 像素格式按 RGB 24bit 算  一帧图像的数据量大约是： 11920 × 1080 × 3 ≈ 6 MB  30fps 的话，1 秒就是： 16 MB × 30 ≈ 180 MB/s  一秒钟原始视频数据可
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-03-26 08:00" pubdate>
+              2026-03-26
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/H-264/">#H.264</a>
+            
+              <a href="/tags/H-265/">#H.265</a>
+            
+              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/03/22/container-vs-bitstream-mp4-flv-ts-and-elementary-stream/" target="_self">
+          什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/22/container-vs-bitstream-mp4-flv-ts-and-elementary-stream/" target="_self">
+        <div>
+          前言：为什么很多人学了一堆 H.264、RTP、FFmpeg，最后还是会把“码流”和“容器”说混只要开始接触音视频工程，几乎迟早会遇到这些名字：  H.264 H.265 AAC MP4 FLV TS Annex B AVCC  刚开始学的时候，很多人会下意识把它们都放进一个大筐里，统称成“视频格式”。 这也不奇怪，因为从使用者视角看，它们确实都和“音视频文件能不能播”“流能不能推”“数据怎么传”
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-03-22 08:00" pubdate>
+              2026-03-22
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/%E5%AE%B9%E5%99%A8/">#容器</a>
+            
+              <a href="/tags/%E7%A0%81%E6%B5%81/">#码流</a>
+            
+              <a href="/tags/MP4/">#MP4</a>
+            
+              <a href="/tags/FLV/">#FLV</a>
+            
+              <a href="/tags/TS/">#TS</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/03/19/pixel-format-and-color-space-rgb-yuv-nv12-yuv420p/" target="_self">
+          从像素格式到色彩空间，系统理解 RGB、YUV、NV12 与 YUV420P
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/19/pixel-format-and-color-space-rgb-yuv-nv12-yuv420p/" target="_self">
+        <div>
+          前言：为什么像素格式和色彩空间总让人越学越乱只要开始接触音视频、Camera、FFmpeg、OpenCV、编码器或者渲染链路，几乎很快就会碰到这几个词：  RGB YUV NV12 YUV420P 色彩空间 像素格式  很多人最开始都会把它们混成一团。 典型表现是：  把 RGB &#x2F; YUV 当成“文件格式” 把 NV12 &#x2F; YUV420P 当成“色彩空间” 知道它们都和图像
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-03-19 08:00" pubdate>
+              2026-03-19
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
             
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
@@ -478,15 +831,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/what-audio-video-systems-actually-process/" target="_self">
-          音视频系统到底在处理什么：从数据形态到工程链路的整体认知
+        <a href="/2026/03/16/why-video-systems-prefer-yuv/" target="_self">
+          为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/what-audio-video-systems-actually-process/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/16/why-video-systems-prefer-yuv/" target="_self">
         <div>
-          前言：为什么很多人学了很久音视频，脑子里还是一团雾很多人学音视频时都会经历一个阶段。 一开始接触到的是各种具体名词：  H.264 H.265 AAC RTP RTMP WebRTC FFmpeg AVPacket AVFrame YUV NV12 OpenGL  再往后，又会不断碰到各种具体现象：  为什么视频这么大 为什么要压缩 为什么会卡顿 为什么会花屏 为什么会音画不同步 为什么 pack
+          前言：为什么很多图像系统最后都会绕回 YUV如果你前面已经接触过：  Camera FFmpeg 编码器 播放器 OpenCV 硬件编解码  那你大概率已经发现一个现象： 虽然 RGB 看起来最直观，但真正的视频系统里，经常一路绕着绕着，最后还是会回到 YUV。 典型场景包括：  Camera 输出 NV12 编码器要求 YUV420 FFmpeg 解码后给你 YUV420P 硬件编解码器更喜欢
         </div>
       </a>
 
@@ -494,8 +847,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 00:59" pubdate>
-              2026-04-18
+            <time datetime="2026-03-16 08:00" pubdate>
+              2026-03-16
             </time>
           </div>
         
@@ -524,158 +877,18 @@
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
               <a href="/tags/FFmpeg/">#FFmpeg</a>
             
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">#系统设计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/how-to-explain-video-from-capture-to-display/" target="_self">
-          如果面试官问你视频从采集到显示，你该怎么讲
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/how-to-explain-video-from-capture-to-display/" target="_self">
-        <div>
-          前言：为什么这个问题特别值得认真准备如果你准备投的是这些方向：  音视频开发 摄像头 &#x2F; 车载摄像头开发 FFmpeg &#x2F; 多媒体处理 嵌入式视觉系统 直播 &#x2F; RTC &#x2F; 视频处理  那几乎迟早会碰到一个非常经典的问题：  你怎么理解一段视频从采集到显示的完整链路？  这个问题看起来很基础，但我其实很喜欢它。 因为它不是那种只考你有没有背过几个名词的问题，
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 00:55" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
               <a href="/tags/Camera/">#Camera</a>
-            
-              <a href="/tags/%E9%9D%A2%E8%AF%95/">#面试</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/sensor-debugging-exposure-timing-stability/" target="_self">
-          Sensor 调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/sensor-debugging-exposure-timing-stability/" target="_self">
-        <div>
-          前言：为什么 Sensor 调试看起来像“玄学”，本质上却是结构化工程问题只要开始接触 Camera 相关开发，很快就会碰到一个高频词： Sensor 调试。 很多刚接触这一块的人，最开始对它的印象常常是：  寄存器很多 现象很杂 问题不稳定 看起来像 ISP、驱动、硬件、图像质量全缠在一起 老同事总能靠经验很快判断，但自己很容易不知道从哪下手  于是它就很容易给人一种感觉：  Sensor 调试
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 00:45" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/Camera/">#Camera</a>
-            
-              <a href="/tags/Sensor/">#Sensor</a>
             
               <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
             
-              <a href="/tags/%E8%B0%83%E8%AF%95/">#调试</a>
+              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
             
           </div>
         
@@ -689,15 +902,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/camera-pipeline-from-sensor-to-output/" target="_self">
-          Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路
+        <a href="/2026/03/13/audio-basics-sample-rate-bit-depth-channels-pcm/" target="_self">
+          音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/camera-pipeline-from-sensor-to-output/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/13/audio-basics-sample-rate-bit-depth-channels-pcm/" target="_self">
         <div>
-          前言：为什么理解 Camera Pipeline，比只会“拿到一帧图”更重要很多人第一次接触摄像头相关开发时，直觉里最容易形成的理解是：  Camera 不就是采一帧图出来吗？  这句话不能说完全错，但如果你真的开始做 Camera 相关工程，很快就会发现问题根本没这么简单。 因为在真实系统里，一路图像从 sensor 出来，到最后变成：  屏幕上的预览画面 编码后的录像流 一张抓拍图片 AI 模
+          前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾做音视频的人，通常都会有一种很常见的体验：  视频那边的东西很容易“看见” 音频这边的东西却总有点“听说过，但脑子里没画面”  比如很多人对视频会比较容易形成直觉：  分辨率就是 1920x1080 帧率就是 25fps、30fps H.264&#x2F;H.265 是视频编码 I 帧、P 帧、B 帧是预测结构  这些东西相对
         </div>
       </a>
 
@@ -705,8 +918,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 00:38" pubdate>
-              2026-04-18
+            <time datetime="2026-03-13 08:00" pubdate>
+              2026-03-13
             </time>
           </div>
         
@@ -736,17 +949,19 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
-            
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/%E9%9F%B3%E9%A2%91/">#音频</a>
+            
+              <a href="/tags/PCM/">#PCM</a>
             
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
-              <a href="/tags/Camera/">#Camera</a>
+              <a href="/tags/%E9%87%87%E6%A0%B7%E7%8E%87/">#采样率</a>
             
-              <a href="/tags/Sensor/">#Sensor</a>
+              <a href="/tags/%E4%BD%8D%E5%AE%BD/">#位宽</a>
             
-              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
+              <a href="/tags/%E5%A3%B0%E9%81%93/">#声道</a>
             
           </div>
         
@@ -760,13 +975,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/17/audio-video-series-roadmap/" target="_self">
+        <a href="/2026/03/10/audio-video-series-roadmap/" target="_self">
           音视频工程长期写作总纲：我的知识体系骨架与专栏线路图
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/17/audio-video-series-roadmap/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/03/10/audio-video-series-roadmap/" target="_self">
         <div>
           前言：为什么我要先搭“骨架”，而不是继续零散写当一个人开始系统学习音视频时，很容易进入一种状态：  今天看一点 H.264 明天看一点 FFmpeg 后天又跳去看 RTSP &#x2F; RTP 再往后开始接触 OpenCV、GStreamer、CUDA、WebRTC、AAC、弱网优化  表面上看，学过的东西越来越多；但实际上，知识很容易变成一地散点。 最后常见的问题是：  每个词都见过，但串不起
         </div>
@@ -776,8 +991,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-17 23:55" pubdate>
-              2026-04-17
+            <time datetime="2026-03-10 08:00" pubdate>
+              2026-03-10
             </time>
           </div>
         
@@ -807,13 +1022,9 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
-              <a href="/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/">#方法论</a>
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
             
               <a href="/tags/RTSP/">#RTSP</a>
             
@@ -821,212 +1032,11 @@
             
               <a href="/tags/GStreamer/">#GStreamer</a>
             
+              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
+            
               <a href="/tags/%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF/">#学习路线</a>
             
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/17/h264-h265-in-ffmpeg/" target="_self">
-          从 AVPacket 到 AVFrame，H.264/H.265 在 FFmpeg 中是如何承上启下的
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/17/h264-h265-in-ffmpeg/" target="_self">
-        <div>
-          前言：为什么只懂 H.264&#x2F;H.265 还不够很多人学视频编码时，容易停在“标准知识”这一层。 比如知道：  H.264 和 H.265 是主流视频编码标准 I &#x2F; P &#x2F; B 帧分别是什么 SPS &#x2F; PPS &#x2F; VPS 是参数集 Annex B 和 AVCC 是两种常见码流组织方式  这些知识当然重要，但如果你真正做工程，只懂这些还远远不够。
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-17 23:26" pubdate>
-              2026-04-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/H-264/">#H.264</a>
-            
-              <a href="/tags/H-265/">#H.265</a>
-            
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/17/h264-h265-codec-flow-and-bitstream/" target="_self">
-          从分块到 NALU，一文讲清 H.264/H.265 的编解码流程与码流结构
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/17/h264-h265-codec-flow-and-bitstream/" target="_self">
-        <div>
-          上一篇我先把 H.264&#x2F;H.265 的基础世界观搭起来了，重点解决的是：  为什么视频一定要压缩 H.264 和 H.265 是什么 YUV、GOP、I&#x2F;P&#x2F;B 帧、码率这些概念该怎么理解  但如果只停在这一层，很多东西其实还是会悬着。 因为真正一进入工程或面试，最容易被问到的往往不是“它是什么”，而是：  编码器到底做了哪些事？ 为什么要分块？ 什么叫帧内预测、帧
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-17 23:10" pubdate>
-              2026-04-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
-            
-              <a href="/tags/H264/">#H264</a>
-            
-              <a href="/tags/H265/">#H265</a>
-            
-              <a href="/tags/%E7%A0%81%E6%B5%81/">#码流</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/17/h264-h265-basics/" target="_self">
-          从原始视频到压缩码流，彻底理解 H.264/H.265 的基础知识
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/17/h264-h265-basics/" target="_self">
-        <div>
-          很多人学音视频时，最开始接触到的往往是 FFmpeg 命令、播放器现象，或者“为什么视频这么小还能这么清楚”这种直觉问题。 再往后一点，就会开始碰到一堆名词：  H.264 H.265 I 帧 &#x2F; P 帧 &#x2F; B 帧 GOP 码率 YUV420P CABAC  如果只是零散地记这些词，很容易变成： 你知道它们存在，但并不真的理解视频编码到底在解决什么。 所以这篇文章不急着冲进太
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-17 22:49" pubdate>
-              2026-04-17
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
-            
-              <a href="/tags/H264/">#H264</a>
-            
-              <a href="/tags/H265/">#H265</a>
+              <a href="/tags/%E6%96%B9%E6%B3%95%E8%AE%BA/">#方法论</a>
             
           </div>
         

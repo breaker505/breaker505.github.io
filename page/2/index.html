@@ -336,15 +336,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/why-webrtc-is-hard-from-capture-to-jitter-buffer/" target="_self">
-          WebRTC 为什么难：从采集、编码、传输到抗抖动，实时音视频链路到底难在哪
+        <a href="/2026/04/28/streaming-system-architecture/" target="_self">
+          流媒体系统的标准分层架构
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/why-webrtc-is-hard-from-capture-to-jitter-buffer/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/28/streaming-system-architecture/" target="_self">
         <div>
-          前言：为什么很多人觉得 WebRTC “东西很多”，但真正难的不是名词多，而是系统目标太苛刻只要开始碰实时音视频，几乎迟早都会听到一句话：  WebRTC 很复杂。  这话当然没错。 因为你很快就会遇到一大堆名词：  SDP ICE STUN TURN RTP RTCP NACK PLI jitter buffer AEC FEC congestion control  看起来像一整面墙。 所以很
+          前言很多人学流媒体时，最容易出现一种状态：单个名词都认识，但一旦把它们放进同一条系统链路里，就开始混。 比如：  H.264 是编码标准 FLV、MP4 是封装格式 RTP 是媒体传输协议 RTCP 是质量控制协议 RTSP 是信令协议 RTMP 和 WebRTC 又像是“整套方案”  如果这些概念不做分层，工程里很容易出现几种典型混乱：  把封装和传输混成一层 把 RTSP 误当成真正发视频的协
         </div>
       </a>
 
@@ -352,8 +352,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 16:08" pubdate>
-              2026-04-18
+            <time datetime="2026-04-28 08:00" pubdate>
+              2026-04-28
             </time>
           </div>
         
@@ -385,7 +385,9 @@
             
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
+              <a href="/tags/RTSP/">#RTSP</a>
             
               <a href="/tags/WebRTC/">#WebRTC</a>
             
@@ -393,226 +395,9 @@
             
               <a href="/tags/RTCP/">#RTCP</a>
             
-              <a href="/tags/jitter-buffer/">#jitter buffer</a>
-            
-              <a href="/tags/%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91/">#实时音视频</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/hardware-vs-software-video-encoding/" target="_self">
-          硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/hardware-vs-software-video-encoding/" target="_self">
-        <div>
-          前言：为什么很多人知道“硬编更快，软编更灵活”，但真做选型时还是会卡住如果你刚接触视频编码，最容易先记住一句话：  软编码，画质通常更好，调节空间更大 硬编码，速度通常更快，延迟更低，功耗也更友好  这句话不算错。 但问题是，真实项目里的选型从来不是靠这两句口号就能落地。 因为一旦进入工程现场，你马上会面对这些更具体的问题：  摄像头采集上来的是 NV12，编码器到底吃不吃 我想做 1080p30
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 15:50" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
-            
-              <a href="/tags/H-264/">#H.264</a>
-            
-              <a href="/tags/H-265/">#H.265</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/%E7%A1%AC%E7%BC%96%E7%A0%81/">#硬编码</a>
-            
-              <a href="/tags/%E8%BD%AF%E7%BC%96%E7%A0%81/">#软编码</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/ffmpeg-filter-graph-intro/" target="_self">
-          FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/ffmpeg-filter-graph-intro/" target="_self">
-        <div>
-          前言：为什么很多人会用 FFmpeg 命令，但一到滤镜链就开始发虚学 FFmpeg 的过程中，很多人会先学会这些事：  转码 推流 抽帧 改码率 改封装  这时候你会觉得自己已经能“用 FFmpeg 干活了”。 但只要需求再往前走一步，比如想做：  缩放 裁剪 改帧率 加水印 叠字 多路画面拼接 预处理后再编码  你几乎一定会撞上一个核心概念： filter graph。 也是从这里开始，很多人会
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 14:21" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
-            
-              <a href="/tags/%E6%8E%A8%E6%B5%81/">#推流</a>
-            
-              <a href="/tags/filter-graph/">#filter graph</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/from-local-camera-to-network-streaming/" target="_self">
-          从本地摄像头到网络推流，一条最小视频链路怎么搭起来
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/from-local-camera-to-network-streaming/" target="_self">
-        <div>
-          前言：为什么很多人学了很多知识点，真要自己搭一条视频链路时还是会卡住前面我们已经陆续把很多关键模块拆开聊过了：  Camera Pipeline Sensor 调试 RGB &#x2F; YUV &#x2F; NV12 &#x2F; YUV420P H.264&#x2F;H.265 I &#x2F; P &#x2F; B 与 GOP SPS &#x2F; PPS &#x2F; Annex B &#
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 13:55" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/Camera/">#Camera</a>
-            
               <a href="/tags/RTMP/">#RTMP</a>
             
-              <a href="/tags/%E6%8E%A8%E6%B5%81/">#推流</a>
+              <a href="/tags/%E6%B5%81%E5%AA%92%E4%BD%93/">#流媒体</a>
             
           </div>
         
@@ -626,15 +411,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/jitter-loss-reordering-and-jitter-buffer/" target="_self">
-          jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么
+        <a href="/2026/04/27/gstreamer-pipeline-thinking-vs-ffmpeg/" target="_self">
+          GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/jitter-loss-reordering-and-jitter-buffer/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/27/gstreamer-pipeline-thinking-vs-ffmpeg/" target="_self">
         <div>
-          前言：为什么很多实时音视频系统，真正难的不是“发出去”，而是“让对方稳稳收到”很多人刚接触实时音视频时，最开始的关注点通常都在这些地方：  编码能不能成功 推流能不能发出去 解码能不能出图 网络通不通  这些当然都重要。 但只要你开始真正碰实时系统，很快就会发现，最折磨人的问题往往不是“完全不通”，而是那种：  能通，但一卡一卡 能看，但声音断断续续 有画面，但延迟越来越大 一开始正常，网络一抖就
+          前言：为什么很多人学完 FFmpeg 再看 GStreamer，会有一种“都认识单词，但整句话读不顺”的感觉如果你已经接触过一段时间 FFmpeg，再去看 GStreamer，通常会有一种非常典型的感觉：  里面很多概念并不是完全陌生 但整体思维方式就是不一样 你能看懂它在“处理媒体”，却总觉得脑回路没完全接上  这种感觉非常正常。 因为 FFmpeg 和 GStreamer 虽然都属于主流媒体框
         </div>
       </a>
 
@@ -642,8 +427,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 13:41" pubdate>
-              2026-04-18
+            <time datetime="2026-04-27 08:00" pubdate>
+              2026-04-27
             </time>
           </div>
         
@@ -675,15 +460,15 @@
             
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
-              <a href="/tags/WebRTC/">#WebRTC</a>
+              <a href="/tags/GStreamer/">#GStreamer</a>
             
-              <a href="/tags/RTP/">#RTP</a>
+              <a href="/tags/pipeline/">#pipeline</a>
             
-              <a href="/tags/jitter-buffer/">#jitter buffer</a>
-            
-              <a href="/tags/%E5%BC%B1%E7%BD%91%E4%BC%98%E5%8C%96/">#弱网优化</a>
+              <a href="/tags/%E5%AA%92%E4%BD%93%E6%A1%86%E6%9E%B6/">#媒体框架</a>
             
           </div>
         
@@ -697,13 +482,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/rtmp-vs-webrtc-core-differences/" target="_self">
+        <a href="/2026/04/26/rtmp-vs-webrtc-core-differences/" target="_self">
           RTMP 与 WebRTC 的核心区别：为什么它们适合完全不同的场景
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/rtmp-vs-webrtc-core-differences/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/26/rtmp-vs-webrtc-core-differences/" target="_self">
         <div>
           前言：为什么很多人把 RTMP 和 WebRTC 放在一起比较，但比较完还是模糊只要开始做直播、推流、拉流、视频会议、实时互动或者弱网优化，几乎迟早会碰到一个很高频的问题：  RTMP 和 WebRTC 到底有什么区别？  表面上看，这两个协议 &#x2F; 体系都和“实时视频传输”有关，所以很多人会自然把它们放进一个篮子里比较。 这没问题，但真正一聊深入，很多回答就容易开始发散：  一个说 RT
         </div>
@@ -713,8 +498,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:49" pubdate>
-              2026-04-18
+            <time datetime="2026-04-26 08:00" pubdate>
+              2026-04-26
             </time>
           </div>
         
@@ -750,9 +535,9 @@
             
               <a href="/tags/WebRTC/">#WebRTC</a>
             
-              <a href="/tags/%E6%B5%81%E5%AA%92%E4%BD%93/">#流媒体</a>
-            
               <a href="/tags/RTMP/">#RTMP</a>
+            
+              <a href="/tags/%E6%B5%81%E5%AA%92%E4%BD%93/">#流媒体</a>
             
               <a href="/tags/%E5%AE%9E%E6%97%B6%E9%80%9A%E4%BF%A1/">#实时通信</a>
             
@@ -768,13 +553,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/rtp-rtcp-rtsp-relationship/" target="_self">
+        <a href="/2026/04/24/rtp-rtcp-rtsp-relationship/" target="_self">
           RTP、RTCP、RTSP 三者到底是什么关系
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/rtp-rtcp-rtsp-relationship/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/24/rtp-rtcp-rtsp-relationship/" target="_self">
         <div>
           前言：为什么这三个协议总被一起讲，但很多人还是分不清谁到底管什么只要开始接触流媒体、监控、RTSP 拉流、播放器、推流服务器，几乎很快就会碰到这三个名字：  RTP RTCP RTSP  很多人第一次接触时都会下意识把它们当成“一整套东西”，因为它们总是一起出现。 这也不算错，但真正一问：  RTP 在传什么 RTCP 在反馈什么 RTSP 到底是不是在传视频 为什么抓包时你会同时看到 SETUP
         </div>
@@ -784,8 +569,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:32" pubdate>
-              2026-04-18
+            <time datetime="2026-04-24 08:00" pubdate>
+              2026-04-24
             </time>
           </div>
         
@@ -839,13 +624,159 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/ffmpeg-timestamps-pts-dts-timebase/" target="_self">
+        <a href="/2026/04/22/hardware-vs-software-video-encoding/" target="_self">
+          硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/22/hardware-vs-software-video-encoding/" target="_self">
+        <div>
+          前言：为什么很多人知道“硬编更快，软编更灵活”，但真做选型时还是会卡住如果你刚接触视频编码，最容易先记住一句话：  软编码，画质通常更好，调节空间更大 硬编码，速度通常更快，延迟更低，功耗也更友好  这句话不算错。 但问题是，真实项目里的选型从来不是靠这两句口号就能落地。 因为一旦进入工程现场，你马上会面对这些更具体的问题：  摄像头采集上来的是 NV12，编码器到底吃不吃 我想做 1080p30
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-22 08:00" pubdate>
+              2026-04-22
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/H-264/">#H.264</a>
+            
+              <a href="/tags/H-265/">#H.265</a>
+            
+              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+            
+              <a href="/tags/%E7%A1%AC%E7%BC%96%E7%A0%81/">#硬编码</a>
+            
+              <a href="/tags/%E8%BD%AF%E7%BC%96%E7%A0%81/">#软编码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/20/ffmpeg-filter-graph-intro/" target="_self">
+          FFmpeg filter graph 入门：从 scale、fps、overlay 到完整滤镜链
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/20/ffmpeg-filter-graph-intro/" target="_self">
+        <div>
+          前言：为什么很多人会用 FFmpeg 命令，但一到滤镜链就开始发虚学 FFmpeg 的过程中，很多人会先学会这些事：  转码 推流 抽帧 改码率 改封装  这时候你会觉得自己已经能“用 FFmpeg 干活了”。 但只要需求再往前走一步，比如想做：  缩放 裁剪 改帧率 加水印 叠字 多路画面拼接 预处理后再编码  你几乎一定会撞上一个核心概念： filter graph。 也是从这里开始，很多人会
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-20 08:00" pubdate>
+              2026-04-20
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
+            
+              <a href="/tags/filter-graph/">#filter graph</a>
+            
+              <a href="/tags/%E6%8E%A8%E6%B5%81/">#推流</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/19/ffmpeg-timestamps-pts-dts-timebase/" target="_self">
           FFmpeg 时间戳体系入门：PTS、DTS、time_base 到底怎么理解
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/ffmpeg-timestamps-pts-dts-timebase/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/19/ffmpeg-timestamps-pts-dts-timebase/" target="_self">
         <div>
           前言：为什么很多人学 FFmpeg，最后都死在时间戳上如果你已经开始做 FFmpeg、播放器、转码器、推流器、直播链路或者音视频同步，几乎很快就会碰到下面这些词：  PTS DTS time_base duration 重排序 音画同步 av_rescale_q  很多人第一次看这些概念时都会有一种很强的割裂感。 因为表面上它们都像“时间相关信息”，但一旦放到工程里，问题马上就会变复杂：  为什么
         </div>
@@ -855,8 +786,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:27" pubdate>
-              2026-04-18
+            <time datetime="2026-04-19 08:00" pubdate>
+              2026-04-19
             </time>
           </div>
         
@@ -886,16 +817,16 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
-            
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/FFmpeg/">#FFmpeg</a>
             
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
               <a href="/tags/%E6%97%B6%E9%97%B4%E6%88%B3/">#时间戳</a>
             
+              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
+            
           </div>
         
       </div>
@@ -908,15 +839,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/sps-pps-vps-annexb-avcc-relationships/" target="_self">
-          SPS、PPS、VPS、Annex B、AVCC 到底是什么关系
+        <a href="/2026/04/16/from-camera-to-screen-pipeline/" target="_self">
+          视频从采集到显示：全景链路、面试回答与工程实践
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/sps-pps-vps-annexb-avcc-relationships/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/16/from-camera-to-screen-pipeline/" target="_self">
         <div>
-          前言：为什么很多人学了 H.264&#x2F;H.265，还是一碰码流组织就发虚如果你已经开始接触 H.264 &#x2F; H.265，很快就会碰到下面这些词：  SPS PPS VPS NALU Annex B AVCC extradata  很多人第一次看时都会有一种很强的混乱感。 因为这些词表面上都和“码流”有关，但它们又不在同一个层次：  有的是参数集 有的是码流组织方式 有的是容器里常
+          前言：为什么很多人学了很久音视频，脑子里还是一团雾很多人学音视频时都会经历一个阶段：一开始接触到的是各种具体名词——H.264、H.265、AAC、RTP、RTMP、WebRTC、FFmpeg、AVPacket、AVFrame、YUV、NV12、OpenGL；再往后，又会不断碰到各种具体现象——为什么视频这么大、为什么要压缩、为什么会卡顿花屏、为什么会音画不同步、为什么 packet 不等于 fr
         </div>
       </a>
 
@@ -924,8 +855,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:24" pubdate>
-              2026-04-18
+            <time datetime="2026-04-16 08:00" pubdate>
+              2026-04-16
             </time>
           </div>
         
@@ -954,18 +885,16 @@
         
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
               <a href="/tags/FFmpeg/">#FFmpeg</a>
             
-              <a href="/tags/H264/">#H264</a>
-            
-              <a href="/tags/H265/">#H265</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
-              <a href="/tags/%E7%A0%81%E6%B5%81/">#码流</a>
+              <a href="/tags/Camera/">#Camera</a>
+            
+              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
             
           </div>
         
@@ -979,15 +908,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/i-p-b-frames-gop-and-video-prediction/" target="_self">
-          一文讲清 I 帧、P 帧、B 帧、GOP 与视频预测结构
+        <a href="/2026/04/13/sensor-debugging-exposure-timing-stability/" target="_self">
+          Sensor 调试到底在调什么：曝光、帧率、格式、时序与稳定性问题怎么定位
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/i-p-b-frames-gop-and-video-prediction/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/13/sensor-debugging-exposure-timing-stability/" target="_self">
         <div>
-          前言：为什么很多人背过 I &#x2F; P &#x2F; B 帧，还是不理解视频编码只要开始学 H.264 &#x2F; H.265，几乎一定会碰到这些词：  I 帧 P 帧 B 帧 GOP 参考帧 预测结构  很多人对它们并不陌生，甚至在面试前也背过很多次。 但真正一问：  为什么要分 I &#x2F; P &#x2F; B 帧 B 帧到底“厉害”在哪 GOP 为什么不是越长越好 为什么 B
+          前言：为什么 Sensor 调试看起来像“玄学”，本质上却是结构化工程问题只要开始接触 Camera 相关开发，很快就会碰到一个高频词： Sensor 调试。 很多刚接触这一块的人，最开始对它的印象常常是：  寄存器很多 现象很杂 问题不稳定 看起来像 ISP、驱动、硬件、图像质量全缠在一起 老同事总能靠经验很快判断，但自己很容易不知道从哪下手  于是它就很容易给人一种感觉：  Sensor 调试
         </div>
       </a>
 
@@ -995,8 +924,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 01:20" pubdate>
-              2026-04-18
+            <time datetime="2026-04-13 08:00" pubdate>
+              2026-04-13
             </time>
           </div>
         
@@ -1026,17 +955,88 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
-              <a href="/tags/H264/">#H264</a>
+              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
             
-              <a href="/tags/H265/">#H265</a>
+              <a href="/tags/Camera/">#Camera</a>
             
-              <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/">#编解码</a>
+              <a href="/tags/Sensor/">#Sensor</a>
+            
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
+            
+              <a href="/tags/%E8%B0%83%E8%AF%95/">#调试</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/10/camera-pipeline-from-sensor-to-output/" target="_self">
+          Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/10/camera-pipeline-from-sensor-to-output/" target="_self">
+        <div>
+          前言：为什么理解 Camera Pipeline，比只会“拿到一帧图”更重要很多人第一次接触摄像头相关开发时，直觉里最容易形成的理解是：  Camera 不就是采一帧图出来吗？  这句话不能说完全错，但如果你真的开始做 Camera 相关工程，很快就会发现问题根本没这么简单。 因为在真实系统里，一路图像从 sensor 出来，到最后变成：  屏幕上的预览画面 编码后的录像流 一张抓拍图片 AI 模
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-10 08:00" pubdate>
+              2026-04-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
             
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
+            
+              <a href="/tags/Camera/">#Camera</a>
+            
+              <a href="/tags/Sensor/">#Sensor</a>
+            
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/">#图像处理</a>
             
           </div>
         

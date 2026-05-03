@@ -336,13 +336,80 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/22/vlm-intro-from-video-to-understanding/" target="_self">
+        <a href="/2026/05/03/linux-process-thread-io-epoll-notes/" target="_self">
+          从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I/O 核心知识（附高频面试题）
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/03/linux-process-thread-io-epoll-notes/" target="_self">
+        <div>
+          Linux 这一块最容易学散。 一会儿在看 task_struct，一会儿在背文件描述符，一会儿又跳到 socket、epoll、NAPI，最后脑子里剩下一堆零散关键词，却很难形成真正的系统图。 这篇文章尝试把 进程 &#x2F; 线程、文件与 I&#x2F;O、socket、epoll 串成一条主线，并在最后附上高频面试题整理。你可以把它当成一篇偏”体系化复盘”的 Linux 知识整理。  说明
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-03 14:00" pubdate>
+              2026-05-03
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux/" class="category-chain-item">Linux</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Linux/">#Linux</a>
+            
+              <a href="/tags/%E8%BF%9B%E7%A8%8B%E7%BA%BF%E7%A8%8B/">#进程线程</a>
+            
+              <a href="/tags/IO/">#IO</a>
+            
+              <a href="/tags/epoll/">#epoll</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/03/vlm-intro-from-video-to-understanding/" target="_self">
           从视频链路到 VLM，视觉语言模型怎么真正看懂画面
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/22/vlm-intro-from-video-to-understanding/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/03/vlm-intro-from-video-to-understanding/" target="_self">
         <div>
           前言如果前面已经把 H.264、H.265、AV1、FFmpeg 分层架构、解码、图像处理、编码、封装、RTMP、WebRTC、RTSP、RTP 这一整条音视频链路捋顺了，那么现在再进入 VLM，其实不是跳到一个完全陌生的新领域，而是在原有链路后面再接上一层“智能理解”。 前面的音视频系统主要解决的是三件事：  怎么采集视频 怎么压缩、传输、存储视频 怎么把视频还原成可处理的图像帧  而 VLM
         </div>
@@ -352,8 +419,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-22 00:54" pubdate>
-              2026-04-22
+            <time datetime="2026-05-03 12:00" pubdate>
+              2026-05-03
             </time>
           </div>
         
@@ -409,15 +476,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/22/streaming-system-architecture/" target="_self">
-          流媒体系统的标准分层架构
+        <a href="/2026/05/03/chain-lcel-langgraph-workflow/" target="_self">
+          一文讲清 Chain、LCEL、LangGraph 和 Workflow 的关系
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/22/streaming-system-architecture/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/03/chain-lcel-langgraph-workflow/" target="_self">
         <div>
-          前言很多人学流媒体时，最容易出现一种状态：单个名词都认识，但一旦把它们放进同一条系统链路里，就开始混。 比如：  H.264 是编码标准 FLV、MP4 是封装格式 RTP 是媒体传输协议 RTCP 是质量控制协议 RTSP 是信令协议 RTMP 和 WebRTC 又像是“整套方案”  如果这些概念不做分层，工程里很容易出现几种典型混乱：  把封装和传输混成一层 把 RTSP 误当成真正发视频的协
+          很多人在学习 LangChain 或 LangGraph 时，最容易混淆的就是这几个概念：  Chain 是什么？ LCEL 是什么？ LangGraph 又是什么？ Workflow 和它们到底是什么关系？  表面上看，它们都像是在“搭 Agent”，但实际上分工并不一样。理解这几个概念的边界，才能真正知道一个 Agent 系统到底是怎么跑起来的。 这篇文章想做的事情很简单：先把 Chain、L
         </div>
       </a>
 
@@ -425,8 +492,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-22 00:41" pubdate>
-              2026-04-22
+            <time datetime="2026-05-03 10:00" pubdate>
+              2026-05-03
             </time>
           </div>
         
@@ -441,7 +508,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  <a href="/categories/Agent/" class="category-chain-item">Agent</a>
   
   
 
@@ -456,21 +523,15 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
+              <a href="/tags/LangChain/">#LangChain</a>
             
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+              <a href="/tags/LangGraph/">#LangGraph</a>
             
-              <a href="/tags/RTSP/">#RTSP</a>
+              <a href="/tags/LCEL/">#LCEL</a>
             
-              <a href="/tags/WebRTC/">#WebRTC</a>
+              <a href="/tags/Workflow/">#Workflow</a>
             
-              <a href="/tags/RTP/">#RTP</a>
-            
-              <a href="/tags/RTCP/">#RTCP</a>
-            
-              <a href="/tags/%E6%B5%81%E5%AA%92%E4%BD%93/">#流媒体</a>
-            
-              <a href="/tags/RTMP/">#RTMP</a>
+              <a href="/tags/Agent/">#Agent</a>
             
           </div>
         
@@ -484,15 +545,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/22/h265-hevc/" target="_self">
-          H.265 HEVC 入门，从 H.264 升级到更高压缩率
+        <a href="/2026/05/03/how-to-learn-agent-development/" target="_self">
+          如何快速掌握 Agent 开发：从概念理解到企业级架构落地
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/22/h265-hevc/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/03/how-to-learn-agent-development/" target="_self">
         <div>
-          前言如果说 H.264 是现代视频编码最经典的一代标准，那 H.265，也就是 HEVC，可以直接理解成它的全面升级版。 它没有推翻 H.264 的核心世界观，反而是在原有框架上做了一次系统级增强：  I &#x2F; P &#x2F; B 帧还在 GOP 结构还在 帧内预测、帧间预测还在 参考帧缓存还在 NALU 码流组织还在 IDR 刷新机制还在  所以学习 H.265 最轻松的方法，不是把它
+          很多人刚开始学 Agent，都会有一种很强的割裂感。 明明每个词都好像见过，System Prompt、CoT、ReAct、Function Calling、Tool Use、RAG、MCP、Skills……单独看都能说出一点意思，但一旦把它们放到真实项目里，就很容易乱掉。 有时候会分不清：  哪些是提示词层面的设计 哪些是执行流程层面的机制 哪些又是系统工程层面的能力封装  结果就是术语越学越多
         </div>
       </a>
 
@@ -500,8 +561,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-22 00:08" pubdate>
-              2026-04-22
+            <time datetime="2026-05-03 08:00" pubdate>
+              2026-05-03
             </time>
           </div>
         
@@ -516,7 +577,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  <a href="/categories/Agent/" class="category-chain-item">Agent</a>
   
   
 
@@ -531,17 +592,15 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+              <a href="/tags/Agent/">#Agent</a>
             
-              <a href="/tags/H-264/">#H.264</a>
+              <a href="/tags/RAG/">#RAG</a>
             
-              <a href="/tags/H-265/">#H.265</a>
+              <a href="/tags/MCP/">#MCP</a>
             
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+              <a href="/tags/Function-Calling/">#Function Calling</a>
             
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%9F%BA%E7%A1%80/">#工程基础</a>
-            
-              <a href="/tags/HEVC/">#HEVC</a>
+              <a href="/tags/Tool-Use/">#Tool Use</a>
             
           </div>
         
@@ -555,15 +614,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/22/h264-full-pipeline-from-frame-to-bitstream/" target="_self">
-          H.264 全流程讲解，从一帧图像到最终码流
+        <a href="/2026/05/02/can-zcanpro-for-interns/" target="_self">
+          从 CAN 报文到 ZCANPRO 实战，实习生也能看懂的车载通信入门
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/22/h264-full-pipeline-from-frame-to-bitstream/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/02/can-zcanpro-for-interns/" target="_self">
         <div>
-          H.264 全流程讲解，从一帧图像到最终码流 这篇文章按一条完整主线来讲清楚 H.264：输入到底是什么，编码时到底做了什么，输出到底是什么，I&#x2F;P&#x2F;B 帧如何协作，编码器和解码器为什么都必须缓存历史帧，以及 NALU 码流在整条链路中的位置。  H.264 最容易让人困惑的地方，不是概念名词多，而是链路长。宏块、帧内预测、运动估计、残差、变换、量化、熵编码、NALU、GOP、
+          在前装车载和摄像头研发里，CAN 几乎是绕不过去的一条线。 对实习生来说，最常见的场景不是“设计协议”，而是拿着 ZCANPRO 看一堆报文，然后开始发懵：这个 ID 是干什么的，DLC 为什么变了，错误帧激增到底是代码问题、配置问题，还是物理层已经出事了？ 这篇文章不追求把协议标准逐位背下来，而是想帮你先建立一套真正能用于联调和排障的理解框架：  CAN 报文到底在传什么 为什么它看起来像“单层
         </div>
       </a>
 
@@ -571,8 +630,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-22 00:00" pubdate>
-              2026-04-22
+            <time datetime="2026-05-02 14:00" pubdate>
+              2026-05-02
             </time>
           </div>
         
@@ -587,7 +646,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  <a href="/categories/C/" class="category-chain-item">C++</a>
   
   
 
@@ -602,17 +661,13 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/">#视频编码</a>
+              <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/">#车载开发</a>
             
-              <a href="/tags/H-264/">#H.264</a>
+              <a href="/tags/CAN/">#CAN</a>
             
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+              <a href="/tags/ZCANPRO/">#ZCANPRO</a>
             
-              <a href="/tags/I%E5%B8%A7-P%E5%B8%A7-B%E5%B8%A7/">#I帧 P帧 B帧</a>
-            
-              <a href="/tags/NALU/">#NALU</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%9F%BA%E7%A1%80/">#工程基础</a>
+              <a href="/tags/%E5%AE%9E%E4%B9%A0/">#实习</a>
             
           </div>
         
@@ -626,84 +681,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/gstreamer-pipeline-thinking-vs-ffmpeg/" target="_self">
-          GStreamer 的 pipeline 思维是什么：它和 FFmpeg 的差别到底在哪
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/gstreamer-pipeline-thinking-vs-ffmpeg/" target="_self">
-        <div>
-          前言：为什么很多人学完 FFmpeg 再看 GStreamer，会有一种“都认识单词，但整句话读不顺”的感觉如果你已经接触过一段时间 FFmpeg，再去看 GStreamer，通常会有一种非常典型的感觉：  里面很多概念并不是完全陌生 但整体思维方式就是不一样 你能看懂它在“处理媒体”，却总觉得脑回路没完全接上  这种感觉非常正常。 因为 FFmpeg 和 GStreamer 虽然都属于主流媒体框
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 17:53" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/GStreamer/">#GStreamer</a>
-            
-              <a href="/tags/pipeline/">#pipeline</a>
-            
-              <a href="/tags/%E5%AA%92%E4%BD%93%E6%A1%86%E6%9E%B6/">#媒体框架</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/aac-from-pcm-to-compressed-audio-in-av-systems/" target="_self">
+        <a href="/2026/05/02/aac-from-pcm-to-compressed-audio-in-av-systems/" target="_self">
           AAC 在音视频工程中的位置：从 PCM 到压缩音频的主线理解
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/aac-from-pcm-to-compressed-audio-in-av-systems/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/02/aac-from-pcm-to-compressed-audio-in-av-systems/" target="_self">
         <div>
           前言：为什么很多人知道 AAC 很常见，但一问“它到底在系统里干什么”，脑子里还是会有点空只要开始接触音视频，AAC 这个名字几乎绕不开。 你会在很多地方看到它：  MP4 文件里 FLV &#x2F; RTMP 链路里 TS 流里 手机录制视频里 推流系统里 FFmpeg 命令里  所以大家通常都会知道一件事： AAC 很常见。 但“很常见”和“真的理解它在系统里的位置”其实不是一回事。 因为只
         </div>
@@ -713,8 +697,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 17:39" pubdate>
-              2026-04-18
+            <time datetime="2026-05-02 08:00" pubdate>
+              2026-05-02
             </time>
           </div>
         
@@ -744,167 +728,19 @@
           <div class="post-meta">
             <i class="iconfont icon-tags"></i>
             
-              <a href="/tags/FFmpeg/">#FFmpeg</a>
-            
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
               <a href="/tags/%E9%9F%B3%E9%A2%91/">#音频</a>
-            
-              <a href="/tags/PCM/">#PCM</a>
             
               <a href="/tags/AAC/">#AAC</a>
             
-              <a href="/tags/%E7%BC%96%E7%A0%81/">#编码</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/audio-basics-sample-rate-bit-depth-channels-pcm/" target="_self">
-          音频系统基础入门：采样率、位宽、声道数与 PCM 到底怎么理解
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/audio-basics-sample-rate-bit-depth-channels-pcm/" target="_self">
-        <div>
-          前言：为什么很多人学音视频时，视频那边越看越热闹，音频这边却一直像一团雾做音视频的人，通常都会有一种很常见的体验：  视频那边的东西很容易“看见” 音频这边的东西却总有点“听说过，但脑子里没画面”  比如很多人对视频会比较容易形成直觉：  分辨率就是 1920x1080 帧率就是 25fps、30fps H.264&#x2F;H.265 是视频编码 I 帧、P 帧、B 帧是预测结构  这些东西相对
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 17:24" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/%E9%9F%B3%E9%A2%91/">#音频</a>
-            
               <a href="/tags/PCM/">#PCM</a>
             
-              <a href="/tags/%E9%87%87%E6%A0%B7%E7%8E%87/">#采样率</a>
-            
-              <a href="/tags/%E4%BD%8D%E5%AE%BD/">#位宽</a>
-            
-              <a href="/tags/%E5%A3%B0%E9%81%93/">#声道</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/18/container-vs-bitstream-mp4-flv-ts-and-elementary-stream/" target="_self">
-          什么是容器，什么是码流：MP4、FLV、TS 与裸流不要再混了
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/container-vs-bitstream-mp4-flv-ts-and-elementary-stream/" target="_self">
-        <div>
-          前言：为什么很多人学了一堆 H.264、RTP、FFmpeg，最后还是会把“码流”和“容器”说混只要开始接触音视频工程，几乎迟早会遇到这些名字：  H.264 H.265 AAC MP4 FLV TS Annex B AVCC  刚开始学的时候，很多人会下意识把它们都放进一个大筐里，统称成“视频格式”。 这也不奇怪，因为从使用者视角看，它们确实都和“音视频文件能不能播”“流能不能推”“数据怎么传”
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 17:14" pubdate>
-              2026-04-18
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
+              <a href="/tags/%E7%BC%96%E7%A0%81/">#编码</a>
             
               <a href="/tags/FFmpeg/">#FFmpeg</a>
             
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
               <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/%E7%A0%81%E6%B5%81/">#码流</a>
-            
-              <a href="/tags/%E5%AE%B9%E5%99%A8/">#容器</a>
-            
-              <a href="/tags/MP4/">#MP4</a>
-            
-              <a href="/tags/FLV/">#FLV</a>
-            
-              <a href="/tags/TS/">#TS</a>
             
           </div>
         
@@ -918,13 +754,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/nack-pli-fec-how-realtime-media-recovers-from-loss/" target="_self">
+        <a href="/2026/05/01/nack-pli-fec-how-realtime-media-recovers-from-loss/" target="_self">
           NACK、PLI、FEC 到底怎么配合：丢包之后，实时音视频系统到底怎么补救
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/nack-pli-fec-how-realtime-media-recovers-from-loss/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/01/nack-pli-fec-how-realtime-media-recovers-from-loss/" target="_self">
         <div>
           前言：为什么实时音视频里最难受的不是“丢包会不会发生”，而是“丢了以后到底怎么救”只要开始做实时音视频，几乎很快就会接受一个现实： 丢包不是例外，而是常态。 尤其一旦进入这些环境，丢包几乎迟早要来：  Wi-Fi 抖动 4G &#x2F; 5G 波动 公网跨地区链路 弱网移动场景 多人会议并发 家庭网络被别的设备抢占  所以真正有价值的问题，从来不是：  系统能不能做到完全不丢包？  而更像是：
         </div>
@@ -934,8 +770,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 16:57" pubdate>
-              2026-04-18
+            <time datetime="2026-05-01 12:00" pubdate>
+              2026-05-01
             </time>
           </div>
         
@@ -971,15 +807,15 @@
             
               <a href="/tags/WebRTC/">#WebRTC</a>
             
-              <a href="/tags/RTP/">#RTP</a>
-            
-              <a href="/tags/RTCP/">#RTCP</a>
-            
               <a href="/tags/NACK/">#NACK</a>
             
               <a href="/tags/PLI/">#PLI</a>
             
               <a href="/tags/FEC/">#FEC</a>
+            
+              <a href="/tags/RTP/">#RTP</a>
+            
+              <a href="/tags/RTCP/">#RTCP</a>
             
           </div>
         
@@ -993,13 +829,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2026/04/18/webrtc-bandwidth-estimation-and-congestion-control/" target="_self">
+        <a href="/2026/05/01/webrtc-bandwidth-estimation-and-congestion-control/" target="_self">
           带宽估计与拥塞控制到底在干什么：实时音视频为什么必须边传边降边试探
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/18/webrtc-bandwidth-estimation-and-congestion-control/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/01/webrtc-bandwidth-estimation-and-congestion-control/" target="_self">
         <div>
           前言：为什么实时音视频最怕的，不是带宽低，而是你根本不知道现在到底还能发多少前面那篇《WebRTC 为什么难》里，我一直在反复强调一件事： 实时音视频不是静态系统，而是动态系统。 这句话背后，最典型、最硬核的一条主线，其实就是：  带宽估计（Bandwidth Estimation, BWE） 拥塞控制（Congestion Control）  很多人第一次看到这两个词时，会下意识把它们理解成比较
         </div>
@@ -1009,8 +845,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-18 16:33" pubdate>
-              2026-04-18
+            <time datetime="2026-05-01 08:00" pubdate>
+              2026-05-01
             </time>
           </div>
         
@@ -1053,6 +889,150 @@
               <a href="/tags/%E6%8B%A5%E5%A1%9E%E6%8E%A7%E5%88%B6/">#拥塞控制</a>
             
               <a href="/tags/%E5%B8%A6%E5%AE%BD%E4%BC%B0%E8%AE%A1/">#带宽估计</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/30/jitter-loss-reordering-and-jitter-buffer/" target="_self">
+          jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/30/jitter-loss-reordering-and-jitter-buffer/" target="_self">
+        <div>
+          前言：为什么很多实时音视频系统，真正难的不是“发出去”，而是“让对方稳稳收到”很多人刚接触实时音视频时，最开始的关注点通常都在这些地方：  编码能不能成功 推流能不能发出去 解码能不能出图 网络通不通  这些当然都重要。 但只要你开始真正碰实时系统，很快就会发现，最折磨人的问题往往不是“完全不通”，而是那种：  能通，但一卡一卡 能看，但声音断断续续 有画面，但延迟越来越大 一开始正常，网络一抖就
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-30 08:00" pubdate>
+              2026-04-30
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/WebRTC/">#WebRTC</a>
+            
+              <a href="/tags/RTP/">#RTP</a>
+            
+              <a href="/tags/jitter-buffer/">#jitter buffer</a>
+            
+              <a href="/tags/%E5%BC%B1%E7%BD%91%E4%BC%98%E5%8C%96/">#弱网优化</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/04/29/why-webrtc-is-hard-from-capture-to-jitter-buffer/" target="_self">
+          WebRTC 为什么难：从采集、编码、传输到抗抖动，实时音视频链路到底难在哪
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/29/why-webrtc-is-hard-from-capture-to-jitter-buffer/" target="_self">
+        <div>
+          前言：实时音视频链路，为什么难到劝退很多人只要碰实时音视频，几乎迟早会听说   WebRTC 很复杂。  SDP、ICE、STUN、TURN、RTP、RTCP、NACK、PLI、jitter buffer、AEC、FEC、congestion control……名词多得像一整面墙。但如果你真做过实时系统，慢慢会发现，这些名词多只是表象，真正难的是背后那个几乎有点苛刻的系统目标： 在一个充满不确定性
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-04-29 08:00" pubdate>
+              2026-04-29
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
+            
+              <a href="/tags/WebRTC/">#WebRTC</a>
+            
+              <a href="/tags/RTP/">#RTP</a>
+            
+              <a href="/tags/RTCP/">#RTCP</a>
+            
+              <a href="/tags/jitter-buffer/">#jitter buffer</a>
+            
+              <a href="/tags/%E5%AE%9E%E6%97%B6%E9%9F%B3%E8%A7%86%E9%A2%91/">#实时音视频</a>
             
           </div>
         
