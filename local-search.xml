@@ -189,8 +189,6 @@
       
       <tag>工程实践</tag>
       
-      <tag>FFmpeg</tag>
-      
       <tag>音频</tag>
       
       <tag>AAC</tag>
@@ -198,6 +196,8 @@
       <tag>PCM</tag>
       
       <tag>编码</tag>
+      
+      <tag>FFmpeg</tag>
       
     </tags>
     
@@ -833,9 +833,9 @@
       
       <tag>工程实践</tag>
       
-      <tag>视频编码</tag>
-      
       <tag>编解码</tag>
+      
+      <tag>视频编码</tag>
       
       <tag>H264</tag>
       
@@ -1078,9 +1078,9 @@
     
     <tags>
       
-      <tag>方法论</tag>
-      
       <tag>实习</tag>
+      
+      <tag>方法论</tag>
       
       <tag>成长</tag>
       
