@@ -4,6 +4,43 @@
   
   
   <entry>
+    <title>我写了一个开源工具，帮你把实习经历从流水账变成竞争力</title>
+    <link href="/2026/05/04/resumify-how-to-polish-your-internship/"/>
+    <url>/2026/05/04/resumify-how-to-polish-your-internship/</url>
+    
+    <content type="html"><![CDATA[<blockquote><p>一段平平无奇的实习，写好简历后能差多远？<br>差得比你想象的大。</p></blockquote><hr><h2 id="一个故事"><a href="#一个故事" class="headerlink" title="一个故事"></a>一个故事</h2><p>去年有个师弟来找我，说实习了三个月，简历上只能写一句”负责设备测试和验证”。</p><p>我问他：你具体做了什么？</p><p>他说了很多：写测试用例、跑回归、抓日志、定位接口超时问题、跟开发沟通缺陷修复……</p><p>我问他：那你简历上怎么不写这些？</p><p>他说：**”这也能写吗？”**</p><p>能写。而且写出来之后，他的简历从一个”干过点测试”的人，变成了一个”有质量意识、有过排查经验、理解服务端开发流程”的候选人。</p><hr><h2 id="所以我就写了个工具"><a href="#所以我就写了个工具" class="headerlink" title="所以我就写了个工具"></a>所以我就写了个工具</h2><p>这个工具叫 <strong>resumify</strong>（实习.skill）。</p><p>它的核心逻辑很简单：不是帮你编经历，而是帮你<strong>把已经做了的事情，用对的表达方式讲出来</strong>。</p><p>比如一段看起来平平无奇的实习描述：</p><blockquote><p><em>我在一家互联网公司实习了三个月，主要做服务端的接口测试和回归验证。日常工作就是根据产品需求写测试用例，然后拿着环境跑一轮回归，记录有没有异常。遇到偶然复现的 bug，会抓接口日志然后录屏复现步骤提给开发。偶尔也会帮忙整理测试报告。</em></p></blockquote><p>经过 resumify 处理后，简历版输出是这样的：</p><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs tap">参与电商中台服务端接口测试与回归验证，独立完成 6+ 轮全量回归<br>跟踪记录接口异常与线上疑似问题，定位并协助排查<span class="hljs-number"> 4 </span>个影响核心链路的缺陷<br>撰写接口测试用例与冒烟检查清单，提升团队回归效率<br></code></pre></td></tr></table></figure><p>面试口述版输出是这样的：</p><figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm">我实习主要做服务端接口的功能验证和回归测试。<br>日常流程是产品需求评审后，我先根据接口文档编写测试用例，<br>然后在测试环境上跑一轮回归，确认核心接口都正常。<br>如果发现偶尔复现的 <span class="hljs-keyword">bug，我会抓接口请求和响应日志，</span><br><span class="hljs-keyword"></span>结合录屏把复现条件和步骤整理清楚后提交给开发。<br>这段经历让我对服务端系统的开发-测试-上线流程有了完整的认知。<br></code></pre></td></tr></table></figure><p>同一段经历，一个版本像是在”打杂”，另一个版本像是在”有竞争力”。</p><p>区别不是经历本身，而是<strong>表达方式</strong>。</p><hr><h2 id="它不止适用于程序员"><a href="#它不止适用于程序员" class="headerlink" title="它不止适用于程序员"></a>它不止适用于程序员</h2><p>resumify 支持所有岗位：开发、产品、运营、设计、销售、市场、金融、职能、转行。案例库里有电商运营、产品经理、金融实习生等各类场景的完整输出示例。</p><p>核心方法论的灵感来自我对大量实习简历的观察——大多数实习生的简历问题不是”经历太少”，而是”经历没讲好”。</p><hr><h2 id="怎么用"><a href="#怎么用" class="headerlink" title="怎么用"></a>怎么用</h2><p>支持一键安装，覆盖市面上大多数 AI 编程工具：</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-comment"># OpenClaw（原生）</span><br>openclaw skills install resumify<br><br><span class="hljs-comment"># 通用（Claude Code / Cursor / Codex / Windsurf / Trae 等）</span><br>npx skills install breaker505/resumify<br></code></pre></td></tr></table></figure><p>安装后你把实习描述发给 AI，它会自动输出一份完整的《实习提炼报告》，包含：</p><ol><li>核心定位</li><li>简历版</li><li>面试口述版</li><li>STAR 亮点</li><li>核心亮点提炼</li><li>岗位适配建议</li><li>诚实警告</li></ol><hr><h2 id="最后"><a href="#最后" class="headerlink" title="最后"></a>最后</h2><p>一段实习值不值得，不在于你做了什么，而在于<strong>你能不能讲清楚自己做了什么</strong>。</p><p>如果你觉得自己的实习经历值得被更好地表达，欢迎试试这个工具。</p><p>GitHub 地址：<a href="https://github.com/breaker505/resumify">github.com&#x2F;breaker505&#x2F;resumify</a></p><hr><p><em>如果你有兴趣，后续我还会写一篇关于”为什么大多数实习简历写得不好”的深度分析。</em></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>开源</category>
+      
+      <category>工具</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>实习</tag>
+      
+      <tag>简历</tag>
+      
+      <tag>开源</tag>
+      
+      <tag>AI</tag>
+      
+      <tag>skill</tag>
+      
+      <tag>求职</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>从 task_struct 到 epoll，系统梳理 Linux 进程、线程与 I/O 核心知识（附高频面试题）</title>
     <link href="/2026/05/03/linux-process-thread-io-epoll-notes/"/>
     <url>/2026/05/03/linux-process-thread-io-epoll-notes/</url>
