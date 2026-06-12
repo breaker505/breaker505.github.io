@@ -16,30 +16,30 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="author" content="鱼跃厂长">
-  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  <meta name="author" content="爱发呆的鱼">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
   
     <meta name="description" content="前言：为什么理解 Camera Pipeline，比只会“拿到一帧图”更重要很多人第一次接触摄像头相关开发时，直觉里最容易形成的理解是：  Camera 不就是采一帧图出来吗？  这句话不能说完全错，但如果你真的开始做 Camera 相关工程，很快就会发现问题根本没这么简单。 因为在真实系统里，一路图像从 sensor 出来，到最后变成：  屏幕上的预览画面 编码后的录像流 一张抓拍图片 AI 模">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路">
 <meta property="og:url" content="https://breaker505.github.io/2026/04/10/camera-pipeline-from-sensor-to-output/index.html">
-<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:site_name" content="爱发呆的鱼">
 <meta property="og:description" content="前言：为什么理解 Camera Pipeline，比只会“拿到一帧图”更重要很多人第一次接触摄像头相关开发时，直觉里最容易形成的理解是：  Camera 不就是采一帧图出来吗？  这句话不能说完全错，但如果你真的开始做 Camera 相关工程，很快就会发现问题根本没这么简单。 因为在真实系统里，一路图像从 sensor 出来，到最后变成：  屏幕上的预览画面 编码后的录像流 一张抓拍图片 AI 模">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-10T00:00:00.000Z">
 <meta property="article:modified_time" content="2026-05-03T07:55:50.800Z">
-<meta property="article:author" content="鱼跃厂长">
+<meta property="article:author" content="爱发呆的鱼">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="工程实践">
+<meta property="article:tag" content="车载开发">
 <meta property="article:tag" content="Camera">
 <meta property="article:tag" content="Sensor">
 <meta property="article:tag" content="图像处理">
-<meta property="article:tag" content="音视频">
-<meta property="article:tag" content="车载开发">
-<meta property="article:tag" content="工程实践">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路 - 鱼跃厂长</title>
+  <title>Camera Pipeline 是怎么搭起来的：从 Sensor 到图像输出的主链路 - 爱发呆的鱼</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -103,7 +103,7 @@
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>鱼跃厂长</strong>
+      <strong>爱发呆的鱼</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -848,17 +848,17 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
+        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
+      
+        <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/" class="print-no-link">#车载开发</a>
+      
         <a href="/tags/Camera/" class="print-no-link">#Camera</a>
       
         <a href="/tags/Sensor/" class="print-no-link">#Sensor</a>
       
         <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="print-no-link">#图像处理</a>
-      
-        <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
-      
-        <a href="/tags/%E8%BD%A6%E8%BD%BD%E5%BC%80%E5%8F%91/" class="print-no-link">#车载开发</a>
-      
-        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
       
     </div>
   
@@ -877,7 +877,7 @@
       
         <div class="license-meta-item">
           <div>作者</div>
-          <div>鱼跃厂长</div>
+          <div>爱发呆的鱼</div>
         </div>
       
       
@@ -1044,7 +1044,7 @@
     <div class="footer-inner">
   
     <div class="footer-content">
-       <span>© 鱼跃厂长</span> 
+       <span>© 爱发呆的鱼</span> 
     </div>
   
   

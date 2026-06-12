@@ -16,19 +16,19 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="author" content="鱼跃厂长">
-  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  <meta name="author" content="爱发呆的鱼">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
   
     <meta name="description" content="C++ 对象模型里有一块内容，几乎每次学到继承、多态、虚函数时都会反复碰到，那就是：  虚函数到底怎么实现 vtable、vptr 分别是什么 为什么含虚函数的类 sizeof 会变大 单继承、多继承、虚继承下对象内存到底怎么排  这些知识点如果一个个零碎地记，很容易越记越乱。更好的方式是把它们放到同一张图里去理解：虚函数解决的是多态问题，而 vtable&#x2F;vptr、对象布局、继承层次，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="从虚函数到继承布局，系统理解 C++ 对象模型">
 <meta property="og:url" content="https://breaker505.github.io/2026/03/01/cpp-object-model-virtual-functions/index.html">
-<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:site_name" content="爱发呆的鱼">
 <meta property="og:description" content="C++ 对象模型里有一块内容，几乎每次学到继承、多态、虚函数时都会反复碰到，那就是：  虚函数到底怎么实现 vtable、vptr 分别是什么 为什么含虚函数的类 sizeof 会变大 单继承、多继承、虚继承下对象内存到底怎么排  这些知识点如果一个个零碎地记，很容易越记越乱。更好的方式是把它们放到同一张图里去理解：虚函数解决的是多态问题，而 vtable&#x2F;vptr、对象布局、继承层次，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-01T00:00:00.000Z">
 <meta property="article:modified_time" content="2026-05-03T07:55:50.741Z">
-<meta property="article:author" content="鱼跃厂长">
+<meta property="article:author" content="爱发呆的鱼">
 <meta property="article:tag" content="对象模型">
 <meta property="article:tag" content="虚函数">
 <meta property="article:tag" content="继承">
@@ -37,7 +37,7 @@
   
   
   
-  <title>从虚函数到继承布局，系统理解 C++ 对象模型 - 鱼跃厂长</title>
+  <title>从虚函数到继承布局，系统理解 C++ 对象模型 - 爱发呆的鱼</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -101,7 +101,7 @@
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>鱼跃厂长</strong>
+      <strong>爱发呆的鱼</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -739,7 +739,7 @@
       
         <div class="license-meta-item">
           <div>作者</div>
-          <div>鱼跃厂长</div>
+          <div>爱发呆的鱼</div>
         </div>
       
       
@@ -891,7 +891,7 @@
     <div class="footer-inner">
   
     <div class="footer-content">
-       <span>© 鱼跃厂长</span> 
+       <span>© 爱发呆的鱼</span> 
     </div>
   
   

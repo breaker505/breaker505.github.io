@@ -16,23 +16,23 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="author" content="鱼跃厂长">
-  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  <meta name="author" content="爱发呆的鱼">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
   
-    <meta name="description" content="鱼跃厂长的个人博客，记录技术、项目、AI、思考与生活。">
+    <meta name="description" content="爱发呆的鱼的个人博客，记录技术、项目、AI、思考与生活。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="鱼跃厂长">
+<meta property="og:title" content="爱发呆的鱼">
 <meta property="og:url" content="https://breaker505.github.io/index.html">
-<meta property="og:site_name" content="鱼跃厂长">
-<meta property="og:description" content="鱼跃厂长的个人博客，记录技术、项目、AI、思考与生活。">
+<meta property="og:site_name" content="爱发呆的鱼">
+<meta property="og:description" content="爱发呆的鱼的个人博客，记录技术、项目、AI、思考与生活。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:author" content="鱼跃厂长">
-<meta property="article:tag" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+<meta property="article:author" content="爱发呆的鱼">
+<meta property="article:tag" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>鱼跃厂长</title>
+  <title>爱发呆的鱼</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -90,7 +90,7 @@
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>鱼跃厂长</strong>
+      <strong>爱发呆的鱼</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -328,7 +328,85 @@
               <div class="col-12 col-md-10 m-auto">
                 
 
-<h1 style="display: none">鱼跃厂长</h1>
+<h1 style="display: none">爱发呆的鱼</h1>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2026/05/24/clahe-detailed-explanation/" target="_self">
+          CLAHE 详细讲解：从普通直方图均衡 → AHE → CLAHE
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2026/05/24/clahe-detailed-explanation/" target="_self">
+        <div>
+          一句话概括：普通全局直方图均衡（HE）会把整张图一起拉伸，容易局部过曝 &#x2F; 噪点放大；CLAHE 是「分块 + 局部均衡 + 插值平滑 + 限幅」的自适应直方图均衡，专门解决局部对比度提升、同时抑制噪声放大。 本文分 4 部分展开：  普通直方图均衡 HE 原理 &amp; 缺点 自适应直方图均衡 AHE CLAHE 完整原理（核心） 关键参数、OpenCV 代码、调参经验
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2026-05-24 22:43" pubdate>
+              2026-05-24
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="category-chain-item">图像处理</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/OpenCV/">#OpenCV</a>
+            
+              <a href="/tags/CLAHE/">#CLAHE</a>
+            
+              <a href="/tags/%E7%9B%B4%E6%96%B9%E5%9B%BE%E5%9D%87%E8%A1%A1/">#直方图均衡</a>
+            
+              <a href="/tags/AHE/">#AHE</a>
+            
+              <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A2%9E%E5%BC%BA/">#图像增强</a>
+            
+              <a href="/tags/%E5%AF%B9%E6%AF%94%E5%BA%A6%E5%A2%9E%E5%BC%BA/">#对比度增强</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
 
   <div class="row mx-auto index-card">
     
@@ -808,8 +886,6 @@
             
               <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
             
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
               <a href="/tags/%E9%9F%B3%E9%A2%91/">#音频</a>
             
               <a href="/tags/AAC/">#AAC</a>
@@ -819,6 +895,8 @@
               <a href="/tags/%E7%BC%96%E7%A0%81/">#编码</a>
             
               <a href="/tags/FFmpeg/">#FFmpeg</a>
+            
+              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
             
           </div>
         
@@ -974,77 +1052,6 @@
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2026/04/30/jitter-loss-reordering-and-jitter-buffer/" target="_self">
-          jitter、丢包、乱序与 jitter buffer：弱网下实时音视频到底在对抗什么
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2026/04/30/jitter-loss-reordering-and-jitter-buffer/" target="_self">
-        <div>
-          前言：为什么很多实时音视频系统，真正难的不是“发出去”，而是“让对方稳稳收到”很多人刚接触实时音视频时，最开始的关注点通常都在这些地方：  编码能不能成功 推流能不能发出去 解码能不能出图 网络通不通  这些当然都重要。 但只要你开始真正碰实时系统，很快就会发现，最折磨人的问题往往不是“完全不通”，而是那种：  能通，但一卡一卡 能看，但声音断断续续 有画面，但延迟越来越大 一开始正常，网络一抖就
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2026-04-30 08:00" pubdate>
-              2026-04-30
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/">#音视频</a>
-            
-              <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/">#工程实践</a>
-            
-              <a href="/tags/WebRTC/">#WebRTC</a>
-            
-              <a href="/tags/RTP/">#RTP</a>
-            
-              <a href="/tags/jitter-buffer/">#jitter buffer</a>
-            
-              <a href="/tags/%E5%BC%B1%E7%BD%91%E4%BC%98%E5%8C%96/">#弱网优化</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
@@ -1099,7 +1106,7 @@
     <div class="footer-inner">
   
     <div class="footer-content">
-       <span>© 鱼跃厂长</span> 
+       <span>© 爱发呆的鱼</span> 
     </div>
   
   

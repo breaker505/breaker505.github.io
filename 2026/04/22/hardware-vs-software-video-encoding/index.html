@@ -16,22 +16,22 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="author" content="鱼跃厂长">
-  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  <meta name="author" content="爱发呆的鱼">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
   
     <meta name="description" content="前言：为什么很多人知道“硬编更快，软编更灵活”，但真做选型时还是会卡住如果你刚接触视频编码，最容易先记住一句话：  软编码，画质通常更好，调节空间更大 硬编码，速度通常更快，延迟更低，功耗也更友好  这句话不算错。 但问题是，真实项目里的选型从来不是靠这两句口号就能落地。 因为一旦进入工程现场，你马上会面对这些更具体的问题：  摄像头采集上来的是 NV12，编码器到底吃不吃 我想做 1080p30">
 <meta property="og:type" content="article">
 <meta property="og:title" content="硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍">
 <meta property="og:url" content="https://breaker505.github.io/2026/04/22/hardware-vs-software-video-encoding/index.html">
-<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:site_name" content="爱发呆的鱼">
 <meta property="og:description" content="前言：为什么很多人知道“硬编更快，软编更灵活”，但真做选型时还是会卡住如果你刚接触视频编码，最容易先记住一句话：  软编码，画质通常更好，调节空间更大 硬编码，速度通常更快，延迟更低，功耗也更友好  这句话不算错。 但问题是，真实项目里的选型从来不是靠这两句口号就能落地。 因为一旦进入工程现场，你马上会面对这些更具体的问题：  摄像头采集上来的是 NV12，编码器到底吃不吃 我想做 1080p30">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-04-22T00:00:00.000Z">
 <meta property="article:modified_time" content="2026-05-03T07:55:50.824Z">
-<meta property="article:author" content="鱼跃厂长">
+<meta property="article:author" content="爱发呆的鱼">
 <meta property="article:tag" content="音视频">
-<meta property="article:tag" content="工程实践">
 <meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="工程实践">
 <meta property="article:tag" content="视频编码">
 <meta property="article:tag" content="H.264">
 <meta property="article:tag" content="H.265">
@@ -41,7 +41,7 @@
   
   
   
-  <title>硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍 - 鱼跃厂长</title>
+  <title>硬编码、软编码到底怎么选：从 CPU 到 GPU，视频编码方案的工程取舍 - 爱发呆的鱼</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -105,7 +105,7 @@
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>鱼跃厂长</strong>
+      <strong>爱发呆的鱼</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -1178,9 +1178,9 @@
       
         <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
       
-        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
-      
         <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
+      
+        <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
       
         <a href="/tags/%E8%A7%86%E9%A2%91%E7%BC%96%E7%A0%81/" class="print-no-link">#视频编码</a>
       
@@ -1209,7 +1209,7 @@
       
         <div class="license-meta-item">
           <div>作者</div>
-          <div>鱼跃厂长</div>
+          <div>爱发呆的鱼</div>
         </div>
       
       
@@ -1376,7 +1376,7 @@
     <div class="footer-inner">
   
     <div class="footer-content">
-       <span>© 鱼跃厂长</span> 
+       <span>© 爱发呆的鱼</span> 
     </div>
   
   

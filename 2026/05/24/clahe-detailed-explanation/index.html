@@ -1,0 +1,1032 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/avatar.png">
+  <link rel="icon" href="/img/favicon.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="爱发呆的鱼">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
+  
+    <meta name="description" content="一句话概括：普通全局直方图均衡（HE）会把整张图一起拉伸，容易局部过曝 &#x2F; 噪点放大；CLAHE 是「分块 + 局部均衡 + 插值平滑 + 限幅」的自适应直方图均衡，专门解决局部对比度提升、同时抑制噪声放大。 本文分 4 部分展开：  普通直方图均衡 HE 原理 &amp; 缺点 自适应直方图均衡 AHE CLAHE 完整原理（核心） 关键参数、OpenCV 代码、调参经验">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CLAHE 详细讲解：从普通直方图均衡 → AHE → CLAHE">
+<meta property="og:url" content="https://breaker505.github.io/2026/05/24/clahe-detailed-explanation/index.html">
+<meta property="og:site_name" content="爱发呆的鱼">
+<meta property="og:description" content="一句话概括：普通全局直方图均衡（HE）会把整张图一起拉伸，容易局部过曝 &#x2F; 噪点放大；CLAHE 是「分块 + 局部均衡 + 插值平滑 + 限幅」的自适应直方图均衡，专门解决局部对比度提升、同时抑制噪声放大。 本文分 4 部分展开：  普通直方图均衡 HE 原理 &amp; 缺点 自适应直方图均衡 AHE CLAHE 完整原理（核心） 关键参数、OpenCV 代码、调参经验">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-05-24T14:43:00.000Z">
+<meta property="article:modified_time" content="2026-06-12T03:44:08.578Z">
+<meta property="article:author" content="爱发呆的鱼">
+<meta property="article:tag" content="OpenCV">
+<meta property="article:tag" content="CLAHE">
+<meta property="article:tag" content="直方图均衡">
+<meta property="article:tag" content="AHE">
+<meta property="article:tag" content="图像增强">
+<meta property="article:tag" content="对比度增强">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>CLAHE 详细讲解：从普通直方图均衡 → AHE → CLAHE - 爱发呆的鱼</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"breaker505.github.io","root":"/","version":"1.9.9","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"expand_all":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"openkounter":{"server_url":"https://open-kounter.mintimate.cn","path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>爱发呆的鱼</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content (desktop) -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile grid menu overlay -->
+<div id="mobile-grid-menu" class="d-lg-none">
+  <div class="mobile-grid-menu-inner">
+    <div class="container">
+      <div class="row">
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-home-fill"></i>
+                  <span>首页</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/archives/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-archive-fill"></i>
+                  <span>归档</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/categories/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-category-fill"></i>
+                  <span>分类</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/tags/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-tags-fill"></i>
+                  <span>标签</span>
+                </div>
+              </a>
+            </div>
+          
+        
+          
+          
+          
+          
+            <div class="col-4 mobile-grid-cell">
+              <a href="/about/" target="_self">
+                <div class="mobile-grid-item">
+                  <i class="iconfont icon-user-fill"></i>
+                  <span>关于</span>
+                </div>
+              </a>
+            </div>
+          
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-search-btn">
+            <a href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-search"></i>
+                <span>搜索</span>
+              </div>
+            </a>
+          </div>
+        
+        
+          <div class="col-4 mobile-grid-cell" id="mobile-color-toggle-btn"
+               data-label-light="开灯"
+               data-label-dark="关灯">
+            <a href="javascript:;" aria-label="Color Toggle">
+              <div class="mobile-grid-item">
+                <i class="iconfont icon-dark" id="mobile-color-toggle-icon"></i>
+                <span id="mobile-color-toggle-label">关灯</span>
+              </div>
+            </a>
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="CLAHE 详细讲解：从普通直方图均衡 → AHE → CLAHE"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-05-24 22:43" pubdate>
+          2026年5月24日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.5k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          21 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">CLAHE 详细讲解：从普通直方图均衡 → AHE → CLAHE</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>一句话概括：<strong>普通全局直方图均衡（HE）会把整张图一起拉伸，容易局部过曝 &#x2F; 噪点放大；CLAHE 是「分块 + 局部均衡 + 插值平滑 + 限幅」的自适应直方图均衡，专门解决局部对比度提升、同时抑制噪声放大。</strong></p>
+<p>本文分 4 部分展开：</p>
+<ol>
+<li>普通直方图均衡 HE 原理 &amp; 缺点</li>
+<li>自适应直方图均衡 AHE</li>
+<li>CLAHE 完整原理（核心）</li>
+<li>关键参数、OpenCV 代码、调参经验</li>
+</ol>
+<span id="more"></span>
+
+<hr>
+<h2 id="一、普通全局直方图均衡-HE（Global-HE）"><a href="#一、普通全局直方图均衡-HE（Global-HE）" class="headerlink" title="一、普通全局直方图均衡 HE（Global HE）"></a>一、普通全局直方图均衡 HE（Global HE）</h2><h3 id="1-原理"><a href="#1-原理" class="headerlink" title="1. 原理"></a>1. 原理</h3><p>图像是灰度图，像素值 0~255。</p>
+<ol>
+<li>统计整张图<strong>所有像素</strong>的灰度直方图</li>
+<li>计算<strong>累积分布函数 CDF</strong></li>
+<li>用 CDF 做映射，把像素均匀拉伸到 0~255</li>
+</ol>
+<p>映射公式：</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf">s_k <span class="hljs-operator">=</span> <span class="hljs-number">255</span> * Σ(n_j / N)，j <span class="hljs-operator">=</span> <span class="hljs-number">0</span> → k<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><code>n_j</code>：灰度 j 的像素数</li>
+<li><code>N</code>：总像素数</li>
+</ul>
+<h3 id="2-致命缺点"><a href="#2-致命缺点" class="headerlink" title="2. 致命缺点"></a>2. 致命缺点</h3><ol>
+<li><strong>全局统一处理</strong>：亮区更亮、暗区噪声被放大（夜景人脸变脏）</li>
+<li>无法区分<strong>局部区域</strong>：比如一张图一半亮一半暗，均衡后一边过曝一边偏暗</li>
+<li>对光照不均、局部细节差的图效果很差</li>
+</ol>
+<p>👉 于是出现 <strong>AHE（自适应直方图均衡）</strong></p>
+<hr>
+<h2 id="二、AHE-自适应直方图均衡（Adaptive-HE）"><a href="#二、AHE-自适应直方图均衡（Adaptive-HE）" class="headerlink" title="二、AHE 自适应直方图均衡（Adaptive HE）"></a>二、AHE 自适应直方图均衡（Adaptive HE）</h2><h3 id="思路"><a href="#思路" class="headerlink" title="思路"></a>思路</h3><p><strong>不整图均衡，把图片切成很多小方块（tile），每个方块单独做直方图均衡。</strong></p>
+<p><strong>优点：</strong> 局部对比度提升，细节更好</p>
+<p><strong>缺点：</strong></p>
+<ol>
+<li><strong>方块效应（块伪影）</strong>：块与块之间亮度突变，边缘生硬</li>
+<li>小块内像素少，噪声被极度放大</li>
+</ol>
+<p>👉 改进版：<strong>CLAHE（限制对比度自适应直方图均衡）</strong></p>
+<hr>
+<h2 id="三、CLAHE-完整原理（核心）"><a href="#三、CLAHE-完整原理（核心）" class="headerlink" title="三、CLAHE 完整原理（核心）"></a>三、CLAHE 完整原理（核心）</h2><p><strong>Contrast Limited Adaptive Histogram Equalization</strong><br>中文：<strong>限制对比度的自适应直方图均衡</strong></p>
+<p>CLAHE 在 AHE 基础上加了 3 个关键改进：</p>
+<ol>
+<li><strong>图像分块（Tile）</strong></li>
+<li><strong>对比度限幅（Clip Limit 裁剪直方图）</strong></li>
+<li><strong>双线性插值（平滑块边界，消除方块效应）</strong></li>
+</ol>
+<p>下面一步步拆解。</p>
+<h3 id="步骤-1：图像分块（Tile-Size）"><a href="#步骤-1：图像分块（Tile-Size）" class="headerlink" title="步骤 1：图像分块（Tile Size）"></a>步骤 1：图像分块（Tile Size）</h3><p>把图像划分为大小相同的小矩形块（tile），例如常用 <code>tileGridSize=(8,8)</code> 或 <code>(16,16)</code>。每个 tile 独立处理。</p>
+<blockquote>
+<p>tile 越大 → 越接近全局均衡；越小 → 局部越强、噪声越明显</p>
+</blockquote>
+<h3 id="步骤-2：对比度限幅-Clip-Limit（最核心）"><a href="#步骤-2：对比度限幅-Clip-Limit（最核心）" class="headerlink" title="步骤 2：对比度限幅 Clip Limit（最核心）"></a>步骤 2：对比度限幅 Clip Limit（最核心）</h3><p>AHE 中小块像素少，直方图尖峰很高，均衡后噪声爆炸。CLAHE 做<strong>直方图裁剪</strong>：</p>
+<ol>
+<li>对每个 tile，统计灰度直方图</li>
+<li>设置一个阈值 <code>clipLimit</code>（OpenCV 默认 2.0）</li>
+<li>超过阈值的部分<strong>剪掉</strong>，均匀分摊到所有灰度上</li>
+<li>用裁剪后的直方图做均衡</li>
+</ol>
+<p><strong>效果：</strong></p>
+<ul>
+<li>限制单个灰度占比，<strong>抑制噪声放大</strong></li>
+<li>不会过度拉伸，防止局部过曝</li>
+</ul>
+<blockquote>
+<p>clipLimit 越大 → 对比度越强；越小 → 越平滑、噪声越少</p>
+</blockquote>
+<h3 id="步骤-3：均衡映射表"><a href="#步骤-3：均衡映射表" class="headerlink" title="步骤 3：均衡映射表"></a>步骤 3：均衡映射表</h3><p>对每个 tile，用裁剪后的直方图计算 CDF，生成<strong>像素映射表</strong>。</p>
+<h3 id="步骤-4：双线性插值（消除方块边界）"><a href="#步骤-4：双线性插值（消除方块边界）" class="headerlink" title="步骤 4：双线性插值（消除方块边界）"></a>步骤 4：双线性插值（消除方块边界）</h3><p>直接用 tile 映射会出现块状。CLAHE 用<strong>插值</strong>：</p>
+<ul>
+<li><strong>图像内部像素</strong>：用周围 4 个 tile 的映射表加权插值</li>
+<li><strong>边缘像素</strong>：用相邻 2 个 tile 插值</li>
+<li><strong>角落像素</strong>：用单个 tile</li>
+</ul>
+<p>最终块与块之间平滑过渡，没有生硬边界。</p>
+<hr>
+<h2 id="四、关键参数"><a href="#四、关键参数" class="headerlink" title="四、关键参数"></a>四、关键参数</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs python">cv2.createCLAHE(clipLimit=<span class="hljs-number">2.0</span>, tileGridSize=(<span class="hljs-number">8</span>,<span class="hljs-number">8</span>))<br></code></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+<th>常用值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>clipLimit</code></td>
+<td>对比度限制阈值</td>
+<td>1.0~4.0</td>
+</tr>
+<tr>
+<td><code>tileGridSize</code></td>
+<td>分块大小 (w,h)</td>
+<td>(4,4)~(16,16)</td>
+</tr>
+</tbody></table>
+<p><strong>clipLimit 调参：</strong></p>
+<ul>
+<li><code>1.0</code>：几乎不增强，很平滑</li>
+<li><code>2.0</code>：通用推荐</li>
+<li><code>&gt;4</code>：接近 AHE，噪声明显</li>
+</ul>
+<p><strong>tileGridSize 调参：</strong></p>
+<ul>
+<li><code>(4,4)</code>：局部极强，细节拉满，噪声大</li>
+<li><code>(8,8)</code>：最常用，平衡细节与噪声</li>
+<li><code>(16,16)</code>：偏全局，块效应减弱</li>
+</ul>
+<hr>
+<h2 id="五、HE-→-AHE-→-CLAHE-对比总结"><a href="#五、HE-→-AHE-→-CLAHE-对比总结" class="headerlink" title="五、HE → AHE → CLAHE 对比总结"></a>五、HE → AHE → CLAHE 对比总结</h2><table>
+<thead>
+<tr>
+<th></th>
+<th>全局 HE</th>
+<th>AHE</th>
+<th>CLAHE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>处理范围</td>
+<td>整张图</td>
+<td>每个小块</td>
+<td>每个小块</td>
+</tr>
+<tr>
+<td>局部对比度</td>
+<td>差</td>
+<td>好</td>
+<td>好</td>
+</tr>
+<tr>
+<td>噪声控制</td>
+<td>差（暗部放大）</td>
+<td>极差（小块放大）</td>
+<td>好（clipLimit 限制）</td>
+</tr>
+<tr>
+<td>方块效应</td>
+<td>无</td>
+<td>严重</td>
+<td>无（插值消除）</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td>简单增强</td>
+<td>很少直接用</td>
+<td>工业&#x2F;医学&#x2F;监控首选</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="六、OpenCV-完整代码"><a href="#六、OpenCV-完整代码" class="headerlink" title="六、OpenCV 完整代码"></a>六、OpenCV 完整代码</h2><h3 id="1-灰度图-CLAHE"><a href="#1-灰度图-CLAHE" class="headerlink" title="1. 灰度图 CLAHE"></a>1. 灰度图 CLAHE</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> cv2<br><br>img = cv2.imread(<span class="hljs-string">&quot;test.jpg&quot;</span>, <span class="hljs-number">0</span>)<br>clahe = cv2.createCLAHE(clipLimit=<span class="hljs-number">2.0</span>, tileGridSize=(<span class="hljs-number">8</span>,<span class="hljs-number">8</span>))<br>res = clahe.apply(img)<br><br>cv2.imwrite(<span class="hljs-string">&quot;clahe.jpg&quot;</span>, res)<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-彩色图-CLAHE"><a href="#2-彩色图-CLAHE" class="headerlink" title="2. 彩色图 CLAHE"></a>2. 彩色图 CLAHE</h3><p>RGB 直接均衡会偏色，正确做法：</p>
+<ol>
+<li>RGB → YCrCb</li>
+<li>只对 Y（亮度通道）做 CLAHE</li>
+<li>转回 RGB</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> cv2<br><br>img = cv2.imread(<span class="hljs-string">&quot;test.jpg&quot;</span>)<br>img_ycrcb = cv2.cvtColor(img, cv2.COLOR_BGR2YCrCb)<br><br><span class="hljs-comment"># 分离通道</span><br>y, cr, cb = cv2.split(img_ycrcb)<br><br><span class="hljs-comment"># CLAHE 只作用于亮度通道</span><br>clahe = cv2.createCLAHE(clipLimit=<span class="hljs-number">2.0</span>, tileGridSize=(<span class="hljs-number">8</span>,<span class="hljs-number">8</span>))<br>y_enhanced = clahe.apply(y)<br><br><span class="hljs-comment"># 合并并转回 BGR</span><br>img_enhanced = cv2.merge((y_enhanced, cr, cb))<br>img_enhanced = cv2.cvtColor(img_enhanced, cv2.COLOR_YCrCb2BGR)<br><br>cv2.imwrite(<span class="hljs-string">&quot;clahe_color.jpg&quot;</span>, img_enhanced)<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>提示：</strong> 也可以在 Lab 空间的 L 通道上做 CLAHE，效果类似。OpenCV 中用 <code>cv2.COLOR_BGR2Lab</code> 转换，对 L 通道做均衡后再转回。</p>
+</blockquote>
+<hr>
+<h2 id="七、适用场景-调参经验"><a href="#七、适用场景-调参经验" class="headerlink" title="七、适用场景 &amp; 调参经验"></a>七、适用场景 &amp; 调参经验</h2><h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>夜景、逆光、光照不均图像</li>
+<li>医学影像（CT、X 光）</li>
+<li>监控、车载摄像头、低照度图像</li>
+<li>人脸识别预处理</li>
+</ul>
+<h3 id="调参口诀"><a href="#调参口诀" class="headerlink" title="调参口诀"></a>调参口诀</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>clipLimit</th>
+<th>tileGridSize</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>低照度、噪点多</td>
+<td>1.5</td>
+<td>(8,8)</td>
+</tr>
+<tr>
+<td>细节少、对比度低</td>
+<td>3.0</td>
+<td>(4,4)</td>
+</tr>
+<tr>
+<td>通用场景</td>
+<td>2.0</td>
+<td>(8,8)</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.opencv.org/4.x/d5/daf/tutorial_py_histogram_equalization.html">OpenCV 官方文档 - CLAHE</a></li>
+<li>Zuiderveld, K. (1994). “Contrast Limited Adaptive Histogram Equalization.” <em>Graphics Gems IV.</em></li>
+</ul>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="category-chain-item">音视频</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/%E9%9F%B3%E8%A7%86%E9%A2%91/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="category-chain-item">图像处理</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OpenCV/" class="print-no-link">#OpenCV</a>
+      
+        <a href="/tags/CLAHE/" class="print-no-link">#CLAHE</a>
+      
+        <a href="/tags/%E7%9B%B4%E6%96%B9%E5%9B%BE%E5%9D%87%E8%A1%A1/" class="print-no-link">#直方图均衡</a>
+      
+        <a href="/tags/AHE/" class="print-no-link">#AHE</a>
+      
+        <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A2%9E%E5%BC%BA/" class="print-no-link">#图像增强</a>
+      
+        <a href="/tags/%E5%AF%B9%E6%AF%94%E5%BA%A6%E5%A2%9E%E5%BC%BA/" class="print-no-link">#对比度增强</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>CLAHE 详细讲解：从普通直方图均衡 → AHE → CLAHE</div>
+      <div>https://breaker505.github.io/2026/05/24/clahe-detailed-explanation/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>爱发呆的鱼</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年5月24日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2026/05/04/resumify-how-to-polish-your-internship/" title="我写了一个开源工具，帮你把实习经历从流水账变成竞争力">
+                        <span class="hidden-mobile">我写了一个开源工具，帮你把实习经历从流水账变成竞争力</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <span>© 爱发呆的鱼</span> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    function isExpandAllEnabled() {
+      return CONFIG.toc && CONFIG.toc.expand_all === true;
+    }
+    function expandAllToc() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .tocbot-is-collapsed').removeClass('tocbot-is-collapsed');
+    }
+    function updateTocToggle($li, $childList) {
+      var $toggle = $li.children('.toc-toggle');
+      if ($toggle.length === 0) { return; }
+      var collapsed = $childList.hasClass('tocbot-is-collapsed');
+      $toggle
+        .toggleClass('toc-toggle-collapsed', collapsed)
+        .toggleClass('toc-toggle-expanded', !collapsed);
+    }
+    function bindTocToggle() {
+      if (!isExpandAllEnabled()) { return; }
+      jQuery('#toc-body .toc-list-item').each(function() {
+        var $li = jQuery(this);
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) {
+          if ($li.children('.toc-toggle').length === 0) {
+            $li.prepend('<span class="toc-toggle toc-toggle-placeholder" aria-hidden="true">›</span>');
+          }
+          return;
+        }
+
+        if ($li.children('.toc-toggle').length === 0) {
+          $li.prepend('<span class="toc-toggle toc-toggle-expanded" aria-hidden="true">›</span>');
+        }
+        updateTocToggle($li, $childList);
+      });
+      jQuery('#toc-body').off('click.tocToggle').on('click.tocToggle', '.toc-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var $li = jQuery(this).parent('.toc-list-item');
+        var $childList = $li.children('ol');
+        if ($childList.length === 0) { return; }
+        $childList.toggleClass('tocbot-is-collapsed');
+        updateTocToggle($li, $childList);
+      });
+      if (!window.__tocToggleObserver) {
+        window.__tocToggleObserver = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type !== 'attributes' || mutation.attributeName !== 'class') { return; }
+            var $list = jQuery(mutation.target);
+            var $li = $list.parent('.toc-list-item');
+            if ($li.length === 0) { return; }
+            updateTocToggle($li, $list);
+          });
+        });
+        jQuery('#toc-body ol').each(function() {
+          window.__tocToggleObserver.observe(this, { attributes: true });
+        });
+      }
+    }
+    var tocConfig = Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc);
+    if (isExpandAllEnabled()) {
+      tocConfig.collapseDepth = 6;
+    }
+    window.tocbot.init(tocConfig);
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+    expandAllToc();
+    bindTocToggle();
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+        expandAllToc();
+        bindTocToggle();
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

@@ -16,30 +16,30 @@
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="author" content="鱼跃厂长">
-  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 鱼跃厂长">
+  <meta name="author" content="爱发呆的鱼">
+  <meta name="keywords" content="C++, AI, Hexo, 技术博客, 爱发呆的鱼">
   
     <meta name="description" content="前言：为什么很多图像系统最后都会绕回 YUV如果你前面已经接触过：  Camera FFmpeg 编码器 播放器 OpenCV 硬件编解码  那你大概率已经发现一个现象： 虽然 RGB 看起来最直观，但真正的视频系统里，经常一路绕着绕着，最后还是会回到 YUV。 典型场景包括：  Camera 输出 NV12 编码器要求 YUV420 FFmpeg 解码后给你 YUV420P 硬件编解码器更喜欢">
 <meta property="og:type" content="article">
 <meta property="og:title" content="为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍">
 <meta property="og:url" content="https://breaker505.github.io/2026/03/16/why-video-systems-prefer-yuv/index.html">
-<meta property="og:site_name" content="鱼跃厂长">
+<meta property="og:site_name" content="爱发呆的鱼">
 <meta property="og:description" content="前言：为什么很多图像系统最后都会绕回 YUV如果你前面已经接触过：  Camera FFmpeg 编码器 播放器 OpenCV 硬件编解码  那你大概率已经发现一个现象： 虽然 RGB 看起来最直观，但真正的视频系统里，经常一路绕着绕着，最后还是会回到 YUV。 典型场景包括：  Camera 输出 NV12 编码器要求 YUV420 FFmpeg 解码后给你 YUV420P 硬件编解码器更喜欢">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-16T00:00:00.000Z">
 <meta property="article:modified_time" content="2026-05-03T07:55:50.764Z">
-<meta property="article:author" content="鱼跃厂长">
+<meta property="article:author" content="爱发呆的鱼">
+<meta property="article:tag" content="音视频">
+<meta property="article:tag" content="FFmpeg">
+<meta property="article:tag" content="工程实践">
 <meta property="article:tag" content="Camera">
 <meta property="article:tag" content="图像处理">
-<meta property="article:tag" content="音视频">
-<meta property="article:tag" content="工程实践">
-<meta property="article:tag" content="FFmpeg">
 <meta property="article:tag" content="编解码">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍 - 鱼跃厂长</title>
+  <title>为什么视频系统普遍偏爱 YUV：从采样、存储到编码输入的工程取舍 - 爱发呆的鱼</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -103,7 +103,7 @@
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/">
-      <strong>鱼跃厂长</strong>
+      <strong>爱发呆的鱼</strong>
     </a>
 
     <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
@@ -825,15 +825,15 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Camera/" class="print-no-link">#Camera</a>
-      
-        <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="print-no-link">#图像处理</a>
-      
         <a href="/tags/%E9%9F%B3%E8%A7%86%E9%A2%91/" class="print-no-link">#音视频</a>
+      
+        <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
       
         <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" class="print-no-link">#工程实践</a>
       
-        <a href="/tags/FFmpeg/" class="print-no-link">#FFmpeg</a>
+        <a href="/tags/Camera/" class="print-no-link">#Camera</a>
+      
+        <a href="/tags/%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86/" class="print-no-link">#图像处理</a>
       
         <a href="/tags/%E7%BC%96%E8%A7%A3%E7%A0%81/" class="print-no-link">#编解码</a>
       
@@ -854,7 +854,7 @@
       
         <div class="license-meta-item">
           <div>作者</div>
-          <div>鱼跃厂长</div>
+          <div>爱发呆的鱼</div>
         </div>
       
       
@@ -1021,7 +1021,7 @@
     <div class="footer-inner">
   
     <div class="footer-content">
-       <span>© 鱼跃厂长</span> 
+       <span>© 爱发呆的鱼</span> 
     </div>
   
   
