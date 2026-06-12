@@ -456,9 +456,9 @@
       
       <tag>RTCP</tag>
       
-      <tag>流媒体</tag>
-      
       <tag>RTMP</tag>
+      
+      <tag>流媒体</tag>
       
     </tags>
     
@@ -524,9 +524,9 @@
       
       <tag>WebRTC</tag>
       
-      <tag>流媒体</tag>
-      
       <tag>RTMP</tag>
+      
+      <tag>流媒体</tag>
       
       <tag>实时通信</tag>
       
@@ -730,13 +730,13 @@
       
       <tag>工程实践</tag>
       
-      <tag>车载开发</tag>
-      
       <tag>Camera</tag>
       
       <tag>Sensor</tag>
       
       <tag>图像处理</tag>
+      
+      <tag>车载开发</tag>
       
       <tag>调试</tag>
       
@@ -767,13 +767,13 @@
       
       <tag>工程实践</tag>
       
-      <tag>车载开发</tag>
-      
       <tag>Camera</tag>
       
       <tag>Sensor</tag>
       
       <tag>图像处理</tag>
+      
+      <tag>车载开发</tag>
       
     </tags>
     
@@ -907,9 +907,9 @@
       
       <tag>工程实践</tag>
       
-      <tag>编解码</tag>
-      
       <tag>视频编码</tag>
+      
+      <tag>编解码</tag>
       
       <tag>H264</tag>
       
@@ -1117,13 +1117,13 @@
       
       <tag>FFmpeg</tag>
       
+      <tag>车载开发</tag>
+      
       <tag>RTSP</tag>
       
       <tag>WebRTC</tag>
       
       <tag>GStreamer</tag>
-      
-      <tag>车载开发</tag>
       
       <tag>学习路线</tag>
       
